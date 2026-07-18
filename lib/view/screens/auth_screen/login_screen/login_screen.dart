@@ -6,6 +6,8 @@ import 'package:nirbhor/core/app_routes/app_routes.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/view/components/custom_button/custom_button.dart';
 import 'package:nirbhor/view/components/custom_from_card/custom_from_card.dart';
+import '../../../../utils/app_images/app_images.dart';
+import '../../../components/custom_image/custom_image.dart' show CustomImage;
 import '../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../components/custom_text/custom_text.dart';
 
@@ -15,21 +17,51 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  // GetX reactive state — no setState needed
+  final RxBool _isEnglish = true.obs;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Obx(() => Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok | Login',
+        titleName: 'KajerLok',
         leftIcon: true,
-        centerTitleEnable: true,
+        centerTitleEnable: false,
+        rightOnTap: () => _isEnglish.toggle(),
+        rightWidget: RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: _isEnglish.value ? 'English' : 'বাংলা',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16.sp,
+                ),
+              ),
+              TextSpan(
+                text: '/',
+                style: TextStyle(color: Colors.grey, fontSize: 13.sp),
+              ),
+              TextSpan(
+                text: _isEnglish.value ? 'বাংলা' : 'English',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w400,
+                  fontSize: 16.sp,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 24),
             const CustomText(
               text: 'Login',
               fontSize: 28,
@@ -48,12 +80,18 @@ class LoginScreen extends StatelessWidget {
             // Placeholder for image
             Container(
               height: 180,
+              width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Center(
-                child: Icon(Icons.handshake, size: 80, color: Colors.teal),
+              clipBehavior: Clip.hardEdge,
+              child: CustomImage(
+                imageSrc: AppImages.loginImg,
+                height: 180,
+                width: double.infinity,
+                sizeWidth: double.infinity,
+                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(height: 32),
@@ -77,7 +115,7 @@ class LoginScreen extends StatelessWidget {
               icon: const Icon(Icons.lock_outlined, color: Colors.white),
             ),
             const SizedBox(height: 16),
-             CustomButton(
+            CustomButton(
               onTap: () {},
               title: "OTP",
               fillColor: AppColors.secondary,
@@ -89,14 +127,19 @@ class LoginScreen extends StatelessWidget {
               borderWidth: 1,
               icon: const Icon(Icons.sms_outlined, color: AppColors.primary),
             ),
-           const SizedBox(height: 16),
-           //divider with or
+            const SizedBox(height: 16),
+            //divider with or
             Row(
               children: const [
                 Expanded(child: Divider()),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: CustomText(text: 'OR',color: AppColors.black,left: 10,right: 10,),
+                  child: CustomText(
+                    text: 'OR',
+                    color: AppColors.black,
+                    left: 10,
+                    right: 10,
+                  ),
                 ),
                 Expanded(child: Divider()),
               ],
@@ -118,7 +161,8 @@ class LoginScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
             const CustomText(
-              text:'Google login only available if you linked your Gmail after registration.',
+              text:
+                  'Google login only available if you linked your Gmail after registration.',
               fontSize: 13,
               color: Colors.black54,
               textAlign: TextAlign.center,
@@ -130,7 +174,10 @@ class LoginScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CustomText(text: "Don't have an account?  ",color: Colors.grey,),
+                const CustomText(
+                  text: "Don't have an account?  ",
+                  color: Colors.grey,
+                ),
                 GestureDetector(
                   onTap: () {
                     Get.toNamed(AppRoutes.registerScreen);
@@ -146,6 +193,6 @@ class LoginScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }

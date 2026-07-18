@@ -39,28 +39,31 @@ class CustomImage extends StatefulWidget {
 }
 
 class _CustomImageState extends State<CustomImage> {
-  late Widget imageWidget;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) { 
+    Widget imageWidget = const SizedBox.shrink();
     
-     if(widget.imageSrc.endsWith('svg')){
-       imageWidget = SvgPicture.asset(
-         widget.imageSrc,
-         // ignore: deprecated_member_use
-         color: widget.imageColor,
-         height: widget.height,
-         width: widget.width,
-         fit: widget.boxFit ?? BoxFit.cover,
-       );
-     }
-    
-   /* if (widget.imageType == ImageType.svg) {
+    if (widget.imageSrc.startsWith('http://') || widget.imageSrc.startsWith('https://')) {
+      if (widget.imageSrc.contains('.svg')) {
+        imageWidget = SvgPicture.network(
+          widget.imageSrc,
+          // ignore: deprecated_member_use
+          color: widget.imageColor,
+          height: widget.height,
+          width: widget.width,
+          fit: widget.boxFit ?? BoxFit.cover,
+        );
+      } else {
+        imageWidget = Image.network(
+          widget.imageSrc,
+          color: widget.imageColor,
+          height: widget.height,
+          width: widget.width,
+          fit: widget.fit ?? widget.boxFit ?? BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 24),
+        );
+      }
+    } else if (widget.imageSrc.endsWith('svg')) {
       imageWidget = SvgPicture.asset(
         widget.imageSrc,
         // ignore: deprecated_member_use
@@ -69,9 +72,7 @@ class _CustomImageState extends State<CustomImage> {
         width: widget.width,
         fit: widget.boxFit ?? BoxFit.cover,
       );
-    }*/
-
-    if (widget.imageSrc.endsWith('png')) {
+    } else if (widget.imageSrc.endsWith('png') || widget.imageSrc.endsWith('jpg') || widget.imageSrc.endsWith('jpeg')) {
       imageWidget = Image.asset(
         fit: widget.fit,
         widget.imageSrc,
@@ -80,12 +81,23 @@ class _CustomImageState extends State<CustomImage> {
         width: widget.width,
         scale: widget.scale ?? 1,
       );
+    } else {
+      imageWidget = Image.asset(
+        fit: widget.fit,
+        widget.imageSrc,
+        color: widget.imageColor,
+        height: widget.height,
+        width: widget.width,
+        scale: widget.scale ?? 1,
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+      );
     }
 
     return Container(
-        margin: EdgeInsets.symmetric(
-            horizontal: widget.horizontal, vertical: widget.vertical),
-        width: widget.sizeWidth,
-        child: imageWidget);
+      margin: EdgeInsets.symmetric(
+          horizontal: widget.horizontal, vertical: widget.vertical),
+      width: widget.sizeWidth,
+      child: imageWidget,
+    );
   }
 }

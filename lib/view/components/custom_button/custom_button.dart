@@ -43,7 +43,7 @@ class CustomButton extends StatelessWidget {
   final double? borderRadius;
   final bool showSocialButton;
   final String? imageSrc;
-  final Icon? icon;
+  final Widget? icon;
   final FontWeight? fontWeight;
 
   @override
