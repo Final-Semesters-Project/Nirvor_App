@@ -106,7 +106,9 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 16),
             // custom btn password
             CustomButton(
-              onTap: () {},
+              onTap: () {
+                Get.toNamed(AppRoutes.passwordLoginScreen);
+              },
               title: "Password",
               fillColor: AppColors.primary,
               textColor: Colors.white,
@@ -116,7 +118,9 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             CustomButton(
-              onTap: () {},
+              onTap: () {
+                Get.toNamed(AppRoutes.otpVerifyScreen);
+              },
               title: "OTP",
               fillColor: AppColors.secondary,
               textColor: AppColors.primary,
