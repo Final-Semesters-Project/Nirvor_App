@@ -45,7 +45,7 @@ class RegisterMethodScreen extends StatelessWidget {
               title: 'Register with OTP'.tr,
               icon: Icons.phone_android,
               onTap: () {
-                Get.toNamed(AppRoutes.registerScreen);
+                Get.toNamed(AppRoutes.otpVerifyScreen);
               },
             ),
             const SizedBox(height: 24),
