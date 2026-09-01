@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ProviderProfileScreen extends StatelessWidget {
-  const ProviderProfileScreen({Key? key}) : super(key: key);
+  const ProviderProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

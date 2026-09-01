@@ -1,8 +1,8 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter/foundation.dart';
 
 class SocketApi {
-  static IO.Socket? socket;
+  static io.Socket? socket;
   static bool _isInitialized = false;
 
   static void init(String baseUrl, String userId) {
@@ -14,9 +14,9 @@ class SocketApi {
     try {
       debugPrint('🟡 Connecting to: $baseUrl with user: $userId');
 
-      socket = IO.io(
+      socket = io.io(
         baseUrl,
-        IO.OptionBuilder()
+        io.OptionBuilder()
             .setTransports(['websocket'])
             .setQuery({'id': userId})
             .disableAutoConnect()

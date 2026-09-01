@@ -6,11 +6,11 @@ class SocialLoginButton extends StatelessWidget {
   final Widget icon;
 
   const SocialLoginButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -12,31 +12,39 @@ import '../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../components/custom_text/custom_text.dart';
 
 class LoginScreen extends StatelessWidget {
-  LoginScreen({Key? key}) : super(key: key);
+  LoginScreen({super.key});
 
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   // GetX reactive state — no setState needed
-  final RxBool _isEnglish = true.obs;
-
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
+    return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok',
+        titleName: 'KajerLok'.tr,
         leftIcon: true,
         centerTitleEnable: false,
-        rightOnTap: () => _isEnglish.toggle(),
+        rightOnTap: () {
+          if (Get.locale?.languageCode == 'en') {
+            Get.updateLocale(const Locale('bn'));
+          } else {
+            Get.updateLocale(const Locale('en'));
+          }
+        },
         rightWidget: RichText(
           text: TextSpan(
             children: [
               TextSpan(
-                text: _isEnglish.value ? 'English' : 'বাংলা',
+                text: 'English'.tr,
                 style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
+                  color: Get.locale?.languageCode == 'bn'
+                      ? Colors.grey
+                      : AppColors.primary,
+                  fontWeight: Get.locale?.languageCode == 'bn'
+                      ? FontWeight.w400
+                      : FontWeight.w700,
                   fontSize: 16.sp,
                 ),
               ),
@@ -45,10 +53,14 @@ class LoginScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.grey, fontSize: 13.sp),
               ),
               TextSpan(
-                text: _isEnglish.value ? 'বাংলা' : 'English',
+                text: 'বাংলা'.tr,
                 style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w400,
+                  color: Get.locale?.languageCode == 'bn'
+                      ? AppColors.primary
+                      : Colors.grey,
+                  fontWeight: Get.locale?.languageCode == 'bn'
+                      ? FontWeight.w700
+                      : FontWeight.w400,
                   fontSize: 16.sp,
                 ),
               ),
@@ -62,16 +74,16 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const CustomText(
-              text: 'Login',
+            CustomText(
+              text: 'Login'.tr,
               fontSize: 28,
               fontWeight: FontWeight.bold,
               color: Colors.black,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const CustomText(
-              text: 'Access your verified community workspace',
+            CustomText(
+              text: 'Access your verified community workspace'.tr,
               fontSize: 16,
               color: Colors.black54,
               textAlign: TextAlign.center,
@@ -101,7 +113,7 @@ class LoginScreen extends StatelessWidget {
               hintText: '+880 01XXX XXXXX',
               keyboardType: TextInputType.phone,
               prefixIcon: const Icon(Icons.phone),
-              title: 'Phone Number',
+              title: 'Phone Number'.tr,
             ),
             const SizedBox(height: 16),
             // custom btn password
@@ -109,7 +121,7 @@ class LoginScreen extends StatelessWidget {
               onTap: () {
                 Get.toNamed(AppRoutes.passwordLoginScreen);
               },
-              title: "Password",
+              title: 'Password'.tr,
               fillColor: AppColors.primary,
               textColor: Colors.white,
               fontSize: 14.sp,
@@ -121,7 +133,7 @@ class LoginScreen extends StatelessWidget {
               onTap: () {
                 Get.toNamed(AppRoutes.otpVerifyScreen);
               },
-              title: "OTP",
+              title: 'OTP'.tr,
               fillColor: AppColors.secondary,
               textColor: AppColors.primary,
               fontSize: 14.sp,
@@ -134,12 +146,12 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 16),
             //divider with or
             Row(
-              children: const [
+              children: [
                 Expanded(child: Divider()),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
                   child: CustomText(
-                    text: 'OR',
+                    text: 'OR'.tr,
                     color: AppColors.black,
                     left: 10,
                     right: 10,
@@ -152,7 +164,7 @@ class LoginScreen extends StatelessWidget {
             // google login btn
             CustomButton(
               onTap: () {},
-              title: "Continue with Google",
+              title: 'Continue with Google'.tr,
               fillColor: AppColors.secondary,
               textColor: AppColors.primary,
               fontSize: 14.sp,
@@ -164,9 +176,10 @@ class LoginScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 16),
-            const CustomText(
+            CustomText(
               text:
-                  'Google login only available if you linked your Gmail after registration.',
+                  'Google login only available if you linked your Gmail after registration.'
+                      .tr,
               fontSize: 13,
               color: Colors.black54,
               textAlign: TextAlign.center,
@@ -178,16 +191,16 @@ class LoginScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CustomText(
-                  text: "Don't have an account?  ",
+                CustomText(
+                  text: "Don't have an account?".tr,
                   color: Colors.grey,
                 ),
                 GestureDetector(
                   onTap: () {
                     Get.toNamed(AppRoutes.registerScreen);
                   },
-                  child: const CustomText(
-                    text: 'Register Now',
+                  child: CustomText(
+                    text: 'Register Now'.tr,
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -197,6 +210,6 @@ class LoginScreen extends StatelessWidget {
           ],
         ),
       ),
-    ));
+    );
   }
 }

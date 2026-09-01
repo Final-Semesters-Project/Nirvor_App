@@ -5,6 +5,8 @@ import '../../../utils/app_colors/app_colors.dart';
 import '../custom_image/custom_image.dart';
 import '../custom_text/custom_text.dart';
 
+import 'package:get/get.dart';
+
 class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleName;
   final String? rightIcon;
@@ -16,6 +18,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final void Function()? rightOnTap;
   final bool? leftIcon;
   final bool? centerTitleEnable;
+  final bool showLanguageSwitcher;
 
   const CustomRoyelAppbar({
     super.key,
@@ -29,6 +32,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
     this.rightOnTap,
     this.leftIcon = false,
     this.centerTitleEnable = true,
+    this.showLanguageSwitcher = false,
   });
 
   @override
@@ -40,30 +44,77 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitleEnable,
       scrolledUnderElevation: 0,
       actions: [
-        IconButton(
-          onPressed: () {
-            if (rightOnTap != null) rightOnTap!();
-          },
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          icon: rightWidget != null
-              ? rightWidget!
-              : rightText != null
-                  ? CustomText(
-                      text: rightText!,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    )
-                  : rightIcon == null
-                      ? SizedBox.shrink()
-                      : CustomImage(
-                          imageSrc: rightIcon!,
-                          height: 24,
-                          width: 24,
-                          imageColor: AppColors.black,
-                        ),
-        ),
+        if (showLanguageSwitcher)
+          IconButton(
+            onPressed: () {
+              if (Get.locale?.languageCode == 'en') {
+                Get.updateLocale(const Locale('bn'));
+              } else {
+                Get.updateLocale(const Locale('en'));
+              }
+            },
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            icon: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'English'.tr,
+                    style: TextStyle(
+                      color: Get.locale?.languageCode == 'bn'
+                          ? Colors.grey
+                          : AppColors.primary,
+                      fontWeight: Get.locale?.languageCode == 'bn'
+                          ? FontWeight.w400
+                          : FontWeight.w700,
+                      fontSize: 16.sp,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '/',
+                    style: TextStyle(color: Colors.grey, fontSize: 13.sp),
+                  ),
+                  TextSpan(
+                    text: 'বাংলা'.tr,
+                    style: TextStyle(
+                      color: Get.locale?.languageCode == 'bn'
+                          ? AppColors.primary
+                          : Colors.grey,
+                      fontWeight: Get.locale?.languageCode == 'bn'
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                      fontSize: 16.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          IconButton(
+            onPressed: () {
+              if (rightOnTap != null) rightOnTap!();
+            },
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            icon: rightWidget != null
+                ? rightWidget!
+                : rightText != null
+                    ? CustomText(
+                        text: rightText!,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      )
+                    : rightIcon == null
+                        ? SizedBox.shrink()
+                        : CustomImage(
+                            imageSrc: rightIcon!,
+                            height: 24,
+                            width: 24,
+                            imageColor: AppColors.black,
+                          ),
+          ),
       ],
       backgroundColor: Colors.transparent,
       leading: leftIcon == true

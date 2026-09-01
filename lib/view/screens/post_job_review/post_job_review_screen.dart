@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PostJobReviewScreen extends StatelessWidget {
-  const PostJobReviewScreen({Key? key}) : super(key: key);
+  const PostJobReviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

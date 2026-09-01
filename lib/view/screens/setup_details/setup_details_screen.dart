@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SetupDetailsScreen extends StatelessWidget {
-  const SetupDetailsScreen({Key? key}) : super(key: key);
+  const SetupDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -8,13 +8,13 @@ class LoginTextField extends StatelessWidget {
   final IconData? icon;
 
   const LoginTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.hintText,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

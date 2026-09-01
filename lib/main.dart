@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_routes/app_routes.dart';
+import 'view/language/app_translate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,11 +22,20 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  // Load language settings
+  final prefs = await SharedPreferences.getInstance();
+  final String? languageCode = prefs.getString('languageCode');
+  final String? countryCode = prefs.getString('countryCode');
+  final locale = languageCode != null
+      ? Locale(languageCode, countryCode)
+      : const Locale('en', 'US');
+
+  runApp(MyApp(initialLocale: locale));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Locale initialLocale;
+  const MyApp({super.key, required this.initialLocale});
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +46,15 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
+          translations: AppTranslate(),
+          locale: initialLocale,
+          fallbackLocale: const Locale('en', 'US'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en', 'US'), Locale('bn', 'BD')],
           theme: ThemeData(
             scaffoldBackgroundColor: Colors.white,
             appBarTheme: const AppBarTheme(

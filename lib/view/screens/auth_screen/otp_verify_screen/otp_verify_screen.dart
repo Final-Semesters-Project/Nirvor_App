@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 import '../../../../utils/app_colors/app_colors.dart';
 import '../../../components/custom_button/custom_button.dart';
 import '../../../components/custom_pin_code/custom_pin_code.dart';
@@ -16,7 +17,7 @@ class OtpVerifyScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok',
+        titleName: 'KajerLok'.tr,
         leftIcon: true,
         centerTitleEnable: false,
       ),
@@ -38,15 +39,15 @@ class OtpVerifyScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const CustomText(
-              text: 'Verify OTP',
+            CustomText(
+              text: 'Verify OTP'.tr,
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
             const SizedBox(height: 8),
             CustomText(
-              text: 'We sent a code to +880 XXXXX',
+              text: 'We sent a code to +880 XXXXX'.tr,
               fontSize: 14,
               color: Colors.grey.shade700,
             ),
@@ -64,8 +65,8 @@ class OtpVerifyScreen extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {},
-                  child: const CustomText(
-                    text: 'Resend OTP (30s)',
+                  child: CustomText(
+                    text: 'Resend OTP (30s)'.tr,
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -76,7 +77,7 @@ class OtpVerifyScreen extends StatelessWidget {
             // Verify Button
             CustomButton(
               onTap: () {},
-              title: "Verify",
+              title: 'Verify'.tr,
               fillColor: AppColors.primary,
               textColor: Colors.white,
               fontSize: 16.sp,
@@ -103,15 +104,16 @@ class OtpVerifyScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const CustomText(
-                          text: 'Verified Trust',
+                        CustomText(
+                          text: 'Verified Trust'.tr,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                         const SizedBox(height: 4),
                         CustomText(
                           text:
-                              'This verification helps us keep the KajerLok community safe and reliable for everyone.',
+                              'This verification helps us keep the KajerLok community safe and reliable for everyone.'
+                                  .tr,
                           color: Colors.grey.shade700,
                           fontSize: 12,
                           maxLines: 2,

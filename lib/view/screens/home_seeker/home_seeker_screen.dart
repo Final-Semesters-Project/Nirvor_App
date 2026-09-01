@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class HomeSeekerScreen extends StatelessWidget {
-  const HomeSeekerScreen({Key? key}) : super(key: key);
+  const HomeSeekerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
