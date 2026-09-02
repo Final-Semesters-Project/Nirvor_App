@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:nirbhor/view/screens/Seeker/home_seeker/home_seeker_screen.dart';
+import 'package:nirbhor/view/screens/auth_screen/setup_details/setup_details_screen.dart';
 
 import '../../view/screens/auth_screen/login_screen/login_screen.dart';
 import '../../view/screens/auth_screen/register_screen/register_screen.dart'
@@ -16,6 +18,8 @@ class AppRoutes {
   static const String passwordLoginScreen = "/PasswordLoginScreen";
   static const String welcomeScreen = "/WelcomeScreen";
   static const String registerMethodScreen = "/RegisterMethodScreen";
+  static const String homeSeekerScreen = "/HomeSeekerScreen";
+  static const String setupDetailsScreen = "/SetupDetailsScreen";
 
   static List<GetPage> routes = [
     ///===========================Authentication==========================
@@ -24,8 +28,13 @@ class AppRoutes {
     GetPage(name: otpVerifyScreen, page: () => OtpVerifyScreen()),
     GetPage(name: passwordLoginScreen, page: () => PasswordLoginScreen()),
     GetPage(name: welcomeScreen, page: () => const WelcomeScreen()),
-    GetPage(name: registerMethodScreen, page: () => const RegisterMethodScreen()),
+    GetPage(
+      name: registerMethodScreen,
+      page: () => const RegisterMethodScreen(),
+    ),
+    GetPage(name: setupDetailsScreen, page: () => const SetupDetailsScreen()),
 
     ///============== Immigration Seeker ==================
+    GetPage(name: homeSeekerScreen, page: () => HomeSeekerScreen()),
   ];
 }

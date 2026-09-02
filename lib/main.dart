@@ -5,10 +5,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_routes/app_routes.dart';
+import 'core/dependency/dependency_injection.dart';
 import 'view/language/app_translate.dart';
+
+import 'helper/device_helper/device_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await DeviceHelper.initUserAgent();
   await ScreenUtil.ensureScreenSize();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -67,6 +71,7 @@ class MyApp extends StatelessWidget {
           defaultTransition: Transition.fadeIn,
           transitionDuration: const Duration(milliseconds: 200),
           initialRoute: AppRoutes.welcomeScreen,
+          initialBinding: DependencyInjection(),
           navigatorKey: Get.key,
           getPages: AppRoutes.routes,
         );

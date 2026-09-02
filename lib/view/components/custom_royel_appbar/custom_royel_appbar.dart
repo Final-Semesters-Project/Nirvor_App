@@ -6,6 +6,7 @@ import '../custom_image/custom_image.dart';
 import '../custom_text/custom_text.dart';
 
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleName;
@@ -46,11 +47,16 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         if (showLanguageSwitcher)
           IconButton(
-            onPressed: () {
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
               if (Get.locale?.languageCode == 'en') {
-                Get.updateLocale(const Locale('bn'));
+                Get.updateLocale(const Locale('bn', 'BD'));
+                await prefs.setString('languageCode', 'bn');
+                await prefs.setString('countryCode', 'BD');
               } else {
-                Get.updateLocale(const Locale('en'));
+                Get.updateLocale(const Locale('en', 'US'));
+                await prefs.setString('languageCode', 'en');
+                await prefs.setString('countryCode', 'US');
               }
             },
             splashColor: Colors.transparent,

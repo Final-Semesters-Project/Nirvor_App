@@ -44,7 +44,7 @@ class WelcomeScreen extends StatelessWidget {
               subtitle: 'Hire skilled workers near you'.tr,
               icon: Icons.search,
               onTap: () {
-                Get.toNamed(AppRoutes.registerMethodScreen);
+                Get.toNamed(AppRoutes.registerScreen, arguments: 'Seeker');
               },
             ),
             const SizedBox(height: 24),
@@ -54,7 +54,7 @@ class WelcomeScreen extends StatelessWidget {
               icon: Icons.handshake_outlined,
               isGreyIcon: true,
               onTap: () {
-                Get.toNamed(AppRoutes.registerMethodScreen);
+                Get.toNamed(AppRoutes.registerScreen, arguments: 'provider');
               },
             ),
             const SizedBox(height: 48),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
+import '../controller/auth_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nirbhor/core/app_routes/app_routes.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/view/components/custom_button/custom_button.dart';
@@ -20,17 +22,23 @@ class LoginScreen extends StatelessWidget {
   // GetX reactive state — no setState needed
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
         titleName: 'KajerLok'.tr,
         leftIcon: true,
         centerTitleEnable: false,
-        rightOnTap: () {
+        rightOnTap: () async {
+          final prefs = await SharedPreferences.getInstance();
           if (Get.locale?.languageCode == 'en') {
-            Get.updateLocale(const Locale('bn'));
+            Get.updateLocale(const Locale('bn', 'BD'));
+            await prefs.setString('languageCode', 'bn');
+            await prefs.setString('countryCode', 'BD');
           } else {
-            Get.updateLocale(const Locale('en'));
+            Get.updateLocale(const Locale('en', 'US'));
+            await prefs.setString('languageCode', 'en');
+            await prefs.setString('countryCode', 'US');
           }
         },
         rightWidget: RichText(
@@ -88,7 +96,7 @@ class LoginScreen extends StatelessWidget {
               color: Colors.black54,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             // Placeholder for image
             Container(
               height: 180,
@@ -106,7 +114,7 @@ class LoginScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             // phone nyumber
             CustomFormCard(
               controller: phoneController,
@@ -115,78 +123,128 @@ class LoginScreen extends StatelessWidget {
               prefixIcon: const Icon(Icons.phone),
               title: 'Phone Number'.tr,
             ),
-            const SizedBox(height: 16),
-            // custom btn password
-            CustomButton(
-              onTap: () {
-                Get.toNamed(AppRoutes.passwordLoginScreen);
-              },
-              title: 'Password'.tr,
-              fillColor: AppColors.primary,
-              textColor: Colors.white,
-              fontSize: 14.sp,
-              borderRadius: 8,
-              icon: const Icon(Icons.lock_outlined, color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            CustomButton(
-              onTap: () {
-                Get.toNamed(AppRoutes.otpVerifyScreen);
-              },
-              title: 'OTP'.tr,
-              fillColor: AppColors.secondary,
-              textColor: AppColors.primary,
-              fontSize: 14.sp,
-              borderRadius: 8,
-              isBorder: true,
-              borderColor: AppColors.primary,
-              borderWidth: 1,
-              icon: const Icon(Icons.sms_outlined, color: AppColors.primary),
-            ),
-            const SizedBox(height: 16),
-            //divider with or
-            Row(
-              children: [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: CustomText(
-                    text: 'OR'.tr,
-                    color: AppColors.black,
-                    left: 10,
-                    right: 10,
-                  ),
-                ),
-                Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // google login btn
-            CustomButton(
-              onTap: () {},
-              title: 'Continue with Google'.tr,
-              fillColor: AppColors.secondary,
-              textColor: AppColors.primary,
-              fontSize: 14.sp,
-              borderRadius: 8,
-              isBorder: true,
-              borderColor: AppColors.primary,
-              borderWidth: 1,
-              icon: FaIcon(FontAwesomeIcons.google, color: AppColors.primary),
-            ),
 
-            const SizedBox(height: 16),
-            CustomText(
-              text:
-                  'Google login only available if you linked your Gmail after registration.'
-                      .tr,
-              fontSize: 13,
-              color: Colors.black54,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              fontWeight: FontWeight.w500,
+            CustomFormCard(
+              controller: passwordController,
+              hintText: 'Enter your password'.tr,
+              keyboardType: TextInputType.visiblePassword,
+              prefixIcon: Icon(Icons.lock_outline),
+              title: 'Password'.tr,
+              isPassword: true,
             ),
-            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () {},
+                child: CustomText(
+                  text: 'Forgot Password?'.tr,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Obx(
+              () => authController.isAuthLoading.value
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : CustomButton(
+                      onTap: () {
+                        if (phoneController.text.isNotEmpty &&
+                            passwordController.text.isNotEmpty) {
+                          authController.login(
+                            phoneController.text,
+                            passwordController.text,
+                          );
+                        } else {
+                          showCustomSnackBar(
+                            "Please enter phone and password".tr,
+                            isError: true,
+                          );
+                        }
+                      },
+                      title: 'Login'.tr,
+                      fillColor: AppColors.primary,
+                      textColor: Colors.white,
+                      fontSize: 16.sp,
+                      borderRadius: 8,
+                    ),
+            ),
+            const SizedBox(height: 10),
+            // custom btn password
+            // CustomButton(
+            //   onTap: () {
+            //     Get.toNamed(AppRoutes.passwordLoginScreen);
+            //   },
+            //   title: 'Password'.tr,
+            //   fillColor: AppColors.primary,
+            //   textColor: Colors.white,
+            //   fontSize: 14.sp,
+            //   borderRadius: 8,
+            //   icon: const Icon(Icons.lock_outlined, color: Colors.white),
+            // ),
+            // const SizedBox(height: 16),
+            // CustomButton(
+            //   onTap: () {
+            //     Get.toNamed(AppRoutes.otpVerifyScreen);
+            //   },
+            //   title: 'OTP'.tr,
+            //   fillColor: AppColors.secondary,
+            //   textColor: AppColors.primary,
+            //   fontSize: 14.sp,
+            //   borderRadius: 8,
+            //   isBorder: true,
+            //   borderColor: AppColors.primary,
+            //   borderWidth: 1,
+            //   icon: const Icon(Icons.sms_outlined, color: AppColors.primary),
+            // ),
+            // const SizedBox(height: 16),
+            // //divider with or
+            // Row(
+            //   children: [
+            //     Expanded(child: Divider()),
+            //     Padding(
+            //       padding: EdgeInsets.symmetric(horizontal: 8.0),
+            //       child: CustomText(
+            //         text: 'OR'.tr,
+            //         color: AppColors.black,
+            //         left: 10,
+            //         right: 10,
+            //       ),
+            //     ),
+            //     Expanded(child: Divider()),
+            //   ],
+            // ),
+            // const SizedBox(height: 16),
+            // // google login btn
+            // CustomButton(
+            //   onTap: () {},
+            //   title: 'Continue with Google'.tr,
+            //   fillColor: AppColors.secondary,
+            //   textColor: AppColors.primary,
+            //   fontSize: 14.sp,
+            //   borderRadius: 8,
+            //   isBorder: true,
+            //   borderColor: AppColors.primary,
+            //   borderWidth: 1,
+            //   icon: FaIcon(FontAwesomeIcons.google, color: AppColors.primary),
+            // ),
+
+            // const SizedBox(height: 16),
+            // CustomText(
+            //   text:
+            //       'Google login only available if you linked your Gmail after registration.'
+            //           .tr,
+            //   fontSize: 13,
+            //   color: Colors.black54,
+            //   textAlign: TextAlign.center,
+            //   maxLines: 2,
+            //   fontWeight: FontWeight.w500,
+            // ),
+            // const SizedBox(height: 24),
             //Register btn
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -197,7 +255,7 @@ class LoginScreen extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Get.toNamed(AppRoutes.registerScreen);
+                    Get.toNamed(AppRoutes.registerScreen, arguments: "login");
                   },
                   child: CustomText(
                     text: 'Register Now'.tr,

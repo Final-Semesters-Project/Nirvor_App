@@ -1,12 +1,13 @@
 class ApiUrl {
-  static const String baseUrl = "http://10.10.28.90:8000/api/v1";
-  //static const String baseUrl = "https://womens-jennifer-procedure-cars.trycloudflare.com";
+  static const String baseUrl = "http://10.0.2.2:8000/api/v1";
+  //static const String baseUrl = "http://10.10.28.90:8000/api/v1";
   static const String imageUrl = "http://10.0.2.2:8080";
   static String socketUrl = "http://10.0.2.2:8080";
   static String mapKey = "AIzaSyD96BSj2VcHpAfuy2LE1p7NTO7becR44RE";
 
   ///========================= Authentication =========================
-  static const String signUp = "/auth/signup";
+  static const String signUpSeeker = "/auth/register/seeker";
+  static const String signUpProvider = "/auth/register/provider";
   static const String signIn = "/auth/login";
   static const String verificationOtp = "/auth/verify-signup-otp";
   static const String forgotPassword = "/auth/forgot-password";
@@ -111,4 +112,11 @@ class ApiUrl {
   // map
   static const String getMap =
       "/map?sw_lat=18&sw_lng=89&ne_lat=24&ne_lng=92&category_id=68185fc91db8477bce1fade2";
+
+  ///========================= Category & Skills =========================
+  static const String categoryList = "/category/list";
+  static String skillList(String categoryId) => "/skill/$categoryId/skills";
+
+  ///========================= FCM Token =========================
+  static const String fcmToken = "/auth/fcm/token";
 }

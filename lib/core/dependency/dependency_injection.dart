@@ -1,10 +1,13 @@
 import 'package:get/get.dart';
+
+import '../../view/screens/auth_screen/controller/auth_controller.dart';
+
 class DependencyInjection extends Bindings {
   @override
   void dependencies() {
     ///========================== Default Custom Controller ==================
 
-     //Get.lazyPut(() => AuthController(), fenix: true);
+    Get.lazyPut(() => AuthController(), fenix: true);
     // Get.lazyPut(() => ProfileController(), fenix: true);
     // Get.lazyPut(() => SocialController(), fenix: true);
     // Get.lazyPut(() => HomeController(), fenix: true);

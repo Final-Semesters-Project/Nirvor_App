@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../helper/shared_prefe/shared_prefe.dart';
 import '../utils/app_const/app_const.dart';
+import '../helper/device_helper/device_helper.dart';
 import 'api_url.dart';
 import 'package:mime/mime.dart';
 
@@ -30,6 +31,9 @@ class ApiClient extends GetxService {
       //'Content-Type': 'application/x-www-form-urlencoded',
       'Accept': 'application/json',
       'Authorization': bearerToken,
+      'Accept-Language': Get.locale?.languageCode ?? 'en',
+      'User-Agent': DeviceHelper.userAgent,
+      'X-Staging-K': 'true',
     };
     try {
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
@@ -53,8 +57,8 @@ class ApiClient extends GetxService {
     bearerToken = await SharePrefsHelper.getString(AppConstants.bearerToken);
 
     var mainHeaders = isContentType
-        ? {'Content-Type': 'application/json', 'Authorization': bearerToken}
-        : {'Accept': 'application/json', 'Authorization': bearerToken};
+        ? {'Content-Type': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'}
+        : {'Accept': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'};
     try {
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
       debugPrint('====> API Body: $body');
@@ -62,7 +66,7 @@ class ApiClient extends GetxService {
       http.Response response = await client
           .post(
             Uri.parse(ApiUrl.baseUrl + uri),
-            body: body,
+            body: isContentType ? jsonEncode(body) : body,
             headers: headers ?? mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
@@ -84,8 +88,8 @@ class ApiClient extends GetxService {
     bearerToken = await SharePrefsHelper.getString(AppConstants.bearerToken);
 
     var mainHeaders = isContentType
-        ? {'Content-Type': 'application/json', 'Authorization': bearerToken}
-        : {'Accept': 'application/json', 'Authorization': bearerToken};
+        ? {'Content-Type': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'}
+        : {'Accept': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'};
     try {
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
       debugPrint('====> API Body: $body');
@@ -93,7 +97,7 @@ class ApiClient extends GetxService {
       http.Response response = await client
           .patch(
             Uri.parse(ApiUrl.baseUrl + uri),
-            body: body,
+            body: isContentType ? jsonEncode(body) : body,
             headers: headers ?? mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
@@ -115,6 +119,9 @@ class ApiClient extends GetxService {
     var mainHeaders = {
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': bearerToken,
+      'Accept-Language': Get.locale?.languageCode ?? 'en',
+      'User-Agent': DeviceHelper.userAgent,
+      'X-Staging-K': 'true',
     };
     try {
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
@@ -141,6 +148,9 @@ class ApiClient extends GetxService {
         'Accept': 'application/json',
         "Content-Type": "multipart/form-data",
         'Authorization': bearerToken,
+        'Accept-Language': Get.locale?.languageCode ?? 'en',
+        'User-Agent': DeviceHelper.userAgent,
+        'X-Staging-K': 'true',
       };
 
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
@@ -202,6 +212,9 @@ class ApiClient extends GetxService {
         'Accept': 'application/json',
         "Content-Type": "multipart/form-data",
         'Authorization': bearerToken,
+        'Accept-Language': Get.locale?.languageCode ?? 'en',
+        'User-Agent': DeviceHelper.userAgent,
+        'X-Staging-K': 'true',
       };
 
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
@@ -265,6 +278,9 @@ class ApiClient extends GetxService {
         'Content-Type': 'application/x-www-form-urlencoded',
         // "Content-Type": "multipart/form-data",
         'Authorization': 'Bearer $bearerToken',
+        'Accept-Language': Get.locale?.languageCode ?? 'en',
+        'User-Agent': DeviceHelper.userAgent,
+        'X-Staging-K': 'true',
       };
 
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
@@ -348,6 +364,9 @@ class ApiClient extends GetxService {
     var mainHeaders = {
       'Content-Type': 'application/json',
       'Authorization': bearerToken,
+      'Accept-Language': Get.locale?.languageCode ?? 'en',
+      'User-Agent': DeviceHelper.userAgent,
+      'X-Staging-K': 'true',
     };
     try {
       debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
