@@ -1,4 +1,4 @@
-package com.example.nirvor
+package com.company.nirvor
 
 import io.flutter.embedding.android.FlutterActivity
 
