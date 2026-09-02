@@ -76,6 +76,8 @@ dependencies:
   flutter_spinkit: ^5.2.2
   device_info_plus: ^12.4.0
   package_info_plus: ^9.0.1
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
   
 
 dev_dependencies:

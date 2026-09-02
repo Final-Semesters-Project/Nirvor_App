@@ -7,11 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_routes/app_routes.dart';
 import 'core/dependency/dependency_injection.dart';
 import 'view/language/app_translate.dart';
-
 import 'helper/device_helper/device_helper.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
   await DeviceHelper.initUserAgent();
   await ScreenUtil.ensureScreenSize();
   await SystemChrome.setPreferredOrientations([
