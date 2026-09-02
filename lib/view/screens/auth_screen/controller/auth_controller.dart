@@ -12,12 +12,12 @@ import 'dart:io';
 class AuthController extends GetxController {
   // Category & Skills State
   RxList<dynamic> categories = <dynamic>[].obs;
-  RxList<dynamic> skills = <dynamic>[].obs;
-  RxString selectedCategory = ''.obs;
+  RxList<String> selectedCategories = <String>[].obs;
+  RxMap<String, List<dynamic>> categorySkills = <String, List<dynamic>>{}.obs;
   RxList<String> selectedSkills = <String>[].obs;
 
   // Setup Details State
-  RxDouble workRadius = 5.0.obs;
+  RxDouble workRadius = 1.0.obs;
   RxBool hasSmartphone = false.obs;
 
   // Loading States
@@ -45,18 +45,33 @@ class AuthController extends GetxController {
   }
 
   Future<void> fetchSkills(String categoryId) async {
+    if (categorySkills.containsKey(categoryId)) return;
+    
     isSkillsLoading.value = true;
-    selectedCategory.value = categoryId;
-    selectedSkills.clear(); // Reset skills when category changes
     final response = await ApiClient.getData(ApiUrl.skillList(categoryId));
     if (response.statusCode == 200) {
       if (response.body != null && response.body is List) {
-        skills.value = response.body;
+        categorySkills[categoryId] = response.body;
       }
     } else {
-      debugPrint("Failed to fetch skills: ${response.statusText}");
+      debugPrint("Failed to fetch skills for $categoryId: ${response.statusText}");
     }
     isSkillsLoading.value = false;
+  }
+
+  Future<void> toggleCategory(String categoryId) async {
+    if (selectedCategories.contains(categoryId)) {
+      selectedCategories.remove(categoryId);
+      // Optional: remove selected skills for this category
+      if (categorySkills.containsKey(categoryId)) {
+        for (var skill in categorySkills[categoryId]!) {
+          selectedSkills.remove(skill['id'].toString());
+        }
+      }
+    } else {
+      selectedCategories.add(categoryId);
+      await fetchSkills(categoryId);
+    }
   }
 
   void toggleSkill(String skillId) {
@@ -133,12 +148,12 @@ class AuthController extends GetxController {
 
     String endpoint = ApiUrl.signUpSeeker;
 
-    if (role == "Provider") {
+    if (role.toLowerCase() == "provider") {
       endpoint = ApiUrl.signUpProvider;
-      body["skill_ids"] = selectedSkills;
+      body["skill_ids"] = selectedSkills.map((e) => int.parse(e)).toList();
       body["latitude"] = 0.0;
       body["longitude"] = 0.0;
-      body["working_radius_km"] = workRadius.value;
+      body["working_radius_km"] = workRadius.value.toInt();
       body["has_smartphone"] = hasSmartphone.value;
     }
 
@@ -153,7 +168,7 @@ class AuthController extends GetxController {
       }
       showCustomSnackBar("Registration successful".tr, isError: false);
       await sendFcmToken();
-      if (role == 'Seeker') {
+      if (role.toLowerCase() == 'seeker') {
         Get.offAllNamed(AppRoutes.homeSeekerScreen);
       } else {
         Get.offAllNamed(AppRoutes.loginScreen); // Or provider home

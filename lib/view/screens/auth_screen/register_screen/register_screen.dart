@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nirbhor/utils/ToastMsg/toast_message.dart'
     show showCustomSnackBar;
 import '../controller/auth_controller.dart';
@@ -25,7 +26,12 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
-    String userType = Get.arguments ?? '';
+    String userType = '';
+    if (Get.arguments is String) {
+      userType = Get.arguments;
+    } else if (Get.arguments is Map) {
+      userType = Get.arguments['role'] ?? '';
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
@@ -79,6 +85,9 @@ class RegisterScreen extends StatelessWidget {
             ),
             CustomFormCard(
               controller: nameBnController,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[\u0980-\u09FF\s]')),
+              ],
               hintText: 'আপনার পুরো নাম লিখুন (বাংলা)'.tr,
               title: 'Full Name (Bangla)'.tr,
             ),

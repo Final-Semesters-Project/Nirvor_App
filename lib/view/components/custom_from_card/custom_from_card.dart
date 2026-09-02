@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -29,6 +30,7 @@ class CustomFormCard extends StatelessWidget {
   final Color? titleColor;
   final void Function(String)? onChanged;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomFormCard({
     super.key,
@@ -54,6 +56,7 @@ class CustomFormCard extends StatelessWidget {
     this.fieldBorderColor,
     this.inputTextColor,
     this.curserColor,
+    this.inputFormatters,
   });
 
   @override
@@ -73,6 +76,7 @@ class CustomFormCard extends StatelessWidget {
           isDens: true,
           enabled: enabled,
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
           prefixIcon: prefixIcon,
           validator: validator,
           readOnly: readOnly,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/auth_controller.dart';
 import '../../../../utils/app_colors/app_colors.dart';
@@ -73,7 +74,12 @@ class SetupDetailsScreen extends StatelessWidget {
       ),
 
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
+        padding: const EdgeInsets.only(
+          left: 24.0,
+          right: 24.0,
+          top: 24.0,
+          bottom: 48.0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -104,44 +110,48 @@ class SetupDetailsScreen extends StatelessWidget {
               if (authController.categories.isEmpty) {
                 return const CustomText(text: 'No categories found');
               }
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 2.5,
-                ),
-                itemCount: authController.categories.length,
-                itemBuilder: (context, index) {
-                  final cat = authController.categories[index];
-                  final String catId = cat['_id'] ?? '';
-                  final String catName = cat['name'] ?? '';
-                  final bool isSelected =
-                      authController.selectedCategory.value == catId;
+              List<Widget> rows = [];
+              for (int i = 0; i < authController.categories.length; i += 2) {
+                final cat1 = authController.categories[i];
+                final String catId1 = cat1['id'].toString();
+                final String catName1 = cat1['name'] ?? '';
+                final bool isSelected1 = authController.selectedCategories
+                    .contains(catId1);
 
+                String? catId2;
+                String? catName2;
+                bool isSelected2 = false;
+
+                if (i + 1 < authController.categories.length) {
+                  final cat2 = authController.categories[i + 1];
+                  catId2 = cat2['id'].toString();
+                  catName2 = cat2['name'] ?? '';
+                  isSelected2 = authController.selectedCategories.contains(
+                    catId2,
+                  );
+                }
+
+                Widget buildCard(String id, String name, bool selected) {
                   return GestureDetector(
-                    onTap: () {
-                      authController.fetchSkills(catId);
-                    },
+                    onTap: () => authController.toggleCategory(id),
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.primary),
-                      ),
+                      height: 70,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.primary : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.primary),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            text: catName,
-                            color: isSelected ? Colors.white : Colors.black,
+                            text: name,
+                            color: selected ? Colors.white : Colors.black,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -149,62 +159,114 @@ class SetupDetailsScreen extends StatelessWidget {
                       ),
                     ),
                   );
-                },
-              );
-            }),
-            const SizedBox(height: 24),
-            Obx(() {
-              if (authController.isSkillsLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (authController.selectedCategory.value.isNotEmpty &&
-                  authController.skills.isNotEmpty) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      text: 'আপনার দক্ষতা / Choose Your Skills'.tr,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: authController.skills.map((skill) {
-                        final String skillId = skill['_id'] ?? '';
-                        final String skillName = skill['name'] ?? '';
-                        final bool isSelected = authController.selectedSkills
-                            .contains(skillId);
+                }
 
-                        return GestureDetector(
-                          onTap: () => authController.toggleSkill(skillId),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : Colors.white,
-                              border: Border.all(color: AppColors.primary),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: CustomText(
-                              text: skillName,
-                              color: isSelected ? Colors.white : Colors.black,
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                Widget buildSkills(String catId, String catName) {
+                  return Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                    width: double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          text: 'Skills for $catName',
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        const SizedBox(height: 8),
+                        (authController.isSkillsLoading.value &&
+                                !authController.categorySkills.containsKey(
+                                  catId,
+                                ))
+                            ? const Center(child: CircularProgressIndicator())
+                            : (authController.categorySkills[catId] != null &&
+                                  authController
+                                      .categorySkills[catId]!
+                                      .isNotEmpty)
+                            ? Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: authController.categorySkills[catId]!
+                                    .map((skill) {
+                                      final String skillId = skill['id']
+                                          .toString();
+                                      final String skillName =
+                                          skill['name'] ?? '';
+                                      final bool isSkillSelected =
+                                          authController.selectedSkills
+                                              .contains(skillId);
+
+                                      return GestureDetector(
+                                        onTap: () =>
+                                            authController.toggleSkill(skillId),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isSkillSelected
+                                                ? AppColors.primary
+                                                : Colors.white,
+                                            border: Border.all(
+                                              color: AppColors.primary,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: CustomText(
+                                            text: skillName,
+                                            color: isSkillSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
+                              )
+                            : const CustomText(
+                                text: 'No skills available',
+                                color: Colors.black,
+                              ),
+                      ],
+                    ),
+                  );
+                }
+
+                rows.add(
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: buildCard(catId1, catName1, isSelected1),
+                          ),
+                          const SizedBox(width: 12),
+                          if (catId2 != null)
+                            Expanded(
+                              child: buildCard(catId2, catName2!, isSelected2),
+                            )
+                          else
+                            const Expanded(child: SizedBox()),
+                        ],
+                      ),
+                      if (isSelected1) buildSkills(catId1, catName1),
+                      if (isSelected2) buildSkills(catId2!, catName2!),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
                 );
               }
-              return const SizedBox.shrink();
+              return Column(children: rows);
             }),
 
             Container(
@@ -244,7 +306,7 @@ class SetupDetailsScreen extends StatelessWidget {
                     () => Slider(
                       value: authController.workRadius.value,
                       min: 1,
-                      max: 10,
+                      max: 5,
                       activeColor: AppColors.primary,
                       inactiveColor: Colors.grey.shade300,
                       onChanged: (val) {
@@ -261,7 +323,7 @@ class SetupDetailsScreen extends StatelessWidget {
                         color: Colors.grey.shade600,
                       ),
                       CustomText(
-                        text: '10 KM',
+                        text: '5 KM',
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
@@ -313,20 +375,17 @@ class SetupDetailsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             // Decorative Image Placeholder
             Container(
-              height: 120,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
               ),
               clipBehavior: Clip.hardEdge,
               child: CustomImage(
-                imageSrc:
-                    AppImages.loginImg, // Using existing placeholder image
-                height: 120,
+                imageSrc: AppImages.skills,
                 width: double.infinity,
-                sizeWidth: double.infinity,
                 fit: BoxFit.cover,
+                height: 210,
               ),
             ),
             const SizedBox(height: 32),
@@ -335,20 +394,26 @@ class SetupDetailsScreen extends StatelessWidget {
                   ? const Center(child: CircularProgressIndicator())
                   : CustomButton(
                       onTap: () {
-                        if (authController.selectedCategory.isEmpty) {
-                          Get.snackbar("Error", "Please select a category".tr);
+                        if (authController.selectedCategories.isEmpty) {
+                          showCustomSnackBar(
+                            "Please select a category".tr,
+                            isError: true,
+                          );
                           return;
                         }
                         if (args != null) {
                           authController.register(
                             phone: args['phone'],
-                            nameEn: args['name_en'],
-                            nameBn: args['name_bn'],
+                            nameEn: args['nameEn'],
+                            nameBn: args['nameBn'],
                             password: args['password'],
                             role: args['role'],
                           );
                         } else {
-                          Get.snackbar("Error", "Missing registration info".tr);
+                          showCustomSnackBar(
+                            "Missing registration info".tr,
+                            isError: true,
+                          );
                         }
                       },
                       title: 'Complete Registration'.tr,
