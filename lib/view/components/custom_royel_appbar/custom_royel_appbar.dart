@@ -20,6 +20,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final bool? leftIcon;
   final bool? centerTitleEnable;
   final bool showLanguageSwitcher;
+  final void Function()? onLanguageChanged;
 
   const CustomRoyelAppbar({
     super.key,
@@ -34,6 +35,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
     this.leftIcon = false,
     this.centerTitleEnable = true,
     this.showLanguageSwitcher = false,
+    this.onLanguageChanged,
   });
 
   @override
@@ -58,6 +60,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
                 await prefs.setString('languageCode', 'en');
                 await prefs.setString('countryCode', 'US');
               }
+              onLanguageChanged?.call();
             },
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
