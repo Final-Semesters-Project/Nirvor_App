@@ -63,6 +63,11 @@ class AppTranslate extends Translations {
       'কাজের এলাকা / Work Radius': 'Work Radius',
       'আমার স্মার্টফোন আছে': 'I have a smartphone',
       'I have a smartphone': 'I have a smartphone',
+      '1 KM': '1 KM',
+      '2 KM': '2 KM',
+      '3 KM': '3 KM',
+      '4 KM': '4 KM',
+      '5 KM': '5 KM',
       'Complete Registration': 'Complete Registration',
       'No categories found': 'No categories found',
 
@@ -154,6 +159,11 @@ class AppTranslate extends Translations {
       'কাজের এলাকা / Work Radius': 'কাজের এলাকা',
       'আমার স্মার্টফোন আছে': 'আমার স্মার্টফোন আছে',
       'I have a smartphone': 'আমার স্মার্টফোন আছে',
+      '1 KM': '১ কিলোমিটার',
+      '2 KM': '২ কিলোমিটার',
+      '3 KM': '৩ কিলোমিটার',
+      '4 KM': '৪ কিলোমিটার',
+      '5 KM': '৫ কিলোমিটার',
       'Complete Registration': 'রেজিস্ট্রেশন সম্পূর্ণ করুন',
       'No categories found': 'কোনো ক্যাটাগরি পাওয়া যায়নি',
 

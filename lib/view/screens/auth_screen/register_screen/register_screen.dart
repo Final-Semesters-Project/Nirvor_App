@@ -39,6 +39,9 @@ class RegisterScreen extends StatelessWidget {
         leftIcon: true,
         centerTitleEnable: false,
         showLanguageSwitcher: true,
+        onLanguageChanged: () {
+          authController.fetchCategories();
+        },
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

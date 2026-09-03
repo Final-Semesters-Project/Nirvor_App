@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../controller/auth_controller.dart';
 import '../../../../utils/app_colors/app_colors.dart';
 import '../../../../utils/app_images/app_images.dart';
@@ -25,82 +24,32 @@ class SetupDetailsScreen extends StatelessWidget {
         titleName: 'KajerLok'.tr,
         leftIcon: true,
         centerTitleEnable: false,
-        rightOnTap: () async {
-          final prefs = await SharedPreferences.getInstance();
-          if (Get.locale?.languageCode == 'en') {
-            Get.updateLocale(const Locale('bn', 'BD'));
-            await prefs.setString('languageCode', 'bn');
-            await prefs.setString('countryCode', 'BD');
-          } else {
-            Get.updateLocale(const Locale('en', 'US'));
-            await prefs.setString('languageCode', 'en');
-            await prefs.setString('countryCode', 'US');
-          }
-        },
-        rightWidget: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'English'.tr,
-                style: TextStyle(
-                  color: Get.locale?.languageCode == 'bn'
-                      ? Colors.grey
-                      : AppColors.primary,
-                  fontWeight: Get.locale?.languageCode == 'bn'
-                      ? FontWeight.w400
-                      : FontWeight.w700,
-                  fontSize: 16.sp,
-                ),
-              ),
-              TextSpan(
-                text: '/',
-                style: TextStyle(color: Colors.grey, fontSize: 13.sp),
-              ),
-              TextSpan(
-                text: 'বাংলা'.tr,
-                style: TextStyle(
-                  color: Get.locale?.languageCode == 'bn'
-                      ? AppColors.primary
-                      : Colors.grey,
-                  fontWeight: Get.locale?.languageCode == 'bn'
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  fontSize: 16.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
+        rightOnTap: null,
+        rightWidget: const SizedBox(),
       ),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(
           left: 24.0,
           right: 24.0,
-          top: 24.0,
+          top: 10.0,
           bottom: 48.0,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              text: 'আপনার তথ্য দিন / Your Details'.tr,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-            const SizedBox(height: 4),
-            CustomText(
               text: 'Step 2 of 2: Create your service profile'.tr,
               fontSize: 14,
-              color: Colors.black54,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
             const SizedBox(height: 24),
             CustomText(
               text: 'আপনার পেশা / Choose Your Category'.tr,
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: Colors.black54,
             ),
             const SizedBox(height: 16),
             Obx(() {
@@ -289,8 +238,8 @@ class SetupDetailsScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                          text:
-                              '৫ কিলোমিটার / ${authController.workRadius.value.toInt()} KM',
+                          text: '${authController.workRadius.value.toInt()} KM'
+                              .tr,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primary,
@@ -318,12 +267,12 @@ class SetupDetailsScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: '1 KM',
+                        text: '1 KM'.tr,
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
                       CustomText(
-                        text: '5 KM',
+                        text: '5 KM'.tr,
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
