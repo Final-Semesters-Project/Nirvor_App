@@ -9,7 +9,7 @@ import '../../../../../service/api_client.dart';
 import '../../../../../service/api_url.dart';
 
 class HomeSeekerController extends GetxController {
-  var selectedCategoryIndex = 0.obs;
+  var selectedCategoryIndex = (-1).obs;
 
   var categories = <CategoryModel>[].obs;
   var skills = <SkillModel>[].obs;

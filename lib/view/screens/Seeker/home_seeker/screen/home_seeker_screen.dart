@@ -86,13 +86,16 @@ class HomeSeekerScreen extends StatelessWidget {
                   child: CircularProgressIndicator(color: AppColors.primary),
                 );
               }
+              
+            
+              final selectedIndex = controller.selectedCategoryIndex.value;
+              
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 itemCount: controller.categories.length,
                 itemBuilder: (context, index) {
-                  final isSelected =
-                      controller.selectedCategoryIndex.value == index;
+                  final isSelected = selectedIndex == index;
                   final category = controller.categories[index];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
