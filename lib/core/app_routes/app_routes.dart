@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:nirbhor/view/screens/Seeker/home_seeker/home_seeker_screen.dart';
+import 'package:nirbhor/view/screens/Seeker/home_seeker/screen/home_seeker_screen.dart';
 import 'package:nirbhor/view/screens/auth_screen/setup_details/setup_details_screen.dart';
 
 import '../../view/screens/auth_screen/login_screen/login_screen.dart';

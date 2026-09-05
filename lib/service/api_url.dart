@@ -15,11 +15,17 @@ class ApiUrl {
   static const String newPassword = "/auth/reset-password";
 
   ///========================= User =========================
-  // static String getRecommendedCountries ({required String page}) => "/recommendations/history?page=$page&limit=10";
+  static const String userProfile = "/users/me";
 
   ///========================= Category & Skills =========================
   static const String categoryList = "/category/list";
   static String skillList(String categoryId) => "/skill/$categoryId/skills";
+
+  ///========================= Search Providers =========================
+  static const String searchProviders = "/search/providers";
+
+  ///========================= Bookings =========================
+  static const String activeBooking = "/bookings/seeker/last_active_initiated";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";

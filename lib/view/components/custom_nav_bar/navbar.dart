@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../utils/app_colors/app_colors.dart';
-import '../../screens/Seeker/home_seeker/home_seeker_screen.dart';
+import '../../screens/Seeker/home_seeker/screen/home_seeker_screen.dart';
 
 class SeekerNavbar extends StatefulWidget {
   final int currentIndex;

@@ -6,34 +6,36 @@ import 'package:nirbhor/utils/app_const/app_const.dart';
 import 'package:nirbhor/view/components/custom_nav_bar/navbar.dart';
 import 'package:nirbhor/view/components/custom_netwrok_image/custom_network_image.dart';
 import 'package:nirbhor/view/components/custom_royel_appbar/custom_royel_appbar.dart';
-import 'home_seeker_controller.dart';
+import '../../seeker_profile/controller/seeker_profile_controller.dart';
+import '../controller/home_seeker_controller.dart';
 
 class HomeSeekerScreen extends StatelessWidget {
   HomeSeekerScreen({super.key});
 
-  final HomeSeekerController controller = Get.put(HomeSeekerController());
-
-  final List<String> categories = [
-    'Manual Labor'.tr,
-    'Home Repair'.tr,
-    'Cleaning'.tr, // extra if needed
-  ];
+  final HomeSeekerController controller = Get.find<HomeSeekerController>();
+  final SeekerProfileController seekerProfileController =
+      Get.find<SeekerProfileController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBody: true, 
+      extendBody: true,
       appBar: CustomRoyelAppbar(
         titleName: 'KajerLok'.tr,
         leftIcon: false,
         centerTitleEnable: false,
-        rightWidget: CustomNetworkImage(
-          imageUrl: AppConstants.profileImage2,
-          height: 40,
-          width: 40,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        rightWidget: Obx(() {
+          final profilePic = seekerProfileController.user.value?.photoUrl ?? '';
+          return CustomNetworkImage(
+            imageUrl: profilePic.isNotEmpty
+                ? profilePic
+                : AppConstants.profileImage,
+            height: 40,
+            width: 40,
+            borderRadius: BorderRadius.circular(12),
+          );
+        }),
         rightOnTap: () {},
       ),
       body: Column(
@@ -44,12 +46,14 @@ class HomeSeekerScreen extends StatelessWidget {
               horizontal: 16.0,
               vertical: 8.0,
             ),
-            child: Text(
-              '${'Hello'.tr}, Rahim',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            child: Obx(
+              () => Text(
+                '${'Hello'.tr}, ${seekerProfileController.user.value?.name ?? ''}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
             ),
           ),
@@ -76,18 +80,25 @@ class HomeSeekerScreen extends StatelessWidget {
           ),
           SizedBox(
             height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return Obx(() {
-                  final isSelected = controller.selectedCategoryIndex.value == index;
+            child: Obx(() {
+              if (controller.isLoadingCategories.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                itemCount: controller.categories.length,
+                itemBuilder: (context, index) {
+                  final isSelected =
+                      controller.selectedCategoryIndex.value == index;
+                  final category = controller.categories[index];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
                       showCheckmark: false,
-                      label: Text(categories[index]),
+                      label: Text(category.name),
                       selected: isSelected,
                       onSelected: (bool selected) {
                         if (selected) {
@@ -109,31 +120,22 @@ class HomeSeekerScreen extends StatelessWidget {
                       ),
                     ),
                   );
-                });
-              },
-            ),
+                },
+              );
+            }),
           ),
           const SizedBox(height: 8.0),
           Expanded(
-            child: GoogleMap(
-              initialCameraPosition: const CameraPosition(
-                target: LatLng(23.7947, 90.4010),
-                zoom: 14,
+            child: Obx(
+              () => GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: controller.initialPosition.value,
+                  zoom: 14,
+                ),
+                myLocationEnabled: true,
+                zoomControlsEnabled: false,
+                markers: controller.markers.toSet(),
               ),
-              myLocationEnabled: true,
-              zoomControlsEnabled: false,
-              markers: {
-                const Marker(
-                  markerId: MarkerId('1'),
-                  position: LatLng(23.7947, 90.4010),
-                  infoWindow: InfoWindow(title: 'Rahim'),
-                ),
-                const Marker(
-                  markerId: MarkerId('2'),
-                  position: LatLng(23.7960, 90.4030),
-                  infoWindow: InfoWindow(title: 'Karim'),
-                ),
-              },
             ),
           ),
         ],

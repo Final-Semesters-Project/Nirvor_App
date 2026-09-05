@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
-
+import 'package:nirbhor/view/screens/Seeker/home_seeker/controller/home_seeker_controller.dart';
+import 'package:nirbhor/view/screens/Seeker/seeker_profile/controller/seeker_profile_controller.dart';
 import '../../view/screens/auth_screen/controller/auth_controller.dart';
 
 class DependencyInjection extends Bindings {
@@ -8,13 +9,9 @@ class DependencyInjection extends Bindings {
     ///========================== Default Custom Controller ==================
 
     Get.lazyPut(() => AuthController(), fenix: true);
-    // Get.lazyPut(() => ProfileController(), fenix: true);
-    // Get.lazyPut(() => SocialController(), fenix: true);
-    // Get.lazyPut(() => HomeController(), fenix: true);
-    // ///========================== Event Part Controller ==================
-    // Get.lazyPut(() => EventService(), fenix: true);
-    // Get.lazyPut(() => EventController(), fenix: true);
-    //
+    Get.lazyPut(() => HomeSeekerController(), fenix: true);
+    Get.lazyPut(() => SeekerProfileController(), fenix: true);
+ 
     // ///========================== DM Part Controller ==================
     // Get.lazyPut(() => DmSocialController(), fenix: true);
   }
