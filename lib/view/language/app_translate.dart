@@ -6,6 +6,13 @@ class AppTranslate extends Translations {
     'en': {
       // General
       'KajerLok': 'KajerLok',
+      'Hello': 'Hello',
+      'Search for a skill...': 'Search for a skill...',
+      'Manual Labor': 'Manual Labor',
+      'Home Repair': 'Home Repair',
+      'Home': 'Home',
+      'Bookings': 'Bookings',
+      'Profile': 'Profile',
       'English': 'English',
       'বাংলা': 'বাংলা',
       'OR': 'OR',
@@ -102,6 +109,13 @@ class AppTranslate extends Translations {
     'bn': {
       // General
       'KajerLok': 'কাজের লোক',
+      'Hello': 'হ্যালো',
+      'Search for a skill...': 'দক্ষতা খুঁজুন...',
+      'Manual Labor': 'কায়িক শ্রম',
+      'Home Repair': 'বাসা মেরামত',
+      'Home': 'হোম',
+      'Bookings': 'বুকিং',
+      'Profile': 'প্রোফাইল',
       'English': 'English',
       'বাংলা': 'বাংলা',
       'OR': 'অথবা',

@@ -70,6 +70,11 @@ class MyApp extends StatelessWidget {
               elevation: 0,
               centerTitle: true,
               backgroundColor: Colors.white,
+              systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.dark,
+                statusBarBrightness: Brightness.light,
+              ),
             ),
           ),
           defaultTransition: Transition.fadeIn,

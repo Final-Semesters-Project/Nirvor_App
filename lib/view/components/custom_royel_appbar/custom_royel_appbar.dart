@@ -139,7 +139,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
           text: titleName ?? "",
           fontSize: 20.w,
           fontWeight: FontWeight.w600,
-          color: color ?? AppColors.black,
+          color: color ?? AppColors.primary,
         ),
       ),
       bottom: PreferredSize(

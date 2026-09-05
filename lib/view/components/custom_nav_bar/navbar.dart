@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import '../../../utils/app_colors/app_colors.dart';
+import '../../screens/Seeker/home_seeker/home_seeker_screen.dart';
 
-class HostNavbar extends StatefulWidget {
+class SeekerNavbar extends StatefulWidget {
   final int currentIndex;
 
-  const HostNavbar({required this.currentIndex, super.key});
+  const SeekerNavbar({required this.currentIndex, super.key});
 
   @override
-  State<HostNavbar> createState() => _HostNavBarState();
+  State<SeekerNavbar> createState() => _SeekerNavbarState();
 }
 
-class _HostNavBarState extends State<HostNavbar> {
+class _SeekerNavbarState extends State<SeekerNavbar> {
   late int bottomNavIndex;
 
-  final List<IconData> icons = [Icons.home, Icons.settings];
-
-  final List<String> labels = ['SetUp_Profile_Screen', 'Settings'];
+  final List<IconData> icons = [Icons.explore, Icons.receipt_long, Icons.person];
 
   @override
   void initState() {
@@ -26,98 +26,66 @@ class _HostNavBarState extends State<HostNavbar> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        SafeArea(
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.zero,
-            ),
-            height: 80.h,
-            width: MediaQuery.of(context).size.width,
-            alignment: Alignment.centerLeft,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildNavItem(0),
-                SizedBox(width: 60.w),
-                _buildNavItem(1),
-              ],
-            ),
-          ),
-        ),
-        // Floating Add Button
-        Positioned(
-          top: -20.h,
-          left: MediaQuery.of(context).size.width / 2 - 28.w,
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  // Get.toNamed(AppRoutes.addDocument);
-                },
-                child: Container(
-                  width: 60.w,
-                  height: 60.h, // increased height
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(Icons.add, color: Colors.white, size: 26.sp),
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Add",
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    final List<String> labels = ['Home'.tr, 'Bookings'.tr, 'Profile'.tr];
+
+    return Container(
+      padding: EdgeInsets.only(
+        left: 20.w,
+        right: 20.w,
+        top: 12.h,
+        bottom: MediaQuery.of(context).padding.bottom > 0
+            ? MediaQuery.of(context).padding.bottom
+            : 12.h,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          )
+        ],
+      ),
+      width: MediaQuery.of(context).size.width,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavItem(0, labels[0]),
+          _buildNavItem(1, labels[1]),
+          _buildNavItem(2, labels[2]),
+        ],
+      ),
     );
   }
 
-  Widget _buildNavItem(int index) {
+  Widget _buildNavItem(int index, String label) {
     bool isSelected = index == bottomNavIndex;
 
     return InkWell(
       onTap: () => onTap(index),
       borderRadius: BorderRadius.circular(20.r),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SizedBox(height: 13.h),
-          Icon(
-            icons[index],
-            size: 25.sp,
-            color: isSelected ? AppColors.primary : Colors.grey,
-          ),
-          SizedBox(height: 4.h),
-          Text(
-            labels[index],
-            style: TextStyle(
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
-              color: isSelected ? AppColors.primary : Colors.grey,
+      child: SizedBox(
+        width: 80.w,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icons[index],
+              size: 26.sp,
+              color: isSelected ? AppColors.primary : Colors.grey.shade400,
             ),
-          ),
-        ],
+            SizedBox(height: 4.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -130,9 +98,12 @@ class _HostNavBarState extends State<HostNavbar> {
 
       switch (index) {
         case 0:
-          // Get.offAll(() => HomeScreen());
+         Get.offAll(() => HomeSeekerScreen());
           break;
         case 1:
+          // Get.to(() => BookingsScreen());
+          break;
+        case 2:
           // Get.to(() => ProfileScreen());
           break;
       }
