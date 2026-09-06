@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:custom_info_window/custom_info_window.dart';
 import '../../../../../model/category_model.dart';
 import '../../../../../model/skill_model.dart';
 import '../../../../../model/provider_model.dart';
@@ -9,6 +10,8 @@ import '../../../../../service/api_client.dart';
 import '../../../../../service/api_url.dart';
 
 class HomeSeekerController extends GetxController {
+  final CustomInfoWindowController customInfoWindowController =
+      CustomInfoWindowController();
   var selectedCategoryIndex = (-1).obs;
 
   var categories = <CategoryModel>[].obs;
@@ -161,11 +164,20 @@ class HomeSeekerController extends GetxController {
       List data = response.body['providers'] ?? [];
       providers.value = data.map((e) => ProviderModel.fromJson(e)).toList();
       _updateMarkers(position);
+      
+      // Force map refresh to show markers immediately
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (customInfoWindowController.googleMapController != null) {
+          customInfoWindowController.googleMapController!.animateCamera(
+            CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)),
+          );
+        }
+      });
     }
   }
 
   void _updateMarkers(Position currentPosition) {
-    markers.clear();
+    var newMarkers = <Marker>{};
     for (int i = 0; i < providers.length; i++) {
       var provider = providers[i];
       double lat = provider.latitude != 0
@@ -175,16 +187,101 @@ class HomeSeekerController extends GetxController {
           ? provider.longitude
           : currentPosition.longitude + (i * 0.001);
 
-      markers.add(
+      newMarkers.add(
         Marker(
           markerId: MarkerId(provider.userId),
           position: LatLng(lat, lng),
-          infoWindow: InfoWindow(
-            title: provider.name,
-            snippet: '${provider.distanceKm} km away',
-          ),
+          onTap: () {
+            customInfoWindowController.addInfoWindow!(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_pin, color: Colors.blue, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              provider.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                              const SizedBox(width: 4),
+                              Text(
+                                provider.averageRating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.redAccent, size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${provider.distanceKm} km',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              LatLng(lat, lng),
+            );
+          },
         ),
       );
     }
+    markers.assignAll(newMarkers);
   }
 }

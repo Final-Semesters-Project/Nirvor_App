@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:custom_info_window/custom_info_window.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/utils/app_const/app_const.dart';
 import 'package:nirbhor/view/components/custom_nav_bar/navbar.dart';
@@ -130,14 +131,33 @@ class HomeSeekerScreen extends StatelessWidget {
           const SizedBox(height: 8.0),
           Expanded(
             child: Obx(
-              () => GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: controller.initialPosition.value,
-                  zoom: 14,
-                ),
-                myLocationEnabled: true,
-                zoomControlsEnabled: false,
-                markers: controller.markers.toSet(),
+              () => Stack(
+                children: [
+                  GoogleMap(
+                    onMapCreated: (GoogleMapController mapController) {
+                      controller.customInfoWindowController.googleMapController = mapController;
+                    },
+                    onTap: (position) {
+                      controller.customInfoWindowController.hideInfoWindow!();
+                    },
+                    onCameraMove: (position) {
+                      controller.customInfoWindowController.onCameraMove!();
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: controller.initialPosition.value,
+                      zoom: 14,
+                    ),
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    markers: controller.markers.toSet(),
+                  ),
+                  CustomInfoWindow(
+                    controller: controller.customInfoWindowController,
+                    height: 90,
+                    width: 220,
+                    offset: 50,
+                  ),
+                ],
               ),
             ),
           ),
