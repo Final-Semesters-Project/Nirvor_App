@@ -95,6 +95,7 @@ class LoginScreen extends StatelessWidget {
               fontSize: 16,
               color: Colors.black54,
               textAlign: TextAlign.center,
+              maxLines: 2,
             ),
             const SizedBox(height: 16),
             // Placeholder for image

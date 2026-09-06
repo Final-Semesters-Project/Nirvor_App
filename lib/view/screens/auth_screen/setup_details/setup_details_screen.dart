@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
+import 'package:nirbhor/view/components/custom_text_field/custom_text_field.dart';
 import '../controller/auth_controller.dart';
 import '../../../../utils/app_colors/app_colors.dart';
 import '../../../../utils/app_images/app_images.dart';
@@ -218,6 +219,83 @@ class SetupDetailsScreen extends StatelessWidget {
               return Column(children: rows);
             }),
 
+            // Location Selection Section
+            const SizedBox(height: 16),
+            CustomText(
+              text: 'Your Location'.tr,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+            const SizedBox(height: 8),
+            CustomTextField(
+              textEditingController: authController.locationController,
+              hintText: 'Search location...'.tr,
+              hintStyle: const TextStyle(color: Colors.grey),
+              fillColor: Colors.white,
+              fieldBorderColor: Colors.grey.shade300,
+              prefixIcon: const Icon(
+                Icons.location_on_outlined,
+                color: AppColors.primary,
+              ),
+              onChanged: (val) => authController.onLocationChanged(val),
+            ),
+            Obx(() {
+              if (authController.isLocationSearching.value) {
+                return Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                );
+              }
+              if (authController.locationSuggestions.isEmpty) {
+                return const SizedBox();
+              }
+              return Container(
+                margin: const EdgeInsets.only(top: 8),
+                constraints: const BoxConstraints(maxHeight: 200),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: authController.locationSuggestions.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final suggestion =
+                        authController.locationSuggestions[index];
+                    return ListTile(
+                      leading: const Icon(
+                        Icons.location_city,
+                        color: Colors.grey,
+                      ),
+                      title: Text(
+                        suggestion['display_name'] ?? '',
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () {
+                        authController.selectLocation(suggestion);
+                        FocusScope.of(context).unfocus();
+                      },
+                    );
+                  },
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

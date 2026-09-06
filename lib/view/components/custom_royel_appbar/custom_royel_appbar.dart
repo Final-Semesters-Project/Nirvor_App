@@ -109,25 +109,25 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
             icon: rightWidget != null
                 ? rightWidget!
                 : rightText != null
-                    ? CustomText(
-                        text: rightText!,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      )
-                    : rightIcon == null
-                        ? SizedBox.shrink()
-                        : CustomImage(
-                            imageSrc: rightIcon!,
-                            height: 24,
-                            width: 24,
-                            imageColor: AppColors.black,
-                          ),
+                ? CustomText(
+                    text: rightText!,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  )
+                : rightIcon == null
+                ? SizedBox.shrink()
+                : CustomImage(
+                    imageSrc: rightIcon!,
+                    height: 24,
+                    width: 24,
+                    imageColor: AppColors.black,
+                  ),
           ),
       ],
       backgroundColor: Colors.transparent,
       leading: leftIcon == true
-          ? BackButton(color: leftIconColor ?? Colors.black)
+          ? BackButton(color: leftIconColor ?? AppColors.primary)
           : SizedBox.shrink(),
       leadingWidth: leftIcon == true ? kToolbarHeight : 0,
 
@@ -144,10 +144,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(
-          height: 1,
-          color: Colors.grey.shade200,
-        ),
+        child: Container(height: 1, color: Colors.grey.shade200),
       ),
     );
   }

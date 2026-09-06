@@ -14,14 +14,14 @@ class HomeSeekerController extends GetxController {
   var categories = <CategoryModel>[].obs;
   var skills = <SkillModel>[].obs;
   var providers = <ProviderModel>[].obs;
-  
+
   var isLoadingCategories = false.obs;
   var isLoadingSkills = false.obs;
   var isLoadingProviders = false.obs;
-  
+
   var markers = <Marker>{}.obs;
   var initialPosition = const LatLng(23.7947, 90.4010).obs;
-  
+
   @override
   void onInit() {
     super.onInit();
@@ -36,7 +36,6 @@ class HomeSeekerController extends GetxController {
     }
   }
 
- 
   Future<void> checkActiveBooking() async {
     final response = await ApiClient.getData(ApiUrl.activeBooking);
     if (response.statusCode == 200) {
@@ -44,10 +43,17 @@ class HomeSeekerController extends GetxController {
       if (hasActive) {
         Get.defaultDialog(
           title: "Active Booking",
-          middleText: "You have an active booking. Please confirm or cancel it.",
+          middleText:
+              "You have an active booking. Please confirm or cancel it.",
           barrierDismissible: false,
-          confirm: ElevatedButton(onPressed: () => Get.back(), child: const Text("Confirm")),
-          cancel: TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+          confirm: ElevatedButton(
+            onPressed: () => Get.back(),
+            child: const Text("Confirm"),
+          ),
+          cancel: TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Cancel"),
+          ),
         );
       }
     }
@@ -65,7 +71,9 @@ class HomeSeekerController extends GetxController {
 
   Future<void> getSkills(int categoryId) async {
     isLoadingSkills.value = true;
-    final response = await ApiClient.getData(ApiUrl.skillList(categoryId.toString()));
+    final response = await ApiClient.getData(
+      ApiUrl.skillList(categoryId.toString()),
+    );
     isLoadingSkills.value = false;
     if (response.statusCode == 200) {
       List data = response.body;
@@ -73,7 +81,7 @@ class HomeSeekerController extends GetxController {
       _showSkillsBottomSheet();
     }
   }
-  
+
   void _showSkillsBottomSheet() {
     Get.bottomSheet(
       Container(
@@ -86,17 +94,24 @@ class HomeSeekerController extends GetxController {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Select a Skill", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                "Select a Skill",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
-                children: skills.map((skill) => ActionChip(
-                  label: Text(skill.name),
-                  onPressed: () {
-                    Get.back();
-                    searchProviders(skill.id);
-                  },
-                )).toList(),
+                children: skills
+                    .map(
+                      (skill) => ActionChip(
+                        label: Text(skill.name),
+                        onPressed: () {
+                          Get.back();
+                          searchProviders(skill.id);
+                        },
+                      ),
+                    )
+                    .toList(),
               ),
             ],
           ),
@@ -124,43 +139,51 @@ class HomeSeekerController extends GetxController {
         return;
       }
     }
-    
+
     if (permission == LocationPermission.deniedForever) {
-      Get.snackbar("Error", "Location permissions are permanently denied, we cannot request permissions.");
+      Get.snackbar(
+        "Error",
+        "Location permissions are permanently denied, we cannot request permissions.",
+      );
       return;
-    } 
+    }
 
     Position position = await Geolocator.getCurrentPosition();
     initialPosition.value = LatLng(position.latitude, position.longitude);
-    
+
     isLoadingProviders.value = true;
     final response = await ApiClient.getData(
-      "${ApiUrl.searchProviders}?skill_id=$skillId&seeker_lat=${position.latitude}&seeker_lng=${position.longitude}&search_radius_km=5"
+      "${ApiUrl.searchProviders}?skill_id=$skillId&seeker_lat=${position.latitude}&seeker_lng=${position.longitude}&search_radius_km=5",
     );
     isLoadingProviders.value = false;
-    
+
     if (response.statusCode == 200) {
       List data = response.body['providers'] ?? [];
       providers.value = data.map((e) => ProviderModel.fromJson(e)).toList();
       _updateMarkers(position);
     }
   }
-  
+
   void _updateMarkers(Position currentPosition) {
     markers.clear();
     for (int i = 0; i < providers.length; i++) {
       var provider = providers[i];
-      // Note: If backend doesn't provide real latitude/longitude in the response,
-      // we mock it around the user's current position for demonstration using `distanceKm`.
-      double lat = provider.latitude != 0 ? provider.latitude : currentPosition.latitude + (i * 0.001);
-      double lng = provider.longitude != 0 ? provider.longitude : currentPosition.longitude + (i * 0.001);
-      
+      double lat = provider.latitude != 0
+          ? provider.latitude
+          : currentPosition.latitude + (i * 0.001);
+      double lng = provider.longitude != 0
+          ? provider.longitude
+          : currentPosition.longitude + (i * 0.001);
+
       markers.add(
         Marker(
           markerId: MarkerId(provider.userId),
           position: LatLng(lat, lng),
-          infoWindow: InfoWindow(title: provider.name, snippet: provider.verificationLevel),
-        )
+          infoWindow: InfoWindow(
+            title: provider.name,
+            snippet: '${provider.distanceKm} km away',
+          ),
+        ),
       );
     }
   }

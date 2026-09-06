@@ -9,6 +9,7 @@ import '../../view/screens/auth_screen/otp_verify_screen/otp_verify_screen.dart'
 import '../../view/screens/auth_screen/password_login_screen/password_login_screen.dart';
 import '../../view/screens/auth_screen/welcome_screen/welcome_screen.dart';
 import '../../view/screens/auth_screen/register_method_screen/register_method_screen.dart';
+import '../../view/screens/Provider/home_provider/screen/provider_home_screen.dart';
 
 class AppRoutes {
   ///===========================Authentication==========================
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String registerMethodScreen = "/RegisterMethodScreen";
   static const String homeSeekerScreen = "/HomeSeekerScreen";
   static const String setupDetailsScreen = "/SetupDetailsScreen";
+  static const String providerHomeScreen = "/ProviderHomeScreen";
 
   static List<GetPage> routes = [
     ///===========================Authentication==========================
@@ -36,5 +38,8 @@ class AppRoutes {
 
     ///============== Immigration Seeker ==================
     GetPage(name: homeSeekerScreen, page: () => HomeSeekerScreen()),
+
+    ///============== Provider ==================
+    GetPage(name: providerHomeScreen, page: () => const ProviderHomeScreen()),
   ];
 }

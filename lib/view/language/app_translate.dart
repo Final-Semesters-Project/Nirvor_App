@@ -77,6 +77,21 @@ class AppTranslate extends Translations {
       '5 KM': '5 KM',
       'Complete Registration': 'Complete Registration',
       'No categories found': 'No categories found',
+      'Your Location': 'Your Location',
+      'Search location...': 'Search location...',
+      'I am Available': 'I am Available',
+      'VERIFICATION LEVEL': 'VERIFICATION LEVEL',
+      'BASIC': 'BASIC',
+      'Upload NID to get Verified': 'Upload NID to get Verified',
+      'My Rating': 'My Rating',
+      'Based on 24 completed jobs': 'Based on 24 completed jobs',
+      'CUSTOMER FEEDBACK SUMMARY': 'CUSTOMER FEEDBACK SUMMARY',
+      'Customers appreciate this provider\'s punctuality and clean work.': 'Customers appreciate this provider\'s punctuality and clean work.',
+      'Jobs Done': 'Jobs Done',
+      'MY SKILLS': 'MY SKILLS',
+      '+ Add Skill': '+ Add Skill',
+      'Dashboard': 'Dashboard',
+      'Notifications': 'Notifications',
 
 
       // Login Screen
@@ -180,6 +195,21 @@ class AppTranslate extends Translations {
       '5 KM': '৫ কিলোমিটার',
       'Complete Registration': 'রেজিস্ট্রেশন সম্পূর্ণ করুন',
       'No categories found': 'কোনো ক্যাটাগরি পাওয়া যায়নি',
+      'Your Location': 'আপনার অবস্থান',
+      'Search location...': 'অবস্থান খুঁজুন...',
+      'I am Available': 'আমি কাজের জন্য প্রস্তুত',
+      'VERIFICATION LEVEL': 'যাচাই স্তর',
+      'BASIC': 'প্রাথমিক',
+      'Upload NID to get Verified': 'NID আপলোড করুন',
+      'My Rating': 'আমার রেটিং',
+      'Based on 24 completed jobs': '২৪টি সম্পন্ন কাজের উপর ভিত্তি করে',
+      'CUSTOMER FEEDBACK SUMMARY': 'গ্রাহক মতামত সারসংক্ষেপ',
+      'Customers appreciate this provider\'s punctuality and clean work.': 'গ্রাহকরা এই সার্ভিস প্রোভাইডারের সময়নিষ্ঠা এবং পরিচ্ছন্ন কাজের প্রশংসা করছেন।',
+      'Jobs Done': 'সম্পন্ন কাজ',
+      'MY SKILLS': 'আমার দক্ষতা',
+      '+ Add Skill': '+ দক্ষতা যোগ করুন',
+      'Dashboard': 'ড্যাশবোর্ড',
+      'Notifications': 'নোটিফিকেশন',
 
 
       // Login Screen
