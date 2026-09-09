@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
           ),
           defaultTransition: Transition.fadeIn,
           transitionDuration: const Duration(milliseconds: 200),
-          initialRoute: AppRoutes.welcomeScreen,
+          initialRoute: AppRoutes.splashScreen,
           initialBinding: DependencyInjection(),
           navigatorKey: Get.key,
           getPages: AppRoutes.routes,

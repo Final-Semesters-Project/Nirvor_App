@@ -156,6 +156,18 @@ class AuthController extends GetxController {
           AppConstants.bearerToken,
           "Bearer ${response.body['access_token']}",
         );
+        if (response.body['refresh_token'] != null) {
+          await SharePrefsHelper.setString(
+            AppConstants.refreshToken,
+            response.body['refresh_token'],
+          );
+        }
+        if (response.body['role'] != null) {
+          await SharePrefsHelper.setString(
+            AppConstants.role,
+            response.body['role'],
+          );
+        }
       }
       showCustomSnackBar("Login successful".tr, isError: false);
       await sendFcmToken();
@@ -229,6 +241,16 @@ class AuthController extends GetxController {
           AppConstants.bearerToken,
           "Bearer ${response.body['access_token']}",
         );
+        if (response.body['refresh_token'] != null) {
+          await SharePrefsHelper.setString(
+            AppConstants.refreshToken,
+            response.body['refresh_token'],
+          );
+        }
+        await SharePrefsHelper.setString(
+          AppConstants.role,
+          role.toLowerCase(),
+        );
       }
       showCustomSnackBar("Registration successful".tr, isError: false);
       await sendFcmToken();
@@ -284,5 +306,41 @@ class AuthController extends GetxController {
 
     Map<String, String> body = {"token": finalToken, "device_type": deviceType};
     await ApiClient.postData("${ApiUrl.fcmToken}?token=$finalToken", body);
+  }
+
+  Future<void> logout() async {
+    isAuthLoading.value = true;
+
+    String refreshToken = await SharePrefsHelper.getString(AppConstants.refreshToken);
+    String fcmToken = "";
+    try {
+      fcmToken = await FirebaseMessaging.instance.getToken() ?? "";
+    } catch (e) {
+      debugPrint("Error fetching FCM token for logout: $e");
+    }
+
+    Map<String, dynamic> body = {
+      "refresh_token": refreshToken,
+    };
+    if (fcmToken.isNotEmpty) {
+      body["fcm_token"] = fcmToken;
+    }
+
+    try {
+      await ApiClient.postData(ApiUrl.signOut, body);
+    } catch (e) {
+      debugPrint("Logout API error: $e");
+    }
+
+    // Clear local data
+    await SharePrefsHelper.remove(AppConstants.bearerToken);
+    await SharePrefsHelper.remove(AppConstants.refreshToken);
+    await SharePrefsHelper.remove(AppConstants.role);
+
+    isAuthLoading.value = false;
+
+    // Route to Welcome screen
+    Get.offAllNamed(AppRoutes.welcomeScreen);
+    showCustomSnackBar("Logged out successfully".tr, isError: false);
   }
 }

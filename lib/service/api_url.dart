@@ -9,6 +9,7 @@ class ApiUrl {
   static const String signUpSeeker = "/auth/register/seeker";
   static const String signUpProvider = "/auth/register/provider";
   static const String signIn = "/auth/login";
+  static const String signOut = "/auth/logout";
   static const String verificationOtp = "/auth/verify-signup-otp";
   static const String forgotPassword = "/auth/forgot-password";
   static const String verificationOtpForgetPass = "/auth/verify-reset-otp";

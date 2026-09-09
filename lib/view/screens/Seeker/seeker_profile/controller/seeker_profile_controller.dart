@@ -22,4 +22,20 @@ class SeekerProfileController extends GetxController {
       user.value = UserModel.fromJson(response.body);
     }
   }
+
+  // Placeholder for missing update API
+  Future<void> updateProfile({required String name}) async {
+    if (user.value != null) {
+      user.value = UserModel(
+        userId: user.value!.userId,
+        role: user.value!.role,
+        phone: user.value!.phone,
+        name: name,
+        isActive: user.value!.isActive,
+        createdAt: user.value!.createdAt,
+        photoUrl: user.value!.photoUrl,
+      );
+      update();
+    }
+  }
 }

@@ -10,9 +10,11 @@ import '../../view/screens/auth_screen/password_login_screen/password_login_scre
 import '../../view/screens/auth_screen/welcome_screen/welcome_screen.dart';
 import '../../view/screens/auth_screen/register_method_screen/register_method_screen.dart';
 import '../../view/screens/Provider/home_provider/screen/provider_home_screen.dart';
+import '../../view/screens/splash_screen/splash_screen.dart';
 
 class AppRoutes {
   ///===========================Authentication==========================
+  static const String splashScreen = "/SplashScreen";
   static const String loginScreen = "/LoginScreen";
   static const String registerScreen = "/RegisterScreen";
   static const String otpVerifyScreen = "/OtpVerifyScreen";
@@ -25,6 +27,7 @@ class AppRoutes {
 
   static List<GetPage> routes = [
     ///===========================Authentication==========================
+    GetPage(name: splashScreen, page: () => SplashScreen()),
     GetPage(name: loginScreen, page: () => LoginScreen()),
     GetPage(name: registerScreen, page: () => RegisterScreen()),
     GetPage(name: otpVerifyScreen, page: () => OtpVerifyScreen()),

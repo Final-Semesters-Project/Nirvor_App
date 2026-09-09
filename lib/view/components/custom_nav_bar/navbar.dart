@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../../screens/Seeker/home_seeker/screen/home/home_seeker_screen.dart';
+import '../../screens/Seeker/seeker_profile/screen/seeker_profile.dart';
 
 class SeekerNavbar extends StatefulWidget {
   final int currentIndex;
@@ -104,7 +105,7 @@ class _SeekerNavbarState extends State<SeekerNavbar> {
           // Get.to(() => BookingsScreen());
           break;
         case 2:
-          // Get.to(() => ProfileScreen());
+          Get.offAll(() => SeekerProfileScreen());
           break;
       }
     }
