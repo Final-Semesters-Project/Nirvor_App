@@ -120,6 +120,14 @@ class AppTranslate extends Translations {
       'Verified Trust': 'Verified Trust',
       'This verification helps us keep the KajerLok community safe and reliable for everyone.':
           'This verification helps us keep the KajerLok community safe and reliable for everyone.',
+          
+      // Search Results Screen
+      'prioritize_verified_providers': 'Prioritize verified providers for safety.',
+      'showing_providers': 'Showing @count providers in your area',
+      'no_providers_found': 'No providers found',
+      'verified': 'Verified',
+      'unverified': 'Unverified',
+      'request_to_call': 'Request to Call',
     },
     'bn': {
       // General
@@ -238,6 +246,14 @@ class AppTranslate extends Translations {
       'Verified Trust': 'যাচাইকৃত বিশ্বস্ততা',
       'This verification helps us keep the KajerLok community safe and reliable for everyone.':
           'এই যাচাইকরণটি আমাদেরকে সবার জন্য কাজের লোক সম্প্রদায়কে নিরাপদ এবং নির্ভরযোগ্য রাখতে সাহায্য করে।',
+          
+      // Search Results Screen
+      'prioritize_verified_providers': 'নিরাপত্তার জন্য ভেরিফাইড কর্মীদের অগ্রাধিকার দিন।',
+      'showing_providers': 'আপনার এলাকায় @count জন প্রোভাইডার দেখানো হচ্ছে',
+      'no_providers_found': 'কোনো প্রোভাইডার পাওয়া যায়নি',
+      'verified': 'ভেরিফাইড',
+      'unverified': 'আনভেরিফাইড',
+      'request_to_call': 'কল করতে চাই',
     },
   };
 }

@@ -7,8 +7,9 @@ import 'package:nirbhor/utils/app_const/app_const.dart';
 import 'package:nirbhor/view/components/custom_nav_bar/navbar.dart';
 import 'package:nirbhor/view/components/custom_netwrok_image/custom_network_image.dart';
 import 'package:nirbhor/view/components/custom_royel_appbar/custom_royel_appbar.dart';
-import '../../seeker_profile/controller/seeker_profile_controller.dart';
-import '../controller/home_seeker_controller.dart';
+import '../../../seeker_profile/controller/seeker_profile_controller.dart';
+import '../../controller/home_seeker_controller.dart';
+import '../search_result_screen/search_results_screen.dart';
 
 class HomeSeekerScreen extends StatelessWidget {
   HomeSeekerScreen({super.key});
@@ -58,27 +59,8 @@ class HomeSeekerScreen extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for a skill...'.tr,
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-                ),
-              ),
-            ),
-          ),
+          
+          
           SizedBox(
             height: 50,
             child: Obx(() {
@@ -157,6 +139,38 @@ class HomeSeekerScreen extends StatelessWidget {
                     width: 220,
                     offset: 50,
                   ),
+                  Obx(() {
+                    if (controller.providers.isEmpty) return const SizedBox.shrink();
+                    return Positioned(
+                      top: 16,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Get.to(() => const SearchResultsScreen());
+                          },
+                          icon: const Icon(Icons.list_alt, color: Colors.white, size: 20),
+                          label: const Text(
+                            'Show all providers',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 4,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),

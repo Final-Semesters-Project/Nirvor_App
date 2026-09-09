@@ -1,6 +1,8 @@
 class ProviderModel {
   final String userId;
   final String name;
+  final String photoUrl;
+  final String? phoneEn;
   final List<String> skillNames;
   final String verificationLevel;
   final double averageRating;
@@ -14,6 +16,8 @@ class ProviderModel {
   ProviderModel({
     required this.userId,
     required this.name,
+    required this.photoUrl,
+    this.phoneEn,
     required this.skillNames,
     required this.verificationLevel,
     required this.averageRating,
@@ -29,7 +33,11 @@ class ProviderModel {
     return ProviderModel(
       userId: json['user_id'] ?? '',
       name: json['name'] ?? '',
-      skillNames: List<String>.from(json['skill_names'] ?? []),
+      photoUrl: json['photo_url'] ?? '',
+      phoneEn: json['phone_en'],
+      skillNames: json['skill_names'] != null 
+          ? List<String>.from(json['skill_names'])
+          : (json['skill_name'] != null ? [json['skill_name'].toString()] : []),
       verificationLevel: json['verification_level'] ?? '',
       averageRating: (json['average_rating'] ?? 0).toDouble(),
       distanceKm: (json['distance_km'] ?? 0).toDouble(),
