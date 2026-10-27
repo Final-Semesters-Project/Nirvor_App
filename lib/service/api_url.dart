@@ -1,5 +1,5 @@
 class ApiUrl {
-  static const String baseUrl = "http://10.10.28.162:8000/api/v1"; // 12345678 
+  //static const String baseUrl = "http://10.10.28.162:8000/api/v1"; // 12345678 
   //static const String baseUrl = "http://10.0.2.2:8000/api/v1"; // 01723354435
   static const String imageUrl = "http://10.10.28.162:8000";
   static String socketUrl = "http://10.10.28.162:8000";
