@@ -12,6 +12,7 @@ class ProviderModel {
   final bool isAvailable;
   final double latitude;
   final double longitude;
+  final String? lastActiveAt;
 
   ProviderModel({
     required this.userId,
@@ -27,6 +28,7 @@ class ProviderModel {
     required this.isAvailable,
     required this.latitude,
     required this.longitude,
+    this.lastActiveAt,
   });
 
   factory ProviderModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class ProviderModel {
       isAvailable: json['is_available'] ?? false,
       latitude: (json['latitude'] ?? 0).toDouble(),
       longitude: (json['longitude'] ?? 0).toDouble(),
+      lastActiveAt: json['last_active_at']?.toString(),
     );
   }
 }

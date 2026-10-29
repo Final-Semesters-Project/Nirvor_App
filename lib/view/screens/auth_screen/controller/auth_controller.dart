@@ -52,15 +52,26 @@ class AuthController extends GetxController {
 
   Future<void> fetchCategories() async {
     isCategoryLoading.value = true;
-    final response = await ApiClient.getData(ApiUrl.categoryList);
-    if (response.statusCode == 200) {
-      if (response.body != null && response.body is List) {
-        categories.value = response.body;
+    try {
+      final response = await ApiClient.getData(ApiUrl.categoryList);
+      debugPrint("fetchCategories status: ${response.statusCode}, body: ${response.body}");
+      if (response.statusCode == 200) {
+        if (response.body != null && response.body is List) {
+          categories.value = response.body;
+        } else if (response.body != null && response.body is String) {
+          final decoded = json.decode(response.body);
+          if (decoded is List) {
+            categories.value = decoded;
+          }
+        }
+      } else {
+        debugPrint("Failed to fetch categories: [${response.statusCode}] ${response.statusText}");
       }
-    } else {
-      debugPrint("Failed to fetch categories: ${response.statusText}");
+    } catch (e) {
+      debugPrint("Fetch categories error: $e");
+    } finally {
+      isCategoryLoading.value = false;
     }
-    isCategoryLoading.value = false;
   }
 
   Future<void> fetchSkills(String categoryId) async {
@@ -115,14 +126,90 @@ class AuthController extends GetxController {
   Future<void> searchLocation(String query) async {
     isLocationSearching.value = true;
     try {
-      final uri = Uri.parse('https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1&limit=5');
+      final lang = Get.locale?.languageCode ?? 'en';
+      final cleanQuery = query.replaceAll(',', ', ').replaceAll(RegExp(r'\s+'), ' ').trim();
+
+      // 1. Primary: Use Google Places Autocomplete API with mapKey (Instant, accurate, no DNS/Socket issues)
+      if (ApiUrl.mapKey.isNotEmpty) {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/place/autocomplete/json',
+          {
+            'input': cleanQuery,
+            'key': ApiUrl.mapKey,
+            'components': 'country:bd',
+            'language': lang,
+          },
+        );
+        final response = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' && data['predictions'] != null) {
+            final List predictions = data['predictions'];
+            locationSuggestions.value = predictions.map((p) {
+              final sf = p['structured_formatting'];
+              return {
+                'place_id': p['place_id'],
+                'name': sf?['main_text'] ?? p['description'] ?? '',
+                'display_name': p['description'] ?? '',
+                'secondary_text': sf?['secondary_text'] ?? '',
+              };
+            }).toList();
+            isLocationSearching.value = false;
+            return;
+          }
+        }
+      }
+
+      // 2. Fallback: OpenStreetMap Nominatim
+      final uri = Uri.https(
+        'nominatim.openstreetmap.org',
+        '/search',
+        {
+          'q': cleanQuery,
+          'format': 'json',
+          'addressdetails': '1',
+          'countrycodes': 'bd',
+          'limit': '10',
+          'accept-language': lang,
+        },
+      );
       final response = await http.get(uri, headers: {
         'User-Agent': 'NirbhorApp/1.0',
-      });
+        'Accept-Language': lang,
+      }).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        locationSuggestions.value = data;
+
+        data.sort((a, b) {
+          final String nameA = (a['name'] ?? '').toString().toLowerCase();
+          final String nameB = (b['name'] ?? '').toString().toLowerCase();
+          final String q = cleanQuery.toLowerCase();
+          final String firstToken = q.split(',').first.trim();
+
+          final bool aExact = nameA == q || nameA == firstToken;
+          final bool bExact = nameB == q || nameB == firstToken;
+          if (aExact && !bExact) return -1;
+          if (!aExact && bExact) return 1;
+
+          final bool aStarts = nameA.startsWith(firstToken);
+          final bool bStarts = nameB.startsWith(firstToken);
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+
+          final double impA = double.tryParse(a['importance']?.toString() ?? '0') ?? 0.0;
+          final double impB = double.tryParse(b['importance']?.toString() ?? '0') ?? 0.0;
+          return impB.compareTo(impA);
+        });
+
+        locationSuggestions.value = data.map((item) => {
+          'lat': item['lat'],
+          'lon': item['lon'],
+          'name': item['name'] ?? '',
+          'display_name': item['display_name'] ?? '',
+          'secondary_text': item['display_name'] ?? '',
+        }).toList();
       } else {
         locationSuggestions.clear();
       }
@@ -133,12 +220,50 @@ class AuthController extends GetxController {
     isLocationSearching.value = false;
   }
 
-  void selectLocation(Map<String, dynamic> location) {
-    latitude.value = double.tryParse(location['lat'].toString()) ?? 0.0;
-    longitude.value = double.tryParse(location['lon'].toString()) ?? 0.0;
-    locationAddress.value = location['display_name'] ?? '';
-    locationController.text = locationAddress.value;
+  Future<void> selectLocation(Map<String, dynamic> location) async {
+    final String name = location['name']?.toString() ?? '';
+    final String displayName = location['display_name']?.toString() ?? '';
+    locationAddress.value = displayName.isNotEmpty ? displayName : name;
+    locationController.text = displayName.isNotEmpty ? displayName : name;
     locationSuggestions.clear();
+
+    final String? placeId = location['place_id']?.toString();
+    if (placeId != null && placeId.isNotEmpty && ApiUrl.mapKey.isNotEmpty) {
+      try {
+        final lang = Get.locale?.languageCode ?? 'en';
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/place/details/json',
+          {
+            'place_id': placeId,
+            'key': ApiUrl.mapKey,
+            'fields': 'geometry,formatted_address,name',
+            'language': lang,
+          },
+        );
+        final response = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' && data['result'] != null) {
+            final geom = data['result']['geometry']?['location'];
+            if (geom != null) {
+              latitude.value = double.tryParse(geom['lat']?.toString() ?? '0') ?? 0.0;
+              longitude.value = double.tryParse(geom['lng']?.toString() ?? '0') ?? 0.0;
+            }
+            final String? formatted = data['result']['formatted_address'];
+            if (formatted != null && formatted.isNotEmpty) {
+              locationAddress.value = formatted;
+              locationController.text = formatted;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Place details error: $e");
+      }
+    } else {
+      latitude.value = double.tryParse(location['lat'].toString()) ?? 0.0;
+      longitude.value = double.tryParse(location['lon'].toString()) ?? 0.0;
+    }
   }
 
   Future<void> login(String phone, String password) async {
@@ -327,7 +452,10 @@ class AuthController extends GetxController {
     }
 
     try {
-      await ApiClient.postData(ApiUrl.signOut, body);
+      if (refreshToken.isNotEmpty) {
+        final response = await ApiClient.postData(ApiUrl.signOut, body);
+        debugPrint("Logout API response: [${response.statusCode}] ${response.body}");
+      }
     } catch (e) {
       debugPrint("Logout API error: $e");
     }
@@ -337,10 +465,13 @@ class AuthController extends GetxController {
     await SharePrefsHelper.remove(AppConstants.refreshToken);
     await SharePrefsHelper.remove(AppConstants.role);
 
+    // Clear memory token in ApiClient
+    ApiClient.bearerToken = "";
+
     isAuthLoading.value = false;
 
-    // Route to Welcome screen
-    Get.offAllNamed(AppRoutes.welcomeScreen);
+    // Route to Login screen
+    Get.offAllNamed(AppRoutes.loginScreen);
     showCustomSnackBar("Logged out successfully".tr, isError: false);
   }
 }

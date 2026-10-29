@@ -113,70 +113,45 @@ class HomeSeekerScreen extends StatelessWidget {
           const SizedBox(height: 8.0),
           Expanded(
             child: Obx(
-              () => Stack(
-                children: [
-                  GoogleMap(
-                    onMapCreated: (GoogleMapController mapController) {
-                      controller.customInfoWindowController.googleMapController = mapController;
-                    },
-                    onTap: (position) {
-                      controller.customInfoWindowController.hideInfoWindow!();
-                    },
-                    onCameraMove: (position) {
-                      controller.customInfoWindowController.onCameraMove!();
-                    },
-                    initialCameraPosition: CameraPosition(
-                      target: controller.initialPosition.value,
-                      zoom: 14,
-                    ),
-                    myLocationEnabled: true,
-                    zoomControlsEnabled: false,
-                    markers: controller.markers.toSet(),
-                  ),
-                  CustomInfoWindow(
-                    controller: controller.customInfoWindowController,
-                    height: 90,
-                    width: 220,
-                    offset: 50,
-                  ),
-                  Obx(() {
-                    if (controller.providers.isEmpty) return const SizedBox.shrink();
-                    return Positioned(
-                      top: 16,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Get.to(() => const SearchResultsScreen());
-                          },
-                          icon: const Icon(Icons.list_alt, color: Colors.white, size: 20),
-                          label: const Text(
-                            'Show all providers',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 4,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
+              () => GoogleMap(
+                onMapCreated: (GoogleMapController mapController) {
+                  controller.customInfoWindowController.googleMapController = mapController;
+                },
+                initialCameraPosition: CameraPosition(
+                  target: controller.initialPosition.value,
+                  zoom: 14,
+                ),
+                myLocationEnabled: true,
+                zoomControlsEnabled: false,
+                markers: controller.markers.toSet(),
               ),
             ),
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Obx(() {
+        if (controller.providers.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 60),
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              Get.to(() => const SearchResultsScreen());
+            },
+            backgroundColor: AppColors.primary,
+            elevation: 6,
+            icon: const Icon(Icons.format_list_numbered, color: Colors.white),
+            label: Text(
+              '${'View All Providers'.tr} (${controller.providers.length})',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        );
+      }),
       bottomNavigationBar: const SeekerNavbar(currentIndex: 0),
     );
   }

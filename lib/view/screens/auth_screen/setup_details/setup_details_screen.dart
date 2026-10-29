@@ -19,14 +19,25 @@ class SetupDetailsScreen extends StatelessWidget {
     final AuthController authController = Get.find<AuthController>();
     final Map<String, dynamic>? args = Get.arguments;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (authController.categories.isEmpty && !authController.isCategoryLoading.value) {
+        authController.fetchCategories();
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
         titleName: 'KajerLok'.tr,
         leftIcon: true,
         centerTitleEnable: false,
-        rightOnTap: null,
-        rightWidget: const SizedBox(),
+        showLanguageSwitcher: true,
+        onLanguageChanged: () {
+          authController.fetchCategories();
+          if (authController.locationController.text.isNotEmpty) {
+            authController.searchLocation(authController.locationController.text);
+          }
+        },
       ),
 
       body: SingleChildScrollView(
@@ -55,10 +66,37 @@ class SetupDetailsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Obx(() {
               if (authController.isCategoryLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
+                  ),
+                );
               }
               if (authController.categories.isEmpty) {
-                return const CustomText(text: 'No categories found');
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Column(
+                      children: [
+                        CustomText(
+                          text: 'No categories found'.tr,
+                          color: Colors.black54,
+                          fontSize: 14,
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () => authController.fetchCategories(),
+                          icon: const Icon(Icons.refresh, color: AppColors.primary),
+                          label: Text(
+                            'Retry'.tr,
+                            style: const TextStyle(color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               }
               List<Widget> rows = [];
               for (int i = 0; i < authController.categories.length; i += 2) {
@@ -242,7 +280,7 @@ class SetupDetailsScreen extends StatelessWidget {
             ),
             Obx(() {
               if (authController.isLocationSearching.value) {
-                return Padding(
+                return const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Center(
                     child: CircularProgressIndicator(color: AppColors.primary),
@@ -254,44 +292,79 @@ class SetupDetailsScreen extends StatelessWidget {
               }
               return Container(
                 margin: const EdgeInsets.only(top: 8),
-                constraints: const BoxConstraints(maxHeight: 200),
+                constraints: const BoxConstraints(maxHeight: 220),
                 decoration: BoxDecoration(
-                  color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
                       color: Colors.black12,
                       blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: authController.locationSuggestions.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final suggestion =
-                        authController.locationSuggestions[index];
-                    return ListTile(
-                      leading: const Icon(
-                        Icons.location_city,
-                        color: Colors.grey,
-                      ),
-                      title: Text(
-                        suggestion['display_name'] ?? '',
-                        style: const TextStyle(fontSize: 12),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () {
-                        authController.selectLocation(suggestion);
-                        FocusScope.of(context).unfocus();
+                child: Material(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  clipBehavior: Clip.antiAlias,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: authController.locationSuggestions.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1, thickness: 0.5),
+                      itemBuilder: (context, index) {
+                        final suggestion =
+                            authController.locationSuggestions[index];
+                        final String name =
+                            suggestion['name']?.toString() ?? '';
+                        final String displayName =
+                            suggestion['display_name']?.toString() ?? '';
+                        final String secondaryText =
+                            suggestion['secondary_text']?.toString() ?? '';
+                        final String sub = secondaryText.isNotEmpty
+                            ? secondaryText
+                            : (displayName != name ? displayName : '');
+                        return ListTile(
+                          dense: true,
+                          leading: const Icon(
+                            Icons.location_on_outlined,
+                            color: AppColors.primary,
+                          ),
+                          title: Text(
+                            name.isNotEmpty ? name : displayName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: sub.isNotEmpty
+                              ? Text(
+                                  sub,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : null,
+                          onTap: () {
+                            authController.selectLocation(suggestion);
+                            FocusScope.of(context).unfocus();
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 ),
               );
             }),

@@ -185,6 +185,7 @@ class RegisterScreen extends StatelessWidget {
                             role: userType,
                           );
                         } else {
+                          authController.fetchCategories();
                           Get.toNamed(
                             AppRoutes.setupDetailsScreen,
                             arguments: {
