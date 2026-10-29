@@ -17,8 +17,7 @@ class ApiClient extends GetxService {
   static const String somethingWentWrong = "Something Went Wrong";
   static const int timeoutInSeconds = 30;
 
-  static String bearerToken =
-      "zI0NTAwODI4fQ.dTr7dcjgfk9ChQ2oZQ39MGZBQSntiT8YjvZTZowUXas";
+  static String bearerToken =  "zI0NTAwODI4fQ.dTr7dcjgfk9ChQ2oZQ39MGZBQSntiT8YjvZTZowUXas";
 
   static Future<Response> getData(
     String uri, {
@@ -33,13 +32,17 @@ class ApiClient extends GetxService {
       'Authorization': bearerToken,
       'Accept-Language': Get.locale?.languageCode ?? 'en',
       'User-Agent': DeviceHelper.userAgent,
-      'X-Staging-K': 'true',
+      'X-Staging-Key': ApiUrl.stagingApiKey,
     };
+    if (headers != null) {
+      mainHeaders.addAll(headers);
+      mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+    }
     try {
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
 
       http.Response response = await client
-          .get(Uri.parse(ApiUrl.baseUrl + uri), headers: headers ?? mainHeaders)
+          .get(Uri.parse(ApiUrl.baseUrl + uri), headers: mainHeaders)
           .timeout(const Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri);
     } catch (e) {
@@ -57,17 +60,33 @@ class ApiClient extends GetxService {
     bearerToken = await SharePrefsHelper.getString(AppConstants.bearerToken);
 
     var mainHeaders = isContentType
-        ? {'Content-Type': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'}
-        : {'Accept': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'};
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': bearerToken,
+            'Accept-Language': Get.locale?.languageCode ?? 'en',
+            'User-Agent': DeviceHelper.userAgent,
+            'X-Staging-Key': ApiUrl.stagingApiKey,
+          }
+        : {
+            'Accept': 'application/json',
+            'Authorization': bearerToken,
+            'Accept-Language': Get.locale?.languageCode ?? 'en',
+            'User-Agent': DeviceHelper.userAgent,
+            'X-Staging-Key': ApiUrl.stagingApiKey,
+          };
+    if (headers != null) {
+      mainHeaders.addAll(headers);
+      mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+    }
     try {
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body');
 
       http.Response response = await client
           .post(
             Uri.parse(ApiUrl.baseUrl + uri),
             body: isContentType ? jsonEncode(body) : body,
-            headers: headers ?? mainHeaders,
+            headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri);
@@ -88,17 +107,33 @@ class ApiClient extends GetxService {
     bearerToken = await SharePrefsHelper.getString(AppConstants.bearerToken);
 
     var mainHeaders = isContentType
-        ? {'Content-Type': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'}
-        : {'Accept': 'application/json', 'Authorization': bearerToken, 'Accept-Language': Get.locale?.languageCode ?? 'en', 'User-Agent': DeviceHelper.userAgent, 'X-Staging-K': 'true'};
+        ? {
+            'Content-Type': 'application/json',
+            'Authorization': bearerToken,
+            'Accept-Language': Get.locale?.languageCode ?? 'en',
+            'User-Agent': DeviceHelper.userAgent,
+            'X-Staging-Key': ApiUrl.stagingApiKey,
+          }
+        : {
+            'Accept': 'application/json',
+            'Authorization': bearerToken,
+            'Accept-Language': Get.locale?.languageCode ?? 'en',
+            'User-Agent': DeviceHelper.userAgent,
+            'X-Staging-Key': ApiUrl.stagingApiKey,
+          };
+    if (headers != null) {
+      mainHeaders.addAll(headers);
+      mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+    }
     try {
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body');
 
       http.Response response = await client
           .patch(
             Uri.parse(ApiUrl.baseUrl + uri),
             body: isContentType ? jsonEncode(body) : body,
-            headers: headers ?? mainHeaders,
+            headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri);
@@ -121,17 +156,21 @@ class ApiClient extends GetxService {
       'Authorization': bearerToken,
       'Accept-Language': Get.locale?.languageCode ?? 'en',
       'User-Agent': DeviceHelper.userAgent,
-      'X-Staging-K': 'true',
+      'X-Staging-Key': ApiUrl.stagingApiKey,
     };
+    if (headers != null) {
+      mainHeaders.addAll(headers);
+      mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+    }
     try {
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body');
 
       http.Response response = await http
           .put(
             Uri.parse(ApiUrl.baseUrl + uri),
             body: jsonEncode(body),
-            headers: headers ?? mainHeaders,
+            headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri);
@@ -150,10 +189,14 @@ class ApiClient extends GetxService {
         'Authorization': bearerToken,
         'Accept-Language': Get.locale?.languageCode ?? 'en',
         'User-Agent': DeviceHelper.userAgent,
-        'X-Staging-K': 'true',
+        'X-Staging-Key': ApiUrl.stagingApiKey,
       };
+      if (headers != null) {
+        mainHeaders.addAll(headers);
+        mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+      }
 
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body with ${multipartBody?.length} picture');
 
       var request = http.MultipartRequest(
@@ -214,10 +257,14 @@ class ApiClient extends GetxService {
         'Authorization': bearerToken,
         'Accept-Language': Get.locale?.languageCode ?? 'en',
         'User-Agent': DeviceHelper.userAgent,
-        'X-Staging-K': 'true',
+        'X-Staging-Key': ApiUrl.stagingApiKey,
       };
+      if (headers != null) {
+        mainHeaders.addAll(headers);
+        mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+      }
 
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body with ${multipartBody?.length} picture');
 
       var request = http.MultipartRequest(
@@ -277,13 +324,17 @@ class ApiClient extends GetxService {
       var mainHeaders = {
         'Content-Type': 'application/x-www-form-urlencoded',
         // "Content-Type": "multipart/form-data",
-        'Authorization': 'Bearer $bearerToken',
+        'Authorization': bearerToken.startsWith('Bearer ') ? bearerToken : 'Bearer $bearerToken',
         'Accept-Language': Get.locale?.languageCode ?? 'en',
         'User-Agent': DeviceHelper.userAgent,
-        'X-Staging-K': 'true',
+        'X-Staging-Key': ApiUrl.stagingApiKey,
       };
+      if (headers != null) {
+        mainHeaders.addAll(headers);
+        mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+      }
 
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Body: $body with ${multipartBody?.length} picture');
 
       //http.MultipartRequest _request = http.MultipartRequest('POST', Uri.parse("https://b936-114-130-157-130.ngrok-free.app/api/v1/user/profile/store/degree"));
@@ -366,16 +417,20 @@ class ApiClient extends GetxService {
       'Authorization': bearerToken,
       'Accept-Language': Get.locale?.languageCode ?? 'en',
       'User-Agent': DeviceHelper.userAgent,
-      'X-Staging-K': 'true',
+      'X-Staging-Key': ApiUrl.stagingApiKey,
     };
+    if (headers != null) {
+      mainHeaders.addAll(headers);
+      mainHeaders['X-Staging-Key'] = ApiUrl.stagingApiKey;
+    }
     try {
-      debugPrint('====> API Call: $uri\nHeader: ${headers ?? mainHeaders}');
+      debugPrint('====> API Call: $uri\nHeader: $mainHeaders');
       debugPrint('====> API Call: $uri\n Body: $body');
 
       http.Response response = await http
           .delete(
             Uri.parse(ApiUrl.baseUrl + uri),
-            headers: headers ?? mainHeaders,
+            headers: mainHeaders,
             body: body,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
