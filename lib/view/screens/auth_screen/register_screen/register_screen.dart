@@ -12,6 +12,8 @@ import '../../../components/custom_button/custom_button.dart';
 import '../../../components/custom_from_card/custom_from_card.dart';
 import '../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../components/custom_text/custom_text.dart';
+import 'package:nirbhor/view/screens/legal/privacy_policy_screen.dart';
+import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
 
 class RegisterScreen extends StatelessWidget {
   RegisterScreen({super.key});
@@ -376,14 +378,130 @@ class RegisterScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                CustomText(
-                  text:
-                      'By continuing, you agree to our Terms of Service & Privacy Policy'
-                          .tr,
-                  color: Colors.grey.shade500,
-                  fontSize: 12,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
+                InkWell(
+                  onTap: () {
+                    Get.bottomSheet(
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 24,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Container(
+                                width: 40,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Legal Information'.tr,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.description_outlined,
+                                  color: AppColors.primary,
+                                  size: 22,
+                                ),
+                              ),
+                              title: Text(
+                                'Terms and Conditions'.tr,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              onTap: () {
+                                Get.back();
+                                Get.to(() => const TermsConditionsScreen());
+                              },
+                            ),
+                            const Divider(height: 1),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.privacy_tip_outlined,
+                                  color: AppColors.primary,
+                                  size: 22,
+                                ),
+                              ),
+                              title: Text(
+                                'Privacy Policy'.tr,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              onTap: () {
+                                Get.back();
+                                Get.to(() => const PrivacyPolicyScreen());
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    child: CustomText(
+                      text:
+                          'By continuing, you agree to our Terms of Service & Privacy Policy'
+                              .tr,
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -4,6 +4,8 @@ import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/view/components/custom_nav_bar/navbar.dart';
 import 'package:nirbhor/view/components/custom_text/custom_text.dart';
 import 'package:nirbhor/view/screens/auth_screen/controller/auth_controller.dart';
+import 'package:nirbhor/view/screens/legal/privacy_policy_screen.dart';
+import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
 import 'edit_seeker_profile_screen.dart';
 import '../controller/seeker_profile_controller.dart';
 
@@ -102,25 +104,15 @@ class SeekerProfileScreen extends StatelessWidget {
                     _buildMenuItem(
                       icon: Icons.description_outlined,
                       title: 'Terms and Conditions',
-                      onTap: () {
-                        // TODO: Implement Terms flow once API is ready
-                        Get.snackbar(
-                          "Info",
-                          "Terms and Conditions not available yet.",
-                        );
-                      },
+                      onTap: () =>
+                          Get.to(() => const TermsConditionsScreen()),
                     ),
                     const SizedBox(height: 12),
                     _buildMenuItem(
                       icon: Icons.privacy_tip_outlined,
                       title: 'Privacy Policy',
-                      onTap: () {
-                        // TODO: Implement Privacy flow once API is ready
-                        Get.snackbar(
-                          "Info",
-                          "Privacy Policy not available yet.",
-                        );
-                      },
+                      onTap: () =>
+                          Get.to(() => const PrivacyPolicyScreen()),
                     ),
 
                     const SizedBox(height: 30),
@@ -209,7 +201,7 @@ class SeekerProfileScreen extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             CustomText(
-              text: title,
+              text: title.tr,
               fontSize: 16,
               color: AppColors.black,
               fontWeight: FontWeight.w500,
