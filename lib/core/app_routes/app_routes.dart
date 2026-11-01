@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:nirbhor/view/screens/Seeker/home_seeker/screen/home/home_seeker_screen.dart';
 import 'package:nirbhor/view/screens/auth_screen/setup_details/setup_details_screen.dart';
+import 'package:nirbhor/view/screens/auth_screen/setup_details/map_location_picker_screen.dart';
 
 import '../../view/screens/auth_screen/login_screen/login_screen.dart';
 import '../../view/screens/auth_screen/register_screen/register_screen.dart'
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String registerMethodScreen = "/RegisterMethodScreen";
   static const String homeSeekerScreen = "/HomeSeekerScreen";
   static const String setupDetailsScreen = "/SetupDetailsScreen";
+  static const String mapLocationPickerScreen = "/MapLocationPickerScreen";
   static const String providerHomeScreen = "/ProviderHomeScreen";
 
   static List<GetPage> routes = [
@@ -38,6 +40,7 @@ class AppRoutes {
       page: () => const RegisterMethodScreen(),
     ),
     GetPage(name: setupDetailsScreen, page: () => const SetupDetailsScreen()),
+    GetPage(name: mapLocationPickerScreen, page: () => const MapLocationPickerScreen()),
 
     ///============== Immigration Seeker ==================
     GetPage(name: homeSeekerScreen, page: () => HomeSeekerScreen()),

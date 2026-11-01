@@ -83,6 +83,15 @@ class MyApp extends StatelessWidget {
           initialBinding: DependencyInjection(),
           navigatorKey: Get.key,
           getPages: AppRoutes.routes,
+          builder: (context, widget) {
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
+              child: widget,
+            );
+          },
         );
       },
     );

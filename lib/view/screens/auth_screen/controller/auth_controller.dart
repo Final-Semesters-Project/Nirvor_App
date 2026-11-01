@@ -7,6 +7,7 @@ import '../../../../core/app_routes/app_routes.dart';
 import '../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../utils/app_const/app_const.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
@@ -266,6 +267,68 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    final lang = Get.locale?.languageCode ?? 'en';
+
+    // 1. Google Geocoding API with ApiUrl.mapKey
+    if (ApiUrl.mapKey.isNotEmpty) {
+      try {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'latlng': '$lat,$lng',
+            'key': ApiUrl.mapKey,
+            'language': lang,
+          },
+        );
+        final response = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final formatted = data['results'][0]['formatted_address']?.toString();
+            if (formatted != null && formatted.isNotEmpty) {
+              return formatted;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Google reverse geocode error: $e");
+      }
+    }
+
+    // 2. Nominatim fallback
+    try {
+      final uri = Uri.https(
+        'nominatim.openstreetmap.org',
+        '/reverse',
+        {
+          'lat': lat.toString(),
+          'lon': lng.toString(),
+          'format': 'json',
+          'accept-language': lang,
+        },
+      );
+      final response = await http.get(uri, headers: {
+        'User-Agent': 'NirbhorApp/1.0',
+        'Accept-Language': lang,
+      }).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final displayName = data['display_name']?.toString();
+        if (displayName != null && displayName.isNotEmpty) {
+          return displayName;
+        }
+      }
+    } catch (e) {
+      debugPrint("Nominatim reverse geocode error: $e");
+    }
+
+    return null;
+  }
+
   Future<void> login(String phone, String password) async {
     isAuthLoading.value = true;
     Map<String, String> body = {"username": phone, "password": password};
@@ -336,6 +399,9 @@ class AuthController extends GetxController {
     required String nameBn,
     required String password,
     required String role,
+    double? latitude,
+    double? longitude,
+    String? address,
   }) async {
     isAuthLoading.value = true;
 
@@ -352,10 +418,73 @@ class AuthController extends GetxController {
     if (role.toLowerCase() == "provider") {
       endpoint = ApiUrl.signUpProvider;
       body["skill_ids"] = selectedSkills.map((e) => int.parse(e)).toList();
-      body["latitude"] = latitude.value;
-      body["longitude"] = longitude.value;
+
+      double lat = latitude ?? this.latitude.value;
+      double lng = longitude ?? this.longitude.value;
+      String baseAddr = address ?? locationAddress.value.trim();
+      if (baseAddr.isEmpty && locationController.text.trim().isNotEmpty) {
+        baseAddr = locationController.text.trim();
+      }
+
+      if (lat == 0.0 || lng == 0.0) {
+        lat = 23.8103;
+        lng = 90.4125;
+      }
+      if (baseAddr.length < 5) {
+        baseAddr = await reverseGeocode(lat, lng) ?? "Dhaka, Bangladesh";
+        if (baseAddr.length < 5) {
+          baseAddr = "Dhaka, Bangladesh";
+        }
+      }
+
+      body["latitude"] = lat;
+      body["longitude"] = lng;
       body["working_radius_km"] = workRadius.value.toInt();
       body["has_smartphone"] = hasSmartphone.value;
+      body["base_address"] = baseAddr;
+    } else {
+      double homeLat = latitude ?? this.latitude.value;
+      double homeLng = longitude ?? this.longitude.value;
+      String homeAddr = address ?? locationAddress.value.trim();
+
+      if (homeLat == 0.0 || homeLng == 0.0) {
+        try {
+          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+          if (serviceEnabled) {
+            LocationPermission permission = await Geolocator.checkPermission();
+            if (permission == LocationPermission.denied) {
+              permission = await Geolocator.requestPermission();
+            }
+            if (permission == LocationPermission.whileInUse ||
+                permission == LocationPermission.always) {
+              Position position = await Geolocator.getCurrentPosition(
+                desiredAccuracy: LocationAccuracy.medium,
+                timeLimit: const Duration(seconds: 3),
+              );
+              homeLat = position.latitude;
+              homeLng = position.longitude;
+            }
+          }
+        } catch (e) {
+          debugPrint("Seeker location fetch error: $e");
+        }
+      }
+
+      if (homeLat == 0.0 || homeLng == 0.0) {
+        homeLat = 23.8103;
+        homeLng = 90.4125;
+      }
+
+      if (homeAddr.length < 5) {
+        homeAddr = await reverseGeocode(homeLat, homeLng) ?? "Dhaka, Bangladesh";
+        if (homeAddr.length < 5) {
+          homeAddr = "Dhaka, Bangladesh";
+        }
+      }
+
+      body["home_latitude"] = homeLat;
+      body["home_longitude"] = homeLng;
+      body["home_address"] = homeAddr;
     }
 
     final response = await ApiClient.postData(endpoint, body);
@@ -472,6 +601,8 @@ class AuthController extends GetxController {
 
     // Route to Login screen
     Get.offAllNamed(AppRoutes.loginScreen);
-    showCustomSnackBar("Logged out successfully".tr, isError: false);
+    Future.delayed(const Duration(milliseconds: 250), () {
+      showCustomSnackBar("Logged out successfully".tr, isError: false);
+    });
   }
 }

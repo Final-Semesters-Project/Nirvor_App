@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
 import 'package:nirbhor/view/components/custom_text_field/custom_text_field.dart';
+import '../../../../core/app_routes/app_routes.dart';
 import '../controller/auth_controller.dart';
 import '../../../../utils/app_colors/app_colors.dart';
 import '../../../../utils/app_images/app_images.dart';
@@ -276,6 +277,45 @@ class SetupDetailsScreen extends StatelessWidget {
                 Icons.location_on_outlined,
                 color: AppColors.primary,
               ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Obx(() {
+                    if (authController.locationAddress.value.isNotEmpty ||
+                        authController.locationController.text.isNotEmpty) {
+                      return IconButton(
+                        icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
+                        onPressed: () {
+                          authController.locationController.clear();
+                          authController.locationAddress.value = '';
+                          authController.locationSuggestions.clear();
+                          authController.latitude.value = 0.0;
+                          authController.longitude.value = 0.0;
+                        },
+                      );
+                    }
+                    return const SizedBox();
+                  }),
+                  GestureDetector(
+                    onTap: () {
+                      Get.toNamed(AppRoutes.mapLocationPickerScreen);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.map_outlined,
+                        color: AppColors.primary,
+                        size: 22,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               onChanged: (val) => authController.onLocationChanged(val),
             ),
             Obx(() {
@@ -497,6 +537,14 @@ class SetupDetailsScreen extends StatelessWidget {
                         if (authController.selectedCategories.isEmpty) {
                           showCustomSnackBar(
                             "Please select a category".tr,
+                            isError: true,
+                          );
+                          return;
+                        }
+                        if (authController.locationController.text.trim().isEmpty &&
+                            authController.locationAddress.value.isEmpty) {
+                          showCustomSnackBar(
+                            "Please select your location".tr,
                             isError: true,
                           );
                           return;

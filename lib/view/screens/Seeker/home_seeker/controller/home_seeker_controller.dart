@@ -162,7 +162,7 @@ class HomeSeekerController extends GetxController {
     isLoadingProviders.value = false;
 
     if (response.statusCode == 200) {
-      List data = response.body['providers'] ?? [];
+      List data = response.body['items'] ?? response.body['providers'] ?? [];
       providers.value = data.map((e) => ProviderModel.fromJson(e)).toList();
       _updateMarkers(position);
 
