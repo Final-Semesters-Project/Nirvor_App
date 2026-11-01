@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:custom_info_window/custom_info_window.dart';
+import 'dart:math' as math;
 import '../../../../../model/category_model.dart';
 import '../../../../../model/skill_model.dart';
 import '../../../../../model/provider_model.dart';
@@ -161,10 +162,22 @@ class HomeSeekerController extends GetxController {
     isLoadingProviders.value = false;
 
     if (response.statusCode == 200) {
-      List data = response.body['providers'] ?? [];
+      List data = response.body['items'] ?? response.body['providers'] ?? [];
       providers.value = data.map((e) => ProviderModel.fromJson(e)).toList();
       _updateMarkers(position);
-      
+
+      if (providers.isEmpty && response.body['warning'] != null) {
+        String warning = response.body['warning'].toString();
+        Get.snackbar(
+          "Notice".tr,
+          warning,
+          backgroundColor: Colors.amber.shade100,
+          colorText: Colors.black87,
+          snackPosition: SnackPosition.BOTTOM,
+          margin: const EdgeInsets.all(16),
+        );
+      }
+
       // Force map refresh to show markers immediately
       Future.delayed(const Duration(milliseconds: 200), () {
         if (customInfoWindowController.googleMapController != null) {
@@ -180,105 +193,25 @@ class HomeSeekerController extends GetxController {
     var newMarkers = <Marker>{};
     for (int i = 0; i < providers.length; i++) {
       var provider = providers[i];
-      double lat = provider.latitude != 0
-          ? provider.latitude
-          : currentPosition.latitude + (i * 0.001);
-      double lng = provider.longitude != 0
-          ? provider.longitude
-          : currentPosition.longitude + (i * 0.001);
+      double lat = provider.latitude != 0 ? provider.latitude : 0;
+      double lng = provider.longitude != 0 ? provider.longitude : 0;
+
+      if (lat == 0 || lng == 0) {
+        // Distribute markers in a circle around seeker based on distanceKm
+        final double angle = (2 * math.pi / (providers.isEmpty ? 1 : providers.length)) * i;
+        final double distKm = provider.distanceKm > 0 ? provider.distanceKm : (0.5 + (i * 0.3));
+        final double dLat = (distKm / 111.0) * math.cos(angle);
+        final double dLng = (distKm / (111.0 * math.cos(currentPosition.latitude * math.pi / 180))) * math.sin(angle);
+        lat = currentPosition.latitude + dLat;
+        lng = currentPosition.longitude + dLng;
+      }
 
       newMarkers.add(
         Marker(
-          markerId: MarkerId(provider.userId),
+          markerId: MarkerId(provider.userId.isNotEmpty ? provider.userId : 'provider_$i'),
           position: LatLng(lat, lng),
-          onTap: () {
-            customInfoWindowController.addInfoWindow!(
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.person_pin, color: Colors.blue, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              provider.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
-                              const SizedBox(width: 4),
-                              Text(
-                                provider.averageRating.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, color: Colors.redAccent, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${provider.distanceKm} km',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              LatLng(lat, lng),
-            );
-          },
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+          consumeTapEvents: true, // Non-clickable marker: only displays on map
         ),
       );
     }

@@ -128,28 +128,41 @@ class SeekerProfileScreen extends StatelessWidget {
                     // Logout Button
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Get.put(AuthController()).logout();
-                        },
-                        icon: const Icon(Icons.logout, color: Colors.white),
-                        label: const Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                      child: Obx(() {
+                        final auth = Get.isRegistered<AuthController>()
+                            ? Get.find<AuthController>()
+                            : Get.put(AuthController());
+                        final isLoading = auth.isAuthLoading.value;
+                        return ElevatedButton.icon(
+                          onPressed: isLoading ? null : () => auth.logout(),
+                          icon: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.logout, color: Colors.white),
+                          label: Text(
+                            isLoading ? 'Logging out...'.tr : 'Logout'.tr,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade600,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red.shade600,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
-                        ),
-                      ),
+                        );
+                      }),
                     ),
                     const SizedBox(height: 20),
                   ],

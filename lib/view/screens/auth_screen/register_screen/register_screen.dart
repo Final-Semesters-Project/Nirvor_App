@@ -22,6 +22,7 @@ class RegisterScreen extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  final RxString selectedRole = ''.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,9 @@ class RegisterScreen extends StatelessWidget {
       userType = Get.arguments;
     } else if (Get.arguments is Map) {
       userType = Get.arguments['role'] ?? '';
+    }
+    if (selectedRole.value.isEmpty) {
+      selectedRole.value = (userType.toLowerCase() == 'provider') ? 'Provider' : 'Seeker';
     }
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,7 +58,133 @@ class RegisterScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            Obx(
+              () => Container(
+                height: 48,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          selectedRole.value = 'Seeker';
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: selectedRole.value == 'Seeker'
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: selectedRole.value == 'Seeker'
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.25),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_search_outlined,
+                                size: 18,
+                                color: selectedRole.value == 'Seeker'
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Seeker'.tr,
+                                style: TextStyle(
+                                  color: selectedRole.value == 'Seeker'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          selectedRole.value = 'Provider';
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: selectedRole.value == 'Provider'
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: selectedRole.value == 'Provider'
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.25),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.handshake_outlined,
+                                size: 18,
+                                color: selectedRole.value == 'Provider'
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Provider'.tr,
+                                style: TextStyle(
+                                  color: selectedRole.value == 'Provider'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Obx(
+              () => Text(
+                selectedRole.value == 'Seeker'
+                    ? 'Register to find & hire skilled workers near you'.tr
+                    : 'Register to offer your skills & find work nearby'.tr,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             CustomFormCard(
               controller: phoneController,
               hintText: '1XXX XXXXXX'.tr,
@@ -176,15 +306,17 @@ class RegisterScreen extends StatelessWidget {
                           return;
                         }
 
-                        if (userType == 'Seeker') {
+                        final String activeRole = selectedRole.value;
+                        if (activeRole == 'Seeker') {
                           authController.register(
                             phone: phone,
                             nameBn: nameBnController.text.trim(),
                             nameEn: nameEnController.text.trim(),
                             password: passwordController.text,
-                            role: userType,
+                            role: 'Seeker',
                           );
                         } else {
+                          authController.fetchCategories();
                           Get.toNamed(
                             AppRoutes.setupDetailsScreen,
                             arguments: {
@@ -192,7 +324,7 @@ class RegisterScreen extends StatelessWidget {
                               'nameBn': nameBnController.text.trim(),
                               'nameEn': nameEnController.text.trim(),
                               'password': passwordController.text,
-                              'role': userType,
+                              'role': 'Provider',
                             },
                           );
                         }

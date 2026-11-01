@@ -1,19 +1,21 @@
 class ApiUrl {
   // static const String baseUrl = "http://10.10.28.162:8000/api/v1"; // 12345678
-  static const String baseUrl = "https://nirbhor-backend-6yuf.onrender.com/api/v1";
+  static const String baseUrl =
+      "https://nirbhor-backend-6yuf.onrender.com/api/v1";
   //static const String baseUrl = "http://10.0.2.2:8000/api/v1"; // 01723354435
   static const String imageUrl = "http://10.10.28.162:8000";
   static String socketUrl = "http://10.10.28.162:8000";
-  static String mapKey ="AIzaSyCHBKvR2Wgc4eF53nYTlGYxULSQuVpb9t4"; //"AIzaSyD96BSj2VcHpAfuy2LE1p7NTO7becR44RE";
-  static const String stagingApiKey ="apikeytoidentifyiftherequestiscomingfromfrontendteam";
+  static const String mapKey = "AIzaSyCHBKvR2Wgc4eF53nYTlGYxULSQuVpb9t4";
+  static const String stagingApiKey =
+      "apikeytoidentifyiftherequestiscomingfromfrontendteam";
 
-//   Seeker:
-// phone=01700000002
-// password=password123
+  //   Seeker:
+  // phone=01700000002
+  // password=password123
 
-// Provider:
-// phone=01800000001
-// password=password123
+  // Provider:
+  // phone=01800000001 , 16
+  // password=password123
 
   ///========================= Authentication =========================
   static const String signUpSeeker = "/auth/register/seeker";

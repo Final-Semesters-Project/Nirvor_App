@@ -93,21 +93,115 @@ class SearchResultsScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final provider = controller.providers[index];
                   final isVerified =
-                      provider.verificationLevel == 'verified' ||
-                      provider.verificationLevel == 'trusted';
+                      provider.verificationLevel.toLowerCase() == 'verified' ||
+                      provider.verificationLevel.toLowerCase() == 'trusted';
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius
-                          .zero, // Based on design, looks very square
+                      border: Border.all(
+                        color: index == 0 ? AppColors.primary : Colors.grey.shade300,
+                        width: index == 0 ? 1.5 : 1,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Top Header: Priority Badge + Availability Status
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Priority Badge (1, 2, 3...)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: index == 0 ? AppColors.primary : Colors.grey.shade800,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    index == 0 ? Icons.workspace_premium : Icons.format_list_numbered,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${'Priority'.tr} #${index + 1}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Availability Status
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: provider.isAvailable
+                                    ? Colors.green.shade50
+                                    : Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: provider.isAvailable
+                                      ? Colors.green.shade400
+                                      : Colors.grey.shade400,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: provider.isAvailable
+                                          ? Colors.green
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    provider.isAvailable ? 'Available'.tr : 'Unavailable'.tr,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: provider.isAvailable
+                                          ? Colors.green.shade800
+                                          : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Middle Content: Photo, Name, Verification Level, Skills, Rating, Distance
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -117,29 +211,30 @@ class SearchResultsScreen extends StatelessWidget {
                                   imageUrl: provider.photoUrl.isNotEmpty
                                       ? provider.photoUrl
                                       : AppConstants.profileImage,
-                                  height: 60,
-                                  width: 60,
-                                  borderRadius: BorderRadius.circular(8),
+                                  height: 64,
+                                  width: 64,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                                 if (isVerified)
                                   Positioned(
-                                    bottom: -4,
-                                    right: -4,
+                                    bottom: -2,
+                                    right: -2,
                                     child: Container(
+                                      padding: const EdgeInsets.all(2),
                                       decoration: const BoxDecoration(
                                         color: Colors.white,
                                         shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
-                                        Icons.check_circle,
+                                        Icons.verified,
                                         color: AppColors.primary,
-                                        size: 20,
+                                        size: 18,
                                       ),
                                     ),
                                   ),
                               ],
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +246,7 @@ class SearchResultsScreen extends StatelessWidget {
                                           provider.name,
                                           style: const TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w600,
+                                            fontWeight: FontWeight.bold,
                                             color: Colors.black87,
                                           ),
                                           maxLines: 1,
@@ -160,159 +255,178 @@ class SearchResultsScreen extends StatelessWidget {
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
+                                          horizontal: 7,
+                                          vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
                                           color: isVerified
-                                              ? AppColors.primary.withValues(
-                                                  alpha: 0.15,
-                                                )
-                                              : Colors.grey.shade200,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
+                                              ? AppColors.primary.withOpacity(0.12)
+                                              : Colors.grey.shade100,
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (isVerified)
-                                              const Icon(
-                                                Icons.check,
-                                                size: 14,
-                                                color: AppColors.primary,
-                                              ),
-                                            if (isVerified)
-                                              const SizedBox(width: 2),
-                                            Text(
-                                              isVerified
-                                                  ? 'verified'.tr
-                                                  : 'unverified'.tr,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: isVerified
-                                                    ? AppColors.primary
-                                                    : Colors.black54,
-                                              ),
-                                            ),
-                                          ],
+                                        child: Text(
+                                          provider.verificationLevel.isNotEmpty
+                                              ? provider.verificationLevel.toUpperCase().tr
+                                              : 'BASIC'.tr,
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: isVerified
+                                                ? AppColors.primary
+                                                : Colors.grey.shade700,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
+
+                                  // Skill Name
+                                  Text(
+                                    provider.skillNames.isNotEmpty
+                                        ? provider.skillNames.join(', ')
+                                        : 'General Service'.tr,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+
+                                  // Rating & Distance
                                   Row(
                                     children: [
                                       const Icon(
-                                        Icons.star_border,
-                                        size: 16,
-                                        color: AppColors.primary,
+                                        Icons.star_rounded,
+                                        size: 18,
+                                        color: Colors.amber,
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 3),
                                       Text(
-                                        provider.averageRating.toStringAsFixed(
-                                          1,
-                                        ),
+                                        provider.averageRating > 0
+                                            ? provider.averageRating.toStringAsFixed(1)
+                                            : 'New'.tr,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                        '•',
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        '${provider.distanceKm} km',
-                                        style: const TextStyle(
-                                          fontSize: 14,
+                                          fontSize: 13,
                                           color: Colors.black87,
                                         ),
                                       ),
+                                      const SizedBox(width: 10),
+                                      const Icon(
+                                        Icons.location_on_outlined,
+                                        size: 15,
+                                        color: Colors.grey,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        '${provider.distanceKm} km',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
                                     ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    provider.skillNames.join(', '),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
+
+                        // Bottom Row: Working Radius & Smartphone
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                  if (provider.phoneEn != null &&
-                                      provider.phoneEn!.isNotEmpty) {
-                                    final Uri launchUri = Uri(
-                                      scheme: 'tel',
-                                      path: provider.phoneEn,
-                                    );
-                                    if (await canLaunchUrl(launchUri)) {
-                                      await launchUrl(launchUri);
-                                    } else {
-                                      Get.snackbar(
-                                        'Error',
-                                        'Could not launch phone app',
-                                      );
-                                    }
-                                  } else {
-                                    Get.snackbar(
-                                      'Error',
-                                      'Phone number not available',
-                                    );
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero,
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'request_to_call'.tr,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
+                            Row(
+                              children: [
+                                Icon(Icons.radar, size: 16, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${'Working Radius'.tr}: ${provider.workingRadiusKm.toInt()} KM',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              height: 52,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
+                            if (provider.hasSmartphone)
+                              Row(
+                                children: [
+                                  Icon(Icons.smartphone, size: 15, color: Colors.blue.shade700),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    'Smartphone'.tr,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.blue.shade700,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              child: IconButton(
-                                onPressed: () {
-                                  // View Details Action
-                                },
-                                icon: const Icon(Icons.info_outline),
-                                color: Colors.black87,
-                              ),
-                            ),
                           ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Action Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              if (provider.phoneEn != null &&
+                                  provider.phoneEn!.isNotEmpty) {
+                                final Uri launchUri = Uri(
+                                  scheme: 'tel',
+                                  path: provider.phoneEn,
+                                );
+                                if (await canLaunchUrl(launchUri)) {
+                                  await launchUrl(launchUri);
+                                } else {
+                                  Get.snackbar(
+                                    'Error'.tr,
+                                    'Could not launch phone app'.tr,
+                                  );
+                                }
+                              } else {
+                                Get.snackbar(
+                                  'Notice'.tr,
+                                  'Contact information will be available upon booking confirmation.'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'request_to_call'.tr,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
