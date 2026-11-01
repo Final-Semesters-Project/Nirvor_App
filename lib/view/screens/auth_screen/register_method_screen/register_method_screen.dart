@@ -13,7 +13,7 @@ class RegisterMethodScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: true,
         centerTitleEnable: false,
         showLanguageSwitcher: true,

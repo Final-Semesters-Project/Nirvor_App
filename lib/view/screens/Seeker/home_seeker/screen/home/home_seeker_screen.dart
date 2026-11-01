@@ -21,9 +21,8 @@ class HomeSeekerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBody: true,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: false,
         centerTitleEnable: false,
         rightWidget: Obx(() {
@@ -81,7 +80,7 @@ class HomeSeekerScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.primary, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.08),
+                    color: AppColors.primary.withValues(alpha: .08),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -167,7 +166,10 @@ class HomeSeekerScreen extends StatelessWidget {
                           onPressed: (controller.isCancellingBooking.value ||
                                   controller.isConfirmingBooking.value)
                               ? null
-                              : () => controller.confirmHireBooking(bookingId),
+                              : () => controller.showWorkSchedulePicker(
+                                    bookingId,
+                                    providerName: providerName,
+                                  ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -193,6 +195,91 @@ class HomeSeekerScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          // Active Search Location Bar (Allows Seeker to switch between Home & Current Location anytime)
+          Obx(() {
+            if (controller.currentSkillId.value == 0) return const SizedBox.shrink();
+            final isHome = controller.selectedLocationMode.value == 'home';
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: isHome ? Colors.teal.shade50 : Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isHome ? AppColors.primary : Colors.blue.shade300,
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isHome ? Icons.home_rounded : Icons.my_location_rounded,
+                    size: 18,
+                    color: isHome ? AppColors.primary : Colors.blue.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isHome
+                              ? 'Searching near Home Address'.tr
+                              : 'Searching near Current Location'.tr,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isHome ? AppColors.primary : Colors.blue.shade900,
+                          ),
+                        ),
+                        if (controller.selectedLocationAddress.value.isNotEmpty)
+                          Text(
+                            controller.selectedLocationAddress.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      controller.showLocationSelectionSheet(
+                        controller.currentSkillId.value,
+                        controller.currentSkillName.value,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Change'.tr,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isHome ? AppColors.primary : Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.swap_horiz_rounded,
+                            size: 16,
+                            color: isHome ? AppColors.primary : Colors.blue.shade800,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -270,22 +357,19 @@ class HomeSeekerScreen extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Obx(() {
         if (controller.providers.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 60),
-          child: FloatingActionButton.extended(
-            onPressed: () {
-              Get.to(() => const SearchResultsScreen());
-            },
-            backgroundColor: AppColors.primary,
-            elevation: 6,
-            icon: const Icon(Icons.format_list_numbered, color: Colors.white),
-            label: Text(
-              '${'View All Providers'.tr} (${controller.providers.length})',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
+        return FloatingActionButton.extended(
+          onPressed: () {
+            Get.to(() => const SearchResultsScreen());
+          },
+          backgroundColor: AppColors.primary,
+          elevation: 6,
+          icon: const Icon(Icons.format_list_numbered, color: Colors.white),
+          label: Text(
+            '${'View All Providers'.tr} (${controller.providers.length})',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
         );

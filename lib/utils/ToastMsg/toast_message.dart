@@ -50,7 +50,7 @@ void showCustomSnackBar(String? message, {bool isError = true, Duration? duratio
       reverseAnimationCurve: Curves.easeInCubic,
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.18),
+          color: Colors.black.withValues(alpha:0.18),
           blurRadius: 8,
           offset: const Offset(0, 3),
         ),

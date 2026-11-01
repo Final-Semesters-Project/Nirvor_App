@@ -17,7 +17,7 @@ class OtpVerifyScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: true,
         centerTitleEnable: false,
       ),
@@ -112,7 +112,7 @@ class OtpVerifyScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         CustomText(
                           text:
-                              'This verification helps us keep the KajerLok community safe and reliable for everyone.'
+                              'This verification helps us keep the Nirbhor community safe and reliable for everyone.'
                                   .tr,
                           color: Colors.grey.shade700,
                           fontSize: 12,

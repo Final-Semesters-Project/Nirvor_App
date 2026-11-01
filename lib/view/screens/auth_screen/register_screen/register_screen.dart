@@ -39,7 +39,7 @@ class RegisterScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: true,
         centerTitleEnable: false,
         showLanguageSwitcher: true,
@@ -85,7 +85,7 @@ class RegisterScreen extends StatelessWidget {
                             boxShadow: selectedRole.value == 'Seeker'
                                 ? [
                                     BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.25),
+                                      color: AppColors.primary.withValues(alpha:0.25),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -134,7 +134,7 @@ class RegisterScreen extends StatelessWidget {
                             boxShadow: selectedRole.value == 'Provider'
                                 ? [
                                     BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.25),
+                                      color: AppColors.primary.withValues(alpha:0.25),
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),

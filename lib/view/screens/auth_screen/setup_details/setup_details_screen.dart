@@ -29,7 +29,7 @@ class SetupDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: true,
         centerTitleEnable: false,
         showLanguageSwitcher: true,
@@ -304,7 +304,7 @@ class SetupDetailsScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.12),
+                        color: AppColors.primary.withValues(alpha:0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(

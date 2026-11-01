@@ -150,6 +150,5 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  // TO DO: implement preferredSize
-  Size get preferredSize => const Size.fromHeight(61);
+  Size get preferredSize => const Size.fromHeight(81);
 }

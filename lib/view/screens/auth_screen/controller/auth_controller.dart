@@ -505,6 +505,17 @@ class AuthController extends GetxController {
           AppConstants.role,
           role.toLowerCase(),
         );
+        if (role.toLowerCase() == 'seeker') {
+          if (body["home_address"] != null) {
+            await SharePrefsHelper.setString("seeker_home_address", body["home_address"].toString());
+          }
+          if (body["home_latitude"] != null) {
+            await SharePrefsHelper.setString("seeker_home_lat", body["home_latitude"].toString());
+          }
+          if (body["home_longitude"] != null) {
+            await SharePrefsHelper.setString("seeker_home_lng", body["home_longitude"].toString());
+          }
+        }
       }
       showCustomSnackBar("Registration successful".tr, isError: false);
       await sendFcmToken();

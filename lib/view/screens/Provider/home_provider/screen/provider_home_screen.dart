@@ -17,7 +17,7 @@ class ProviderHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok | কাজেরলোক',
+        titleName: 'Nirbhor'.tr,
         showLanguageSwitcher: true,
         leftIcon: false,
         centerTitleEnable: false,

@@ -40,6 +40,17 @@ class ApiUrl {
   static const String activeBooking = "/bookings/seeker/last_active_initiated";
   static const String initiateBooking = "/bookings/initiate";
   static String respondBooking(String bookingId) => "/bookings/$bookingId/respond";
+  static String seekerBookingHistory(int page, {int pageSize = 20}) =>
+      "/bookings/seeker/me?page=$page&page_size=$pageSize";
+  static String singleBookingDetail(String bookingId) => "/bookings/$bookingId";
+  static String completeBooking(String bookingId) => "/bookings/$bookingId/complete";
+
+  ///========================= Provider Profile =========================
+  static String providerPublicProfile(String providerId) =>
+      "/provider/$providerId/public";
+
+  ///========================= Reviews =========================
+  static const String reviews = "/reviews";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";
