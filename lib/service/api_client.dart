@@ -8,6 +8,7 @@ import 'package:http_parser/http_parser.dart';
 import '../helper/shared_prefe/shared_prefe.dart';
 import '../utils/app_const/app_const.dart';
 import '../helper/device_helper/device_helper.dart';
+import 'api_check.dart';
 import 'api_url.dart';
 import 'package:mime/mime.dart';
 
@@ -487,7 +488,17 @@ class ApiClient extends GetxService {
     debugPrint(
       '====> API Response: [${response0.statusCode}] $uri\n${response0.body}',
     );
-    // log.e("Handle Response error} ");
+
+    // Auto-handle 401 Unauthorized / Token Expired across the app (excluding login/register attempts)
+    if (response0.statusCode == 401) {
+      bool isAuthEndpoint = uri.contains(ApiUrl.signIn) ||
+          uri.contains(ApiUrl.signUpSeeker) ||
+          uri.contains(ApiUrl.signUpProvider);
+      if (!isAuthEndpoint) {
+        ApiChecker.handleSessionExpired();
+      }
+    }
+
     return response0;
   }
 }

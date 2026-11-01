@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
@@ -5,10 +6,10 @@ import 'package:nirbhor/view/components/custom_netwrok_image/custom_network_imag
 import 'package:nirbhor/view/components/custom_text/custom_text.dart';
 import 'package:nirbhor/view/screens/Seeker/home_seeker/controller/home_seeker_controller.dart';
 import 'package:nirbhor/utils/app_const/app_const.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
-import '../../../seeker_profile/controller/seeker_profile_controller.dart' show SeekerProfileController;
+import '../../../seeker_profile/controller/seeker_profile_controller.dart'
+    show SeekerProfileController;
 
 class SearchResultsScreen extends StatelessWidget {
   const SearchResultsScreen({super.key});
@@ -16,7 +17,8 @@ class SearchResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final HomeSeekerController controller = Get.find<HomeSeekerController>();
-    final SeekerProfileController seekerProfileController = Get.find<SeekerProfileController>();
+    final SeekerProfileController seekerProfileController =
+        Get.find<SeekerProfileController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -25,7 +27,8 @@ class SearchResultsScreen extends StatelessWidget {
         leftIcon: true,
         centerTitleEnable: false,
         rightWidget: Obx(() {
-          final profilePic = seekerProfileController.user.value?.photoUrl ?? '';
+          final profilePic =
+              seekerProfileController.user.value?.photoUrl ?? '';
           return CustomNetworkImage(
             imageUrl: profilePic.isNotEmpty
                 ? profilePic
@@ -46,7 +49,7 @@ class SearchResultsScreen extends StatelessWidget {
             color: Colors.red.shade50,
             child: Row(
               children: [
-                 Icon(
+                Icon(
                   Icons.warning_amber_rounded,
                   color: Colors.red.shade700,
                   size: 20,
@@ -58,43 +61,247 @@ class SearchResultsScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     fontSize: 13,
                     maxLines: 2,
-                   color: Colors.red.shade700,
+                    color: Colors.red.shade700,
                   ),
                 ),
               ],
             ),
           ),
 
+          // Active Booking Card (Shown whenever seeker has an active initiated booking)
+          Obx(() {
+            if (!controller.hasActiveBooking.value ||
+                controller.activeBookingData.value == null) {
+              return const SizedBox.shrink();
+            }
+
+            final booking = controller.activeBookingData.value!;
+            final providerName = booking['provider_name'] ?? 'Provider';
+            final providerPhone = booking['provider_phone'] ?? '';
+            final bookingId = booking['booking_id']?.toString() ?? '';
+            final status = (booking['status'] ?? 'INITIATED').toString().toUpperCase();
+
+            return Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.primary, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Header with Status Badge
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bolt, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Active Booking / সক্রিয় বুকিং'.tr,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          status,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Provider Details Row
+                  Row(
+                    children: [
+                      Container(
+                        height: 52,
+                        width: 52,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.person,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              providerName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 3),
+                            if (providerPhone.isNotEmpty)
+                              Row(
+                                children: [
+                                  Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    providerPhone,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Action Buttons: Cancel and Confirm Hire
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: (controller.isCancellingBooking.value ||
+                                  controller.isConfirmingBooking.value)
+                              ? null
+                              : () => controller.cancelBooking(bookingId),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade400),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: controller.isCancellingBooking.value
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : Text(
+                                  'Cancel / বাতিল'.tr,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade800,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: (controller.isCancellingBooking.value ||
+                                  controller.isConfirmingBooking.value)
+                              ? null
+                              : () => controller.confirmHireBooking(bookingId),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: controller.isConfirmingBooking.value
+                              ? const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Confirm Hire / নিশ্চিত করুন'.tr,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          // Search Results Header Count
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0,vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Obx(
                 () => Text(
-                  'showing_providers'.trParams({'count': controller.providers.length.toString()}),
-                  style: const TextStyle(color: Colors.black54, fontSize: 14),
+                  '${'Search Results / অনুসন্ধানের ফলাফল'.tr} (${controller.providers.length})',
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
           ),
 
+          // Provider List (Blurred & Disabled when there is an active booking)
           Expanded(
             child: Obx(() {
               if (controller.providers.isEmpty) {
                 return Center(child: Text('no_providers_found'.tr));
               }
 
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+              final bool hasActive = controller.hasActiveBooking.value;
+
+              Widget listView = ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 itemCount: controller.providers.length,
                 itemBuilder: (context, index) {
                   final provider = controller.providers[index];
                   final isVerified =
                       provider.verificationLevel.toLowerCase() == 'verified' ||
-                      provider.verificationLevel.toLowerCase() == 'trusted';
+                          provider.verificationLevel.toLowerCase() == 'trusted';
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 16),
@@ -102,7 +309,9 @@ class SearchResultsScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(
-                        color: index == 0 ? AppColors.primary : Colors.grey.shade300,
+                        color: index == 0
+                            ? AppColors.primary
+                            : Colors.grey.shade300,
                         width: index == 0 ? 1.5 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -121,21 +330,24 @@ class SearchResultsScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Priority Badge (1, 2, 3...)
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: index == 0 ? AppColors.primary : Colors.grey.shade800,
+                                color: index == 0
+                                    ? AppColors.primary
+                                    : Colors.grey.shade800,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    index == 0 ? Icons.workspace_premium : Icons.format_list_numbered,
+                                    index == 0
+                                        ? Icons.workspace_premium
+                                        : Icons.format_list_numbered,
                                     size: 14,
                                     color: Colors.white,
                                   ),
@@ -151,8 +363,6 @@ class SearchResultsScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-
-                            // Availability Status
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -184,7 +394,9 @@ class SearchResultsScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    provider.isAvailable ? 'Available'.tr : 'Unavailable'.tr,
+                                    provider.isAvailable
+                                        ? 'Available'.tr
+                                        : 'Unavailable'.tr,
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -201,7 +413,7 @@ class SearchResultsScreen extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Middle Content: Photo, Name, Verification Level, Skills, Rating, Distance
+                        // Middle Content
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -262,12 +474,14 @@ class SearchResultsScreen extends StatelessWidget {
                                           color: isVerified
                                               ? AppColors.primary.withOpacity(0.12)
                                               : Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          provider.verificationLevel.isNotEmpty
-                                              ? provider.verificationLevel.toUpperCase().tr
-                                              : 'BASIC'.tr,
+                                          (provider.verificationLevel.toLowerCase() == 'basic' ||
+                                                  provider.verificationLevel.isEmpty)
+                                              ? 'UNVERIFIED'.tr
+                                              : provider.verificationLevel.toUpperCase().tr,
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -307,7 +521,8 @@ class SearchResultsScreen extends StatelessWidget {
                                       const SizedBox(width: 3),
                                       Text(
                                         provider.averageRating > 0
-                                            ? provider.averageRating.toStringAsFixed(1)
+                                            ? provider.averageRating
+                                                .toStringAsFixed(1)
                                             : 'New'.tr,
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -348,7 +563,8 @@ class SearchResultsScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.radar, size: 16, color: Colors.grey.shade600),
+                                Icon(Icons.radar,
+                                    size: 16, color: Colors.grey.shade600),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${'Working Radius'.tr}: ${provider.workingRadiusKm.toInt()} KM',
@@ -363,7 +579,8 @@ class SearchResultsScreen extends StatelessWidget {
                             if (provider.hasSmartphone)
                               Row(
                                 children: [
-                                  Icon(Icons.smartphone, size: 15, color: Colors.blue.shade700),
+                                  Icon(Icons.smartphone,
+                                      size: 15, color: Colors.blue.shade700),
                                   const SizedBox(width: 3),
                                   Text(
                                     'Smartphone'.tr,
@@ -380,35 +597,16 @@ class SearchResultsScreen extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Action Button
+                        // Action Button: Request to Call
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () async {
-                              if (provider.phoneEn != null &&
-                                  provider.phoneEn!.isNotEmpty) {
-                                final Uri launchUri = Uri(
-                                  scheme: 'tel',
-                                  path: provider.phoneEn,
-                                );
-                                if (await canLaunchUrl(launchUri)) {
-                                  await launchUrl(launchUri);
-                                } else {
-                                  Get.snackbar(
-                                    'Error'.tr,
-                                    'Could not launch phone app'.tr,
-                                  );
-                                }
-                              } else {
-                                Get.snackbar(
-                                  'Notice'.tr,
-                                  'Contact information will be available upon booking confirmation.'.tr,
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
-                              }
-                            },
+                            onPressed: hasActive || controller.isInitiatingBooking.value
+                                ? null
+                                : () => controller.initiateBooking(provider),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
+                              disabledBackgroundColor: Colors.grey.shade300,
                               padding: const EdgeInsets.symmetric(
                                 vertical: 12,
                               ),
@@ -417,15 +615,26 @@ class SearchResultsScreen extends StatelessWidget {
                               ),
                               elevation: 0,
                             ),
-                            child: Text(
-                              'request_to_call'.tr,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
+                            child: controller.isInitiatingBooking.value
+                                ? const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    'request_to_call'.tr,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: hasActive
+                                          ? Colors.grey.shade500
+                                          : Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
@@ -433,6 +642,54 @@ class SearchResultsScreen extends StatelessWidget {
                   );
                 },
               );
+
+              // If an active booking exists, blur the rest of the list so seeker can't contact others
+              if (hasActive) {
+                return Stack(
+                  children: [
+                    ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 2.5, sigmaY: 2.5),
+                      child: IgnorePointer(
+                        ignoring: true,
+                        child: listView,
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.75),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.lock, color: Colors.amber, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'active_booking_blur_warning'.tr,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return listView;
             }),
           ),
         ],
