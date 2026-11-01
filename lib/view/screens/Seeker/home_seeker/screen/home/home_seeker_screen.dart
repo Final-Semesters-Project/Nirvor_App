@@ -59,7 +59,146 @@ class HomeSeekerScreen extends StatelessWidget {
             ),
           ),
           
-          
+          // Active Booking Banner on Home Screen (if any)
+          Obx(() {
+            if (!controller.hasActiveBooking.value ||
+                controller.activeBookingData.value == null) {
+              return const SizedBox.shrink();
+            }
+
+            final booking = controller.activeBookingData.value!;
+            final providerName = booking['provider_name'] ?? 'Provider';
+            final providerPhone = booking['provider_phone'] ?? '';
+            final bookingId = booking['booking_id']?.toString() ?? '';
+            final status = (booking['status'] ?? 'INITIATED').toString().toUpperCase();
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bolt, color: AppColors.primary, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Active Booking / সক্রিয় বুকিং'.tr,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey.shade900,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          status,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$providerName (${providerPhone.isNotEmpty ? providerPhone : ""})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: (controller.isCancellingBooking.value ||
+                                  controller.isConfirmingBooking.value)
+                              ? null
+                              : () => controller.cancelBooking(bookingId),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade400),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          child: controller.isCancellingBooking.value
+                              ? const SizedBox(
+                                  height: 14,
+                                  width: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                )
+                              : Text(
+                                  'Cancel / বাতিল'.tr,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade800,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: (controller.isCancellingBooking.value ||
+                                  controller.isConfirmingBooking.value)
+                              ? null
+                              : () => controller.confirmHireBooking(bookingId),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            elevation: 0,
+                          ),
+                          child: controller.isConfirmingBooking.value
+                              ? const SizedBox(
+                                  height: 14,
+                                  width: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  'Confirm / নিশ্চিত'.tr,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+
           SizedBox(
             height: 50,
             child: Obx(() {

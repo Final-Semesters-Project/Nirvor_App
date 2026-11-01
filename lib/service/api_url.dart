@@ -1,7 +1,6 @@
 class ApiUrl {
   // static const String baseUrl = "http://10.10.28.162:8000/api/v1"; // 12345678
-  static const String baseUrl =
-      "https://nirbhor-backend-6yuf.onrender.com/api/v1";
+  static const String baseUrl = "https://nirbhor-backend-6yuf.onrender.com/api/v1";
   //static const String baseUrl = "http://10.0.2.2:8000/api/v1"; // 01723354435
   static const String imageUrl = "http://10.10.28.162:8000";
   static String socketUrl = "http://10.10.28.162:8000";
@@ -14,8 +13,8 @@ class ApiUrl {
   // password=password123
 
   // Provider:
-  // phone=01800000001 , 16
-  // password=password123
+  // phone=01800000001 , 16,17
+  // password=password123 , 1-9
 
   ///========================= Authentication =========================
   static const String signUpSeeker = "/auth/register/seeker";
@@ -39,6 +38,8 @@ class ApiUrl {
 
   ///========================= Bookings =========================
   static const String activeBooking = "/bookings/seeker/last_active_initiated";
+  static const String initiateBooking = "/bookings/initiate";
+  static String respondBooking(String bookingId) => "/bookings/$bookingId/respond";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";
