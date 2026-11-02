@@ -15,7 +15,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? rightWidget;
   final Color? color;
   final Color? leftIconColor;
-  //final void Function()? leftOnTap;
+  final void Function()? leftOnTap;
   final void Function()? rightOnTap;
   final bool? leftIcon;
   final bool? centerTitleEnable;
@@ -27,7 +27,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
     this.titleName,
     this.color,
     this.leftIconColor,
-    // this.leftOnTap,
+    this.leftOnTap,
     this.rightIcon,
     this.rightText,
     this.rightWidget,
@@ -127,7 +127,10 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       ],
       backgroundColor: Colors.transparent,
       leading: leftIcon == true
-          ? BackButton(color: leftIconColor ?? AppColors.primary)
+          ? BackButton(
+              color: leftIconColor ?? AppColors.primary,
+              onPressed: leftOnTap,
+            )
           : SizedBox.shrink(),
       leadingWidth: leftIcon == true ? kToolbarHeight : 0,
 
@@ -150,6 +153,5 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  // TO DO: implement preferredSize
-  Size get preferredSize => const Size.fromHeight(61);
+  Size get preferredSize => const Size.fromHeight(81);
 }

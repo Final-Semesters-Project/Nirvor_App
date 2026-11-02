@@ -10,6 +10,7 @@ import 'package:nirbhor/utils/app_const/app_const.dart';
 import '../../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../seeker_profile/controller/seeker_profile_controller.dart'
     show SeekerProfileController;
+import '../provider_details/provider_public_details_screen.dart';
 
 class SearchResultsScreen extends StatelessWidget {
   const SearchResultsScreen({super.key});
@@ -23,7 +24,7 @@ class SearchResultsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: true,
         centerTitleEnable: false,
         rightWidget: Obx(() {
@@ -90,7 +91,7 @@ class SearchResultsScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.primary, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.08),
+                    color: AppColors.primary.withValues(alpha:0.08),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -137,57 +138,96 @@ class SearchResultsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Provider Details Row
-                  Row(
-                    children: [
-                      Container(
-                        height: 52,
-                        width: 52,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: AppColors.primary,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              providerName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                  // Provider Details Row (Clickable -> Opens ProviderPublicDetailsScreen)
+                  InkWell(
+                    onTap: () {
+                      String pId = booking['provider_id']?.toString() ?? '';
+                      if (pId.isEmpty) {
+                        final match = controller.providers.firstWhereOrNull(
+                          (p) =>
+                              p.name == providerName ||
+                              (providerPhone.isNotEmpty &&
+                                  p.phoneEn == providerPhone),
+                        );
+                        if (match != null) {
+                          pId = match.userId;
+                        }
+                      }
+                      Get.to(() => ProviderPublicDetailsScreen(
+                            providerId: pId,
+                            providerName: providerName,
+                            providerPhone: providerPhone,
+                            bookingId: bookingId,
+                            hasActiveBooking: true,
+                          ));
+                    },
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: 52,
+                            width: 52,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            const SizedBox(height: 3),
-                            if (providerPhone.isNotEmpty)
-                              Row(
-                                children: [
-                                  Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    providerPhone,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey.shade800,
+                            child: const Icon(
+                              Icons.person,
+                              color: AppColors.primary,
+                              size: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        providerName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black87,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 14,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 3),
+                                if (providerPhone.isNotEmpty)
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone,
+                                          size: 14, color: Colors.grey.shade600),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        providerPhone,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade800,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                          ],
-                        ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 14),
 
@@ -232,7 +272,10 @@ class SearchResultsScreen extends StatelessWidget {
                           onPressed: (controller.isCancellingBooking.value ||
                                   controller.isConfirmingBooking.value)
                               ? null
-                              : () => controller.confirmHireBooking(bookingId),
+                              : () => controller.showWorkSchedulePicker(
+                                    bookingId,
+                                    providerName: providerName,
+                                  ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -261,6 +304,90 @@ class SearchResultsScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          // Search Location Context & Switcher
+          Obx(() {
+            final isHome = controller.selectedLocationMode.value == 'home';
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: isHome ? Colors.teal.shade50 : Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isHome ? AppColors.primary : Colors.blue.shade300,
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    isHome ? Icons.home_rounded : Icons.my_location_rounded,
+                    size: 18,
+                    color: isHome ? AppColors.primary : Colors.blue.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isHome
+                              ? 'Searching near Home Address'.tr
+                              : 'Searching near Current Location'.tr,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isHome ? AppColors.primary : Colors.blue.shade900,
+                          ),
+                        ),
+                        if (controller.selectedLocationAddress.value.isNotEmpty)
+                          Text(
+                            controller.selectedLocationAddress.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      controller.showLocationSelectionSheet(
+                        controller.currentSkillId.value,
+                        controller.currentSkillName.value,
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Change'.tr,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isHome ? AppColors.primary : Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.swap_horiz_rounded,
+                            size: 16,
+                            color: isHome ? AppColors.primary : Colors.blue.shade800,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -317,7 +444,7 @@ class SearchResultsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha:0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -413,144 +540,176 @@ class SearchResultsScreen extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Middle Content
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                CustomNetworkImage(
-                                  imageUrl: provider.photoUrl.isNotEmpty
-                                      ? provider.photoUrl
-                                      : AppConstants.profileImage,
-                                  height: 64,
-                                  width: 64,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                if (isVerified)
-                                  Positioned(
-                                    bottom: -2,
-                                    right: -2,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.verified,
-                                        color: AppColors.primary,
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                        // Middle Content (Clickable -> Opens ProviderPublicDetailsScreen)
+                        InkWell(
+                          onTap: () {
+                            final activeBooking =
+                                controller.activeBookingData.value;
+                            String? activeBookingId;
+                            String? activePhone;
+                            if (hasActive && activeBooking != null) {
+                              activeBookingId =
+                                  activeBooking['booking_id']?.toString();
+                              activePhone =
+                                  activeBooking['provider_phone']?.toString();
+                            }
+
+                            Get.to(() => ProviderPublicDetailsScreen(
+                                  providerId: provider.userId,
+                                  providerName: provider.name,
+                                  providerPhone:
+                                      provider.phoneEn ?? activePhone,
+                                  photoUrl: provider.photoUrl,
+                                  bookingId: activeBookingId,
+                                  hasActiveBooking: hasActive,
+                                  providerModel: provider,
+                                ));
+                          },
+                          borderRadius: BorderRadius.circular(10),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          provider.name,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 7,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: isVerified
-                                              ? AppColors.primary.withOpacity(0.12)
-                                              : Colors.grey.shade100,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          (provider.verificationLevel.toLowerCase() == 'basic' ||
-                                                  provider.verificationLevel.isEmpty)
-                                              ? 'UNVERIFIED'.tr
-                                              : provider.verificationLevel.toUpperCase().tr,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: isVerified
-                                                ? AppColors.primary
-                                                : Colors.grey.shade700,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  CustomNetworkImage(
+                                    imageUrl: provider.photoUrl.isNotEmpty
+                                        ? provider.photoUrl
+                                        : AppConstants.profileImage,
+                                    height: 64,
+                                    width: 64,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  const SizedBox(height: 4),
-
-                                  // Skill Name
-                                  Text(
-                                    provider.skillNames.isNotEmpty
-                                        ? provider.skillNames.join(', ')
-                                        : 'General Service'.tr,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
+                                  if (isVerified)
+                                    Positioned(
+                                      bottom: -2,
+                                      right: -2,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.verified,
+                                          color: AppColors.primary,
+                                          size: 18,
+                                        ),
+                                      ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 6),
-
-                                  // Rating & Distance
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star_rounded,
-                                        size: 18,
-                                        color: Colors.amber,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        provider.averageRating > 0
-                                            ? provider.averageRating
-                                                .toStringAsFixed(1)
-                                            : 'New'.tr,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        size: 15,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        '${provider.distanceKm} km',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade700,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            provider.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isVerified
+                                                ? AppColors.primary
+                                                    .withValues(alpha: 0.12)
+                                                : Colors.grey.shade100,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            (provider.verificationLevel
+                                                            .toLowerCase() ==
+                                                        'basic' ||
+                                                    provider.verificationLevel
+                                                        .isEmpty)
+                                                ? 'UNVERIFIED'.tr
+                                                : provider.verificationLevel
+                                                    .toUpperCase()
+                                                    .tr,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: isVerified
+                                                  ? AppColors.primary
+                                                  : Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+
+                                    // Skill Name
+                                    Text(
+                                      provider.skillNames.isNotEmpty
+                                          ? provider.skillNames.join(', ')
+                                          : 'General Service'.tr,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.primary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 6),
+
+                                    // Rating & Distance
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star_rounded,
+                                          size: 18,
+                                          color: Colors.amber,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          provider.averageRating > 0
+                                              ? provider.averageRating
+                                                  .toStringAsFixed(1)
+                                              : 'New'.tr,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Icon(
+                                          Icons.location_on_outlined,
+                                          size: 15,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          '${provider.distanceKm} km',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade700,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
 
                         const SizedBox(height: 12),
@@ -664,7 +823,7 @@ class SearchResultsScreen extends StatelessWidget {
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75),
+                          color: Colors.black.withValues(alpha:0.75),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(

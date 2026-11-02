@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../../screens/Seeker/home_seeker/screen/home/home_seeker_screen.dart';
+import '../../screens/Seeker/seeker_bookings/screen/seeker_bookings_screen.dart';
 import '../../screens/Seeker/seeker_profile/screen/seeker_profile.dart';
 
 class SeekerNavbar extends StatefulWidget {
@@ -99,10 +100,10 @@ class _SeekerNavbarState extends State<SeekerNavbar> {
 
       switch (index) {
         case 0:
-         Get.offAll(() => HomeSeekerScreen());
+          Get.offAll(() => HomeSeekerScreen());
           break;
         case 1:
-          // Get.to(() => BookingsScreen());
+          Get.offAll(() => const SeekerBookingsScreen());
           break;
         case 2:
           Get.offAll(() => SeekerProfileScreen());

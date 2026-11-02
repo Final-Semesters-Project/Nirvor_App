@@ -14,7 +14,7 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomRoyelAppbar(
-        titleName: 'KajerLok'.tr,
+        titleName: 'Nirbhor'.tr,
         leftIcon: false,
         centerTitleEnable: false,
         showLanguageSwitcher: true,
@@ -33,7 +33,7 @@ class WelcomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             CustomText(
-              text: 'Select how you want to use KajerLok'.tr,
+              text: 'Select how you want to use Nirbhor'.tr,
               fontSize: 16,
               color: Colors.black54,
               textAlign: TextAlign.center,
