@@ -28,6 +28,7 @@ class ApiUrl {
 
   ///========================= User =========================
   static const String userProfile = "/users/me";
+  static const String seekerAddress = "/seeker/me/address";
 
   ///========================= Category & Skills =========================
   static const String categoryList = "/category/list";
@@ -51,6 +52,11 @@ class ApiUrl {
 
   ///========================= Reviews =========================
   static const String reviews = "/reviews";
+
+  ///========================= Urgent Broadcast =========================
+  static const String urgentBroadcast = "/urgentBroadcast/broadcast";
+  static String urgentBroadcastStatus(String broadcastId) =>
+      "/urgentBroadcast/broadcast/$broadcastId/status";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";

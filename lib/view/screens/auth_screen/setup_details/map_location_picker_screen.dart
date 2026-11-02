@@ -7,17 +7,30 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../utils/ToastMsg/toast_message.dart';
 import '../../../../utils/app_colors/app_colors.dart';
 import '../../../components/custom_button/custom_button.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../../../service/api_url.dart';
 import '../controller/auth_controller.dart';
 
 class MapLocationPickerScreen extends StatefulWidget {
-  const MapLocationPickerScreen({super.key});
+  final double? initialLatitude;
+  final double? initialLongitude;
+  final String? initialAddress;
+
+  const MapLocationPickerScreen({
+    super.key,
+    this.initialLatitude,
+    this.initialLongitude,
+    this.initialAddress,
+  });
 
   @override
   State<MapLocationPickerScreen> createState() => _MapLocationPickerScreenState();
 }
 
 class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
-  final AuthController authController = Get.find<AuthController>();
+  late final AuthController? authController =
+      Get.isRegistered<AuthController>() ? Get.find<AuthController>() : null;
   GoogleMapController? _mapController;
 
   late LatLng _currentLatLng;
@@ -31,9 +44,18 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
   @override
   void initState() {
     super.initState();
-    if (authController.latitude.value != 0.0 && authController.longitude.value != 0.0) {
-      _currentLatLng = LatLng(authController.latitude.value, authController.longitude.value);
-      _currentAddress = authController.locationAddress.value;
+    if (widget.initialLatitude != null &&
+        widget.initialLongitude != null &&
+        widget.initialLatitude != 0.0) {
+      _currentLatLng =
+          LatLng(widget.initialLatitude!, widget.initialLongitude!);
+      _currentAddress = widget.initialAddress ?? '';
+    } else if (authController != null &&
+        authController!.latitude.value != 0.0 &&
+        authController!.longitude.value != 0.0) {
+      _currentLatLng = LatLng(
+          authController!.latitude.value, authController!.longitude.value);
+      _currentAddress = authController!.locationAddress.value;
     } else {
       _currentLatLng = _dhakaDefault;
       _determineInitialPosition();
@@ -107,7 +129,12 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       _isLoadingAddress = true;
     });
 
-    final address = await authController.reverseGeocode(target.latitude, target.longitude);
+    String? address;
+    if (authController != null) {
+      address = await authController!.reverseGeocode(target.latitude, target.longitude);
+    } else {
+      address = await _staticReverseGeocode(target.latitude, target.longitude);
+    }
 
     if (mounted) {
       setState(() {
@@ -116,6 +143,40 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
         _isLoadingAddress = false;
       });
     }
+  }
+
+  static Future<String?> _staticReverseGeocode(double lat, double lng) async {
+    final lang = Get.locale?.languageCode ?? 'en';
+    if (ApiUrl.mapKey.isNotEmpty) {
+      try {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'latlng': '$lat,$lng',
+            'key': ApiUrl.mapKey,
+            'language': lang,
+          },
+        );
+        final response =
+            await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final formatted =
+                data['results'][0]['formatted_address']?.toString();
+            if (formatted != null && formatted.isNotEmpty) {
+              return formatted;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Static reverse geocode error: $e");
+      }
+    }
+    return null;
   }
 
   Future<void> _goToCurrentLocation() async {
@@ -398,12 +459,18 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                     showCustomSnackBar("Please select a valid location".tr, isError: true);
                     return;
                   }
-                  authController.latitude.value = _currentLatLng.latitude;
-                  authController.longitude.value = _currentLatLng.longitude;
-                  authController.locationAddress.value = _currentAddress;
-                  authController.locationController.text = _currentAddress;
-                  authController.locationSuggestions.clear();
-                  Get.back();
+                  if (authController != null) {
+                    authController!.latitude.value = _currentLatLng.latitude;
+                    authController!.longitude.value = _currentLatLng.longitude;
+                    authController!.locationAddress.value = _currentAddress;
+                    authController!.locationController.text = _currentAddress;
+                    authController!.locationSuggestions.clear();
+                  }
+                  Get.back(result: {
+                    'latitude': _currentLatLng.latitude,
+                    'longitude': _currentLatLng.longitude,
+                    'address': _currentAddress,
+                  });
                   showCustomSnackBar("Location selected successfully".tr, isError: false);
                 },
                 title: "Confirm Location".tr,

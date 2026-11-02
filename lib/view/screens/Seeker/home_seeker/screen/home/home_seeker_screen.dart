@@ -9,6 +9,8 @@ import 'package:nirbhor/view/components/custom_royel_appbar/custom_royel_appbar.
 import '../../../seeker_profile/controller/seeker_profile_controller.dart';
 import '../../controller/home_seeker_controller.dart';
 import '../search_result_screen/search_results_screen.dart';
+import 'package:nirbhor/view/screens/urgent_request_flow/urgent_request_flow_screen.dart';
+import 'package:nirbhor/view/screens/urgent_request_flow/controller/urgent_request_controller.dart';
 
 class HomeSeekerScreen extends StatelessWidget {
   HomeSeekerScreen({super.key});
@@ -16,6 +18,10 @@ class HomeSeekerScreen extends StatelessWidget {
   final HomeSeekerController controller = Get.find<HomeSeekerController>();
   final SeekerProfileController seekerProfileController =
       Get.find<SeekerProfileController>();
+  final UrgentRequestController urgentCtrl =
+      Get.isRegistered<UrgentRequestController>()
+          ? Get.find<UrgentRequestController>()
+          : Get.put(UrgentRequestController(), permanent: true);
 
   @override
   Widget build(BuildContext context) {
@@ -337,19 +343,88 @@ class HomeSeekerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8.0),
           Expanded(
-            child: Obx(
-              () => GoogleMap(
-                onMapCreated: (GoogleMapController mapController) {
-                  controller.customInfoWindowController.googleMapController = mapController;
-                },
-                initialCameraPosition: CameraPosition(
-                  target: controller.initialPosition.value,
-                  zoom: 14,
+            child: Stack(
+              children: [
+                Obx(
+                  () => GoogleMap(
+                    onMapCreated: (GoogleMapController mapController) {
+                      controller.customInfoWindowController.googleMapController =
+                          mapController;
+                    },
+                    initialCameraPosition: CameraPosition(
+                      target: controller.initialPosition.value,
+                      zoom: 14,
+                    ),
+                    myLocationEnabled: true,
+                    zoomControlsEnabled: false,
+                    markers: controller.markers.toSet(),
+                  ),
                 ),
-                myLocationEnabled: true,
-                zoomControlsEnabled: false,
-                markers: controller.markers.toSet(),
-              ),
+                // Floating Urgent SOS Badge on Map (top-right)
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Obx(() {
+                    final isBroadcasting =
+                        urgentCtrl.flowState.value == UrgentFlowState.broadcasting;
+                    final timeText = urgentCtrl.localizedFormattedTime;
+
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Get.to(() => const UrgentRequestFlowScreen());
+                        },
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE53935), Color(0xFFFF6F00)],
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFE53935).withValues(
+                                  alpha: isBroadcasting ? 0.55 : 0.4,
+                                ),
+                                blurRadius: isBroadcasting ? 14 : 10,
+                                spreadRadius: isBroadcasting ? 1.5 : 0,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.bolt_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                isBroadcasting
+                                    ? '${'Urgent'.tr} ($timeText)'
+                                    : 'Urgent'.tr,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ),
         ],

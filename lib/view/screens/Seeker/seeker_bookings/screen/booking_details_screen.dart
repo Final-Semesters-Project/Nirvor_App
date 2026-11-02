@@ -6,6 +6,7 @@ import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../controller/seeker_bookings_controller.dart';
+import '../model/seeker_booking_model.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   final String bookingId;
@@ -753,40 +754,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      _buildTimelineItem(
-                        icon: Icons.add_circle_outline_rounded,
-                        title: 'Initiated On'.tr,
-                        time: _formatDateTime(detail.createdAt),
-                        isDone: true,
-                        isLast: detail.callUnlockedAt == null &&
-                            detail.confirmedAt == null &&
-                            detail.completedAt == null,
-                      ),
-                      if (detail.callUnlockedAt != null)
-                        _buildTimelineItem(
-                          icon: Icons.phone_callback_rounded,
-                          title: 'Call Unlocked'.tr,
-                          time: _formatDateTime(detail.callUnlockedAt),
-                          isDone: true,
-                          isLast: detail.confirmedAt == null &&
-                              detail.completedAt == null,
-                        ),
-                      if (detail.confirmedAt != null)
-                        _buildTimelineItem(
-                          icon: Icons.thumb_up_alt_rounded,
-                          title: 'Confirmed & Scheduled'.tr,
-                          time: _formatDateTime(detail.confirmedAt),
-                          isDone: true,
-                          isLast: detail.completedAt == null,
-                        ),
-                      if (detail.completedAt != null)
-                        _buildTimelineItem(
-                          icon: Icons.verified_rounded,
-                          title: 'Completed On'.tr,
-                          time: _formatDateTime(detail.completedAt),
-                          isDone: true,
-                          isLast: true,
-                        ),
+                      _buildServiceTimeline(detail),
                     ],
                   ),
                 ),
@@ -1056,13 +1024,138 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     );
   }
 
+  Widget _buildServiceTimeline(BookingDetailModel detail) {
+    final bool isCancelled = detail.isCancelled;
+    final bool isCallUnlockedDone = detail.callUnlockedAt != null ||
+        detail.confirmedAt != null ||
+        detail.isInProgress ||
+        detail.isCompleted;
+    final bool isConfirmedDone = detail.confirmedAt != null ||
+        detail.isInProgress ||
+        detail.isCompleted;
+    final bool isCompletedDone =
+        detail.isCompleted || detail.completedAt != null;
+
+    if (isCancelled) {
+      final bool hadCall = detail.callUnlockedAt != null;
+      final bool hadConfirm = detail.confirmedAt != null;
+
+      return Column(
+        children: [
+          _buildTimelineItem(
+            icon: Icons.add_circle_outline_rounded,
+            title: 'Initiated On'.tr,
+            time: _formatDateTime(detail.createdAt),
+            isDone: true,
+            isLineDone: hadCall,
+            isLast: false,
+          ),
+          if (hadCall)
+            _buildTimelineItem(
+              icon: Icons.phone_callback_rounded,
+              title: 'Call Unlocked'.tr,
+              time: _formatDateTime(detail.callUnlockedAt),
+              isDone: true,
+              isLineDone: hadConfirm,
+              isLast: false,
+            ),
+          if (hadConfirm)
+            _buildTimelineItem(
+              icon: Icons.thumb_up_alt_rounded,
+              title: 'Confirmed & Scheduled'.tr,
+              time: _formatDateTime(detail.confirmedAt),
+              isDone: true,
+              isLineDone: false,
+              isLast: false,
+            ),
+          _buildTimelineItem(
+            icon: Icons.cancel_rounded,
+            title: 'Cancelled'.tr,
+            time: 'Booking was cancelled'.tr,
+            isDone: true,
+            isLineDone: false,
+            isLast: true,
+            isCancelled: true,
+          ),
+        ],
+      );
+    }
+
+    // Normal track: Initiated -> Call Unlocked -> Confirmed & Scheduled -> Completed On
+    return Column(
+      children: [
+        // 1. Initiated
+        _buildTimelineItem(
+          icon: Icons.add_circle_outline_rounded,
+          title: 'Initiated On'.tr,
+          time: _formatDateTime(detail.createdAt),
+          isDone: true,
+          isLineDone: isCallUnlockedDone,
+          isLast: false,
+        ),
+        // 2. Call Unlocked (Number পাওয়া)
+        _buildTimelineItem(
+          icon: Icons.phone_callback_rounded,
+          title: 'Call Unlocked'.tr,
+          time: detail.callUnlockedAt != null
+              ? _formatDateTime(detail.callUnlockedAt)
+              : (isCallUnlockedDone
+                  ? _formatDateTime(detail.createdAt)
+                  : 'Pending'.tr),
+          isDone: isCallUnlockedDone,
+          isLineDone: isConfirmedDone,
+          isLast: false,
+        ),
+        // 3. Confirmed & Scheduled
+        _buildTimelineItem(
+          icon: Icons.thumb_up_alt_rounded,
+          title: 'Confirmed & Scheduled'.tr,
+          time: detail.confirmedAt != null
+              ? _formatDateTime(detail.confirmedAt)
+              : (isConfirmedDone
+                  ? _formatDateTime(detail.createdAt)
+                  : 'Pending'.tr),
+          isDone: isConfirmedDone,
+          isLineDone: isCompletedDone,
+          isLast: false,
+        ),
+        // 4. Completed On
+        _buildTimelineItem(
+          icon: Icons.verified_rounded,
+          title: 'Completed On'.tr,
+          time: detail.completedAt != null
+              ? _formatDateTime(detail.completedAt)
+              : (detail.isInProgress ? 'In Progress...'.tr : 'Pending'.tr),
+          isDone: isCompletedDone,
+          isLineDone: false,
+          isLast: true,
+        ),
+      ],
+    );
+  }
+
   Widget _buildTimelineItem({
     required IconData icon,
     required String title,
     required String time,
     required bool isDone,
+    required bool isLineDone,
     required bool isLast,
+    bool isCancelled = false,
   }) {
+    Color circleColor;
+    Color iconColor;
+    if (isCancelled) {
+      circleColor = Colors.red.shade600;
+      iconColor = Colors.white;
+    } else if (isDone) {
+      circleColor = AppColors.primary;
+      iconColor = Colors.white;
+    } else {
+      circleColor = Colors.grey.shade100;
+      iconColor = Colors.grey.shade400;
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1071,17 +1164,20 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: isDone ? AppColors.primary : Colors.grey.shade300,
+                color: circleColor,
                 shape: BoxShape.circle,
+                border: !isDone && !isCancelled
+                    ? Border.all(color: Colors.grey.shade300, width: 1.5)
+                    : null,
               ),
-              child: Icon(icon, size: 14, color: Colors.white),
+              child: Icon(icon, size: 14, color: iconColor),
             ),
             if (!isLast)
               Container(
                 width: 2,
                 height: 36,
-                color: isDone
-                    ? AppColors.primary.withValues(alpha: 0.4)
+                color: isLineDone
+                    ? AppColors.primary
                     : Colors.grey.shade300,
               ),
           ],
@@ -1093,10 +1189,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: isCancelled
+                      ? Colors.red.shade700
+                      : (isDone ? Colors.black87 : Colors.grey.shade600),
                 ),
               ),
               const SizedBox(height: 2),
@@ -1104,7 +1202,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 time,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: isCancelled
+                      ? Colors.red.shade400
+                      : (isDone ? Colors.grey.shade600 : Colors.grey.shade400),
                 ),
               ),
               if (!isLast) const SizedBox(height: 18),
