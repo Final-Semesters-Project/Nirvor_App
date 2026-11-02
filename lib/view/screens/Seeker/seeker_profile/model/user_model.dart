@@ -25,20 +25,26 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userId: json['user_id'] ?? '',
-      role: json['role'] ?? '',
-      phone: json['phone'] ?? '',
-      name: json['name'] ?? json['name_en'] ?? '',
-      isActive: json['is_active'] ?? false,
-      createdAt: json['created_at'] ?? '',
-      photoUrl: json['photo_url'] ?? '',
-      homeAddress: json['home_address'] ?? '',
+      userId: json['user_id']?.toString() ?? '',
+      role: json['role']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      name: json['name']?.toString() ?? json['name_en']?.toString() ?? '',
+      isActive: json['is_active'] == true,
+      createdAt: json['created_at']?.toString() ?? '',
+      photoUrl: json['photo_url']?.toString() ?? '',
+      homeAddress: json['home_address']?.toString() ??
+          json['base_address']?.toString() ??
+          '',
       homeLatitude: json['home_latitude'] != null
           ? double.tryParse(json['home_latitude'].toString())
-          : null,
+          : (json['latitude'] != null
+              ? double.tryParse(json['latitude'].toString())
+              : null),
       homeLongitude: json['home_longitude'] != null
           ? double.tryParse(json['home_longitude'].toString())
-          : null,
+          : (json['longitude'] != null
+              ? double.tryParse(json['longitude'].toString())
+              : null),
     );
   }
 }
