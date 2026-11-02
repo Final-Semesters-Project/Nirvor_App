@@ -1,6 +1,7 @@
 class ApiUrl {
   // static const String baseUrl = "http://10.10.28.162:8000/api/v1"; // 12345678
-  static const String baseUrl = "https://nirbhor-backend-6yuf.onrender.com/api/v1";
+  static const String baseUrl =
+      "https://nirbhor-backend-6yuf.onrender.com/api/v1";
   //static const String baseUrl = "http://10.0.2.2:8000/api/v1"; // 01723354435
   static const String imageUrl = "http://10.10.28.162:8000";
   static String socketUrl = "http://10.10.28.162:8000";
@@ -41,11 +42,13 @@ class ApiUrl {
   ///========================= Bookings =========================
   static const String activeBooking = "/bookings/seeker/last_active_initiated";
   static const String initiateBooking = "/bookings/initiate";
-  static String respondBooking(String bookingId) => "/bookings/$bookingId/respond";
+  static String respondBooking(String bookingId) =>
+      "/bookings/$bookingId/respond";
   static String seekerBookingHistory(int page, {int pageSize = 20}) =>
       "/bookings/seeker/me?page=$page&page_size=$pageSize";
   static String singleBookingDetail(String bookingId) => "/bookings/$bookingId";
-  static String completeBooking(String bookingId) => "/bookings/$bookingId/complete";
+  static String completeBooking(String bookingId) =>
+      "/bookings/$bookingId/complete";
   static String providerIncomingBookings({int page = 1, int pageSize = 20}) =>
       "/bookings/provider/me?page=$page&page_size=$pageSize";
   static const String providerCompletedBookings =
@@ -64,13 +67,20 @@ class ApiUrl {
 
   ///========================= Reviews =========================
   static const String reviews = "/reviews";
-  static String providerReviews(String providerId, {int page = 1, int pageSize = 20}) =>
-      "/reviews/provider/$providerId?page=$page&page_size=$pageSize";
+  static String providerReviews(
+    String providerId, {
+    int page = 1,
+    int pageSize = 20,
+  }) => "/reviews/provider/$providerId?page=$page&page_size=$pageSize";
 
   ///========================= Urgent Broadcast =========================
   static const String urgentBroadcast = "/urgentBroadcast/broadcast";
   static String urgentBroadcastStatus(String broadcastId) =>
       "/urgentBroadcast/broadcast/$broadcastId/status";
+  static String urgentBroadcastDetail(String broadcastId) =>
+      "/urgentBroadcast/broadcast/$broadcastId";
+  static String claimUrgentBroadcast(String broadcastId) =>
+      "/urgentBroadcast/broadcast/$broadcastId/claim";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";

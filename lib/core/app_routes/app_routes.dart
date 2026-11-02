@@ -13,6 +13,7 @@ import '../../view/screens/auth_screen/welcome_screen/welcome_screen.dart';
 import '../../view/screens/auth_screen/register_method_screen/register_method_screen.dart';
 import '../../view/screens/Provider/home_provider/screen/provider_home_screen.dart';
 import '../../view/screens/Provider/provider_bookings/screen/provider_bookings_screen.dart';
+import '../../view/screens/Provider/urgent_alert/screen/provider_urgent_alert_screen.dart';
 import '../../view/screens/splash_screen/splash_screen.dart';
 
 class AppRoutes {
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String mapLocationPickerScreen = "/MapLocationPickerScreen";
   static const String providerHomeScreen = "/ProviderHomeScreen";
   static const String providerBookingsScreen = "/ProviderBookingsScreen";
+  static const String providerUrgentAlertScreen = "/ProviderUrgentAlertScreen";
   static const String changePasswordScreen = "/ChangePasswordScreen";
 
   static List<GetPage> routes = [
@@ -54,6 +56,16 @@ class AppRoutes {
     GetPage(
         name: providerBookingsScreen,
         page: () => const ProviderBookingsScreen()),
+    GetPage(
+      name: providerUrgentAlertScreen,
+      page: () {
+        final args = Get.arguments is Map ? Get.arguments as Map : {};
+        return ProviderUrgentAlertScreen(
+          broadcastId: (args['broadcast_id'] ?? '').toString(),
+          skillName: args['skill_name']?.toString(),
+        );
+      },
+    ),
 
     ///============== Common ==================
     GetPage(name: changePasswordScreen, page: () => const ChangePasswordScreen()),

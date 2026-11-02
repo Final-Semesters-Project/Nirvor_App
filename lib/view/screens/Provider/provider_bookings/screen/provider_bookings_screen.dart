@@ -137,7 +137,9 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(10),
@@ -164,7 +166,9 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.green.shade50,
                               borderRadius: BorderRadius.circular(10),
@@ -286,8 +290,10 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
     });
   }
 
-  Widget _buildBookingCard(BookingItemModel booking,
-      {required bool isActiveTab}) {
+  Widget _buildBookingCard(
+    BookingItemModel booking, {
+    required bool isActiveTab,
+  }) {
     final status = booking.status;
     final statusColor = _getStatusColor(status);
     final statusBg = _getStatusBgColor(status);
@@ -337,7 +343,9 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                     // Skill Name Pill
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -345,8 +353,11 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.handyman_rounded,
-                              size: 14, color: AppColors.primary),
+                          const Icon(
+                            Icons.handyman_rounded,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 5),
                           Text(
                             booking.skillName,
@@ -363,7 +374,9 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                     // Status Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: statusBg,
                         borderRadius: BorderRadius.circular(20),
@@ -392,8 +405,9 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor:
-                          AppColors.primary.withValues(alpha: 0.12),
+                      backgroundColor: AppColors.primary.withValues(
+                        alpha: 0.12,
+                      ),
                       child: Text(
                         customerName.isNotEmpty
                             ? customerName[0].toUpperCase()
@@ -423,8 +437,11 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                           const SizedBox(height: 3),
                           Row(
                             children: [
-                              Icon(Icons.person_pin_rounded,
-                                  size: 13, color: Colors.grey.shade500),
+                              Icon(
+                                Icons.person_pin_rounded,
+                                size: 13,
+                                color: Colors.grey.shade500,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Customer'.tr,
@@ -449,12 +466,16 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.calendar_today_rounded,
-                            size: 13, color: Colors.grey.shade600),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 13,
+                          color: Colors.grey.shade600,
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           _formatDateTime(
-                              booking.workSchedule ?? booking.createdAt),
+                            booking.workSchedule ?? booking.createdAt,
+                          ),
                           style: TextStyle(
                             fontSize: 11.5,
                             color: Colors.grey.shade700,
@@ -518,21 +539,22 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
               ),
               const SizedBox(height: 18),
               ElevatedButton.icon(
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
-                label: Text('Refresh'.tr,
-                    style: const TextStyle(color: Colors.white)),
+                label: Text(
+                  'Refresh'.tr,
+                  style: const TextStyle(color: Colors.white),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -546,4 +568,3 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
     );
   }
 }
-
