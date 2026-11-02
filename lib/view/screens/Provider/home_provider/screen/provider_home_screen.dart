@@ -10,6 +10,7 @@ import '../controller/provider_home_controller.dart';
 import '../model/provider_dashboard_model.dart';
 import 'provider_add_skill_screen.dart';
 import 'provider_nid_upload_screen.dart';
+import 'provider_nid_rejection_screen.dart';
 
 class ProviderHomeScreen extends StatelessWidget {
   const ProviderHomeScreen({super.key});
@@ -332,33 +333,70 @@ class ProviderHomeScreen extends StatelessWidget {
                         SizedBox(height: 16.h),
 
                         // Rejection Reason Banner if rejected
-                        if (status == 'rejected' &&
-                            controller.verificationRejectionReason.value.isNotEmpty) ...[
-                          Container(
-                            width: double.infinity,
-                            margin: EdgeInsets.only(bottom: 12.h),
-                            padding: EdgeInsets.all(10.w),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.shade200),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.info_outline, color: Colors.redAccent, size: 18),
-                                SizedBox(width: 8.w),
-                                Expanded(
-                                  child: Text(
-                                    '${'Rejection Reason'.tr}: ${controller.verificationRejectionReason.value}',
+                        if (status == 'rejected') ...[
+                          InkWell(
+                            onTap: () => Get.to(() => const ProviderNidRejectionScreen()),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              width: double.infinity,
+                              margin: EdgeInsets.only(bottom: 12.h),
+                              padding: EdgeInsets.all(12.w),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red.shade300),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.warning_amber_rounded,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8.w),
+                                      Expanded(
+                                        child: Text(
+                                          'আপনার NID যাচাই প্রত্যাখ্যান করা হয়েছে / NID Verification Rejected',
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            color: Colors.red.shade900,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 13,
+                                        color: Colors.red,
+                                      ),
+                                    ],
+                                  ),
+                                  if (controller.verificationRejectionReason.value.isNotEmpty) ...[
+                                    SizedBox(height: 6.h),
+                                    Text(
+                                      '${'Rejection Reason'.tr}: "${controller.verificationRejectionReason.value}"',
+                                      style: TextStyle(
+                                        fontSize: 11.5.sp,
+                                        color: Colors.red.shade800,
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
+                                  SizedBox(height: 6.h),
+                                  Text(
+                                    'বিস্তারিত কারণ দেখতে ও পুনরায় আপলোড করতে এখানে ট্যাপ করুন ›',
                                     style: TextStyle(
-                                      fontSize: 12.sp,
-                                      color: Colors.red.shade800,
-                                      fontWeight: FontWeight.w500,
+                                      fontSize: 11.sp,
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -427,8 +465,43 @@ class ProviderHomeScreen extends StatelessWidget {
                               ],
                             ),
                           )
+                        else if (status == 'rejected')
+                          // Rejected -> View Rejection Reason & Re-upload
+                          InkWell(
+                            onTap: () => Get.to(() => const ProviderNidRejectionScreen()),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.red.shade400, width: 1.2),
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.red.shade50,
+                              ),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.error_outline_rounded,
+                                      color: Colors.red.shade700,
+                                      size: 18.sp,
+                                    ),
+                                    SizedBox(width: 6.w),
+                                    CustomText(
+                                      text: 'রিজেকশনের কারণ দেখুন ও পুনরায় আপলোড করুন'.tr,
+                                      color: Colors.red.shade800,
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w700,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
                         else
-                          // 'not_initiated' or 'rejected' -> Let provider upload NID
+                          // 'not_initiated' -> Let provider upload NID
                           InkWell(
                             onTap: () => Get.to(() => const ProviderNidUploadScreen()),
                             borderRadius: BorderRadius.circular(8),
@@ -451,9 +524,7 @@ class ProviderHomeScreen extends StatelessWidget {
                                     ),
                                     SizedBox(width: 6.w),
                                     CustomText(
-                                      text: status == 'rejected'
-                                          ? 'Re-upload NID'.tr
-                                          : 'Upload NID to get Verified'.tr,
+                                      text: 'Upload NID to get Verified'.tr,
                                       color: AppColors.primary,
                                       fontSize: 13.sp,
                                       fontWeight: FontWeight.w600,

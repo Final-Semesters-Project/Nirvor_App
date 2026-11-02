@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../view/screens/Provider/urgent_alert/screen/provider_urgent_alert_screen.dart';
+import '../../view/screens/Provider/home_provider/screen/provider_nid_rejection_screen.dart';
+import '../../view/screens/Provider/home_provider/controller/provider_home_controller.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -91,6 +93,65 @@ class FirebaseNotificationHelper {
               navigateToUrgentAlert(broadcastId, skillName);
             },
           );
+        } else if (type == 'VERIFICATION_REJECTED') {
+          // Refresh dashboard data
+          if (Get.isRegistered<ProviderHomeController>()) {
+            Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
+          }
+
+          Get.snackbar(
+            "যাচাইকরণ প্রত্যাখ্যাত! / Verification Rejected!",
+            "আপনার NID যাচাইকরণ প্রত্যাখ্যান করা হয়েছে। বিস্তারিত দেখতে ট্যাপ করুন।",
+            backgroundColor: const Color(0xFFDC2626),
+            colorText: Colors.white,
+            icon: const Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
+            duration: const Duration(seconds: 8),
+            snackPosition: SnackPosition.TOP,
+            margin: const EdgeInsets.all(12),
+            borderRadius: 12,
+            mainButton: TextButton(
+              onPressed: () {
+                if (Get.isSnackbarOpen) Get.closeCurrentSnackbar();
+                Get.to(() => const ProviderNidRejectionScreen());
+              },
+              child: const Text(
+                "দেখুন / VIEW",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            onTap: (_) {
+              if (Get.isSnackbarOpen) Get.closeCurrentSnackbar();
+              Get.to(() => const ProviderNidRejectionScreen());
+            },
+          );
+        } else if (type == 'VERIFICATION_APPROVED') {
+          if (Get.isRegistered<ProviderHomeController>()) {
+            Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
+          }
+
+          Get.snackbar(
+            "অভিনন্দন! / Congratulations!",
+            "আপনার অ্যাকাউন্ট সফলভাবে ভেরিফাইড হয়েছে।",
+            backgroundColor: const Color(0xFF16A34A),
+            colorText: Colors.white,
+            icon: const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 28,
+            ),
+            duration: const Duration(seconds: 5),
+            snackPosition: SnackPosition.TOP,
+            margin: const EdgeInsets.all(12),
+            borderRadius: 12,
+          );
         }
       });
     } catch (e) {
@@ -110,6 +171,16 @@ class FirebaseNotificationHelper {
 
       if (broadcastId.isNotEmpty) {
         navigateToUrgentAlert(broadcastId, skillName);
+      }
+    } else if (type == 'VERIFICATION_REJECTED') {
+      // Refresh dashboard
+      if (Get.isRegistered<ProviderHomeController>()) {
+        Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
+      }
+      Get.to(() => const ProviderNidRejectionScreen());
+    } else if (type == 'VERIFICATION_APPROVED') {
+      if (Get.isRegistered<ProviderHomeController>()) {
+        Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
       }
     }
   }
