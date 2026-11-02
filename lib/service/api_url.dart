@@ -13,7 +13,7 @@ class ApiUrl {
   // password=password123
 
   // Provider:
-  // phone=01800000001 , 16,17
+  // phone=01800000001 , 18,17
   // password=password123 , 1-9
 
   ///========================= Authentication =========================
@@ -46,7 +46,14 @@ class ApiUrl {
   static String singleBookingDetail(String bookingId) => "/bookings/$bookingId";
   static String completeBooking(String bookingId) => "/bookings/$bookingId/complete";
 
-  ///========================= Provider Profile =========================
+  ///========================= Provider Dashboard & Profile =========================
+  static const String providerDashboard = "/provider/dashboard";
+  static const String updateProviderProfile = "/provider/me/update_profile";
+  static String nidUploadSignature(String side) =>
+      "/uploads/upload-signature/nid?side=$side";
+  static const String providerAddSkill = "/provider/me/add_skill";
+  static String providerRemoveSkill(int skillId) =>
+      "/provider/me/remove_skill?skill_id=$skillId";
   static String providerPublicProfile(String providerId) =>
       "/provider/$providerId/public";
 
