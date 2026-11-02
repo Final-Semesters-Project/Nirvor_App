@@ -10,6 +10,7 @@ import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'controller/provider_profile_controller.dart';
 import 'screen/edit_provider_profile_screen.dart';
+import 'package:nirbhor/view/screens/change_password/change_password_screen.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -867,13 +868,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                               title: 'Change Password'.tr,
                               subtitle: 'Update security password'.tr,
                               onTap: () {
-                                Get.snackbar(
-                                  "Info".tr,
-                                  isBn
-                                      ? "পাসওয়ার্ড পরিবর্তন সুবিধাটি শীঘ্রই যুক্ত করা হচ্ছে।"
-                                      : "Change Password is not available yet.",
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );
+                                Get.to(() => const ChangePasswordScreen());
                               },
                             ),
                           ],

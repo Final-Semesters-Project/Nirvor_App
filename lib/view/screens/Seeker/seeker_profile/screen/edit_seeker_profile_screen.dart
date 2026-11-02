@@ -428,8 +428,10 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                           );
 
                           if (success) {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                            }
                             showCustomSnackBar("Profile updated successfully".tr, isError: false);
-                            Get.back();
                           }
                         },
                   style: ElevatedButton.styleFrom(

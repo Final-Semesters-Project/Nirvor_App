@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../../screens/Provider/home_provider/screen/provider_home_screen.dart';
 import '../../screens/Provider/provider_profile/provider_profile_screen.dart';
+import '../../screens/Provider/provider_bookings/screen/provider_bookings_screen.dart';
 
 class ProviderNavBar extends StatefulWidget {
   final int currentIndex;
@@ -120,7 +121,7 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
           Get.offAll(() => const ProviderHomeScreen());
           break;
         case 1:
-          // Get.to(() => BookingsScreen());
+          Get.offAll(() => const ProviderBookingsScreen());
           break;
         case 2:
           // Get.to(() => NotificationsScreen());

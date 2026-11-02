@@ -21,6 +21,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final bool? centerTitleEnable;
   final bool showLanguageSwitcher;
   final void Function()? onLanguageChanged;
+  final double? titleSpacing;
 
   const CustomRoyelAppbar({
     super.key,
@@ -36,6 +37,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
     this.centerTitleEnable = true,
     this.showLanguageSwitcher = false,
     this.onLanguageChanged,
+    this.titleSpacing,
   });
 
   @override
@@ -45,6 +47,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       foregroundColor: Colors.transparent,
       centerTitle: centerTitleEnable,
+      titleSpacing: titleSpacing,
       scrolledUnderElevation: 0,
       actions: [
         if (showLanguageSwitcher)
@@ -99,7 +102,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           )
-        else
+        else if (rightWidget != null || rightText != null || rightIcon != null)
           IconButton(
             onPressed: () {
               if (rightOnTap != null) rightOnTap!();

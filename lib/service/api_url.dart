@@ -29,6 +29,7 @@ class ApiUrl {
   ///========================= User =========================
   static const String userProfile = "/users/me";
   static const String seekerAddress = "/seeker/me/address";
+  static const String updatePassword = "/users/me/update-password";
 
   ///========================= Category & Skills =========================
   static const String categoryList = "/category/list";
@@ -45,6 +46,10 @@ class ApiUrl {
       "/bookings/seeker/me?page=$page&page_size=$pageSize";
   static String singleBookingDetail(String bookingId) => "/bookings/$bookingId";
   static String completeBooking(String bookingId) => "/bookings/$bookingId/complete";
+  static String providerIncomingBookings({int page = 1, int pageSize = 20}) =>
+      "/bookings/provider/me?page=$page&page_size=$pageSize";
+  static const String providerCompletedBookings =
+      "/bookings/provider/me/completed";
 
   ///========================= Provider Dashboard & Profile =========================
   static const String providerDashboard = "/provider/dashboard";
@@ -59,6 +64,8 @@ class ApiUrl {
 
   ///========================= Reviews =========================
   static const String reviews = "/reviews";
+  static String providerReviews(String providerId, {int page = 1, int pageSize = 20}) =>
+      "/reviews/provider/$providerId?page=$page&page_size=$pageSize";
 
   ///========================= Urgent Broadcast =========================
   static const String urgentBroadcast = "/urgentBroadcast/broadcast";

@@ -240,8 +240,11 @@ class ProviderNidUploadScreen extends StatelessWidget {
                     ],
                   ),
                   TextButton.icon(
-                    onPressed: () => _showPickOptions(context, isFront, controller),
-                    icon: const Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+                    onPressed: () => controller.pickNidImage(
+                      isFront: isFront,
+                      source: ImageSource.camera,
+                    ),
+                    icon: const Icon(Icons.camera_alt_rounded, size: 16, color: AppColors.primary),
                     label: Text(
                       'Retake'.tr,
                       style: const TextStyle(
@@ -297,93 +300,31 @@ class ProviderNidUploadScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16.h),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => controller.pickNidImage(
-                    isFront: isFront,
-                    source: ImageSource.camera,
-                  ),
-                  icon: const Icon(Icons.camera_alt_rounded, size: 18, color: AppColors.primary),
-                  label: Text(
-                    'Camera'.tr,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.primary),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                  ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => controller.pickNidImage(
+                isFront: isFront,
+                source: ImageSource.camera,
+              ),
+              icon: const Icon(Icons.camera_alt_rounded, size: 18, color: Colors.white),
+              label: Text(
+                'Take with Camera'.tr,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
               ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => controller.pickNidImage(
-                    isFront: isFront,
-                    source: ImageSource.gallery,
-                  ),
-                  icon: const Icon(Icons.photo_library_rounded, size: 18, color: Colors.black87),
-                  label: Text(
-                    'Gallery'.tr,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.shade400),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                    padding: EdgeInsets.symmetric(vertical: 10.h),
-                  ),
-                ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                padding: EdgeInsets.symmetric(vertical: 10.h),
               ),
-            ],
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showPickOptions(
-    BuildContext context,
-    bool isFront,
-    ProviderNidUploadController controller,
-  ) {
-    Get.bottomSheet(
-      Container(
-        padding: EdgeInsets.all(20.w),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
-              title: Text('Take with Camera'.tr),
-              onTap: () {
-                Get.back();
-                controller.pickNidImage(isFront: isFront, source: ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
-              title: Text('Choose from Gallery'.tr),
-              onTap: () {
-                Get.back();
-                controller.pickNidImage(isFront: isFront, source: ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

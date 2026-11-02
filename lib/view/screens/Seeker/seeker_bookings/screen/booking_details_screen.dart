@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
+import '../../../../components/provider_reviews_widget/provider_reviews_widget.dart';
 import '../controller/seeker_bookings_controller.dart';
 import '../model/seeker_booking_model.dart';
 
@@ -189,6 +190,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 : (widget.providerName ?? 'Provider'));
         final displaySkill = widget.skillName ?? 'Skill Service';
         final photoUrl = provider?.photoUrl ?? '';
+        final String effectiveProviderId = widget.providerId?.isNotEmpty == true
+            ? widget.providerId!
+            : (detail.providerId?.isNotEmpty == true
+                ? detail.providerId!
+                : (provider?.userId ?? ''));
 
         return RefreshIndicator(
           color: AppColors.primary,
@@ -920,42 +926,38 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                   const SizedBox(height: 12),
                   // Button to Leave Review (shown only if not already reviewed)
-                  Obx(() {
-                    final hasReviewed = controller.isBookingReviewed(
-                      detail.bookingId,
-                      backendHasReviewed: detail.hasReviewed,
-                    );
-
-                    if (hasReviewed) {
-                      return Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.amber.shade200),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.star_rounded,
-                                color: Colors.amber.shade700, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'You have reviewed this provider'.tr,
-                              style: TextStyle(
-                                color: Colors.amber.shade900,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
+                  if (controller.isBookingReviewed(
+                    detail.bookingId,
+                    backendHasReviewed: detail.hasReviewed,
+                  ))
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.amber.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star_rounded,
+                              color: Colors.amber.shade700, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'You have reviewed this provider'.tr,
+                            style: TextStyle(
+                              color: Colors.amber.shade900,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return SizedBox(
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () => controller.showReviewBottomSheet(
@@ -982,8 +984,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                           elevation: 0,
                         ),
                       ),
-                    );
-                  }),
+                    ),
                 ] else if (detail.isCancelled) ...[
                   Container(
                     width: double.infinity,
@@ -1014,6 +1015,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                     ),
                   ),
                 ],
+
+                // Provider Customer Reviews Section (/api/v1/reviews/provider/{provider_id})
+                if (effectiveProviderId.isNotEmpty)
+                  ProviderReviewsWidget(
+                    providerId: effectiveProviderId,
+                  ),
 
                 const SizedBox(height: 30),
               ],

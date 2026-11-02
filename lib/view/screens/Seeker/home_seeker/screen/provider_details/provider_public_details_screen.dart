@@ -6,6 +6,7 @@ import '../../../../../../utils/ToastMsg/toast_message.dart';
 import '../../../../../../utils/app_colors/app_colors.dart';
 import '../../../../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
+import '../../../../../components/provider_reviews_widget/provider_reviews_widget.dart';
 import '../../../seeker_bookings/model/seeker_booking_model.dart';
 import '../../controller/home_seeker_controller.dart';
 
@@ -658,6 +659,11 @@ class _ProviderPublicDetailsScreenState
                       ),
                     ],
                   ),
+                ),
+
+                // 5. Customer Reviews Section (/api/v1/reviews/provider/{provider_id})
+                ProviderReviewsWidget(
+                  providerId: widget.providerId,
                 ),
 
                 const SizedBox(height: 30),
