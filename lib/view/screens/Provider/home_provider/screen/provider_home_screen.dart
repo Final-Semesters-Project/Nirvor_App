@@ -11,6 +11,8 @@ import '../model/provider_dashboard_model.dart';
 import 'provider_add_skill_screen.dart';
 import 'provider_nid_upload_screen.dart';
 import 'provider_nid_rejection_screen.dart';
+import '../../../../../../model/review_model.dart';
+import 'provider_all_reviews_screen.dart';
 
 class ProviderHomeScreen extends StatelessWidget {
   const ProviderHomeScreen({super.key});
@@ -63,42 +65,7 @@ class ProviderHomeScreen extends StatelessWidget {
               : '0.0';
           final totalJobs = data?.totalJobsDone ?? 0;
 
-          // Sample reviews list (fallback if no dedicated reviews API)
           final isBn = Get.locale?.languageCode == 'bn';
-          final List<Map<String, dynamic>> reviewsList = [
-            {
-              'name': isBn ? 'মো. কামাল হোসেন' : 'Md. Kamal Hossain',
-              'time': isBn ? '২ দিন আগে' : '2 days ago',
-              'rating': 5,
-              'comment': isBn
-                  ? 'খুবই দক্ষতার সাথে এবং সময়মতো কাজ সম্পন্ন করেছেন। ধন্যবাদ।'
-                  : 'Completed the work very skillfully and on time. Thank you.',
-            },
-            {
-              'name': isBn ? 'ফারহানা আক্তার' : 'Farhana Akter',
-              'time': isBn ? '১ সপ্তাহ আগে' : '1 week ago',
-              'rating': 5,
-              'comment': isBn
-                  ? 'ব্যবহার অনেক ভালো এবং কাজের মানও বেশ ভালো।'
-                  : 'Very polite behavior and high quality of work.',
-            },
-            {
-              'name': isBn ? 'তানভীর আহমেদ' : 'Tanvir Ahmed',
-              'time': isBn ? '২ সপ্তাহ আগে' : '2 weeks ago',
-              'rating': 5,
-              'comment': isBn
-                  ? 'ক্লিন এবং নিখুঁত কাজ। পরবর্তীতে আবার ডাকব।'
-                  : 'Clean and precise work. Will hire again in future.',
-            },
-            {
-              'name': isBn ? 'আব্দুল কাদের' : 'Abdul Kader',
-              'time': isBn ? '৩ সপ্তাহ আগে' : '3 weeks ago',
-              'rating': 4,
-              'comment': isBn
-                  ? 'ভালো কাজ করেছেন, পরিচ্ছন্ন ছিলেন।'
-                  : 'Good service, very professional.',
-            },
-          ];
 
           return RefreshIndicator(
             color: AppColors.primary,
@@ -816,7 +783,7 @@ class ProviderHomeScreen extends StatelessWidget {
                             ),
                             InkWell(
                               onTap: () {
-                                _showAllReviewsModal(context, reviewsList);
+                                Get.to(() => const ProviderAllReviewsScreen());
                               },
                               borderRadius: BorderRadius.circular(6),
                               child: Padding(
@@ -849,10 +816,61 @@ class ProviderHomeScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 14.h),
 
-                        // 3 Latest Reviews
-                        ...reviewsList
-                            .take(3)
-                            .map((review) => _buildReviewItem(review)),
+                        // Real Reviews List (Up to 3 latest reviews)
+                        Obx(() {
+                          if (controller.isLoadingReviews.value &&
+                              controller.reviewsList.isEmpty) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.h),
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+
+                          if (controller.reviewsList.isEmpty) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.rate_review_outlined,
+                                      size: 32.sp,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    SizedBox(height: 6.h),
+                                    Text(
+                                      isBn
+                                          ? 'এখনো কোনো রিভিউ পাওয়া যায়নি'
+                                          : 'No customer reviews yet',
+                                      style: TextStyle(
+                                        fontSize: 12.5.sp,
+                                        color: Colors.grey.shade600,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+
+                          return Column(
+                            children: controller.reviewsList
+                                .take(3)
+                                .map((review) =>
+                                    _buildReviewItem(review, isBn))
+                                .toList(),
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -867,7 +885,17 @@ class ProviderHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewItem(Map<String, dynamic> review) {
+  Widget _buildReviewItem(ReviewItemModel review, bool isBn) {
+    final String reviewerDisplayName = review.isAnonymous
+        ? (isBn ? 'নাম প্রকাশে অনিচ্ছুক' : 'Anonymous Client')
+        : (review.reviewerName.isNotEmpty
+            ? review.reviewerName
+            : (isBn ? 'গ্রাহক' : 'Client'));
+
+    final String initial = reviewerDisplayName.isNotEmpty
+        ? reviewerDisplayName[0].toUpperCase()
+        : 'C';
+
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
       padding: EdgeInsets.all(12.w),
@@ -886,22 +914,27 @@ class ProviderHomeScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 14.r,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    child: Text(
-                      (review['name'] ?? 'U')[0].toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    backgroundColor: review.isAnonymous
+                        ? Colors.grey.shade200
+                        : AppColors.primary.withValues(alpha: 0.12),
+                    child: review.isAnonymous
+                        ? Icon(Icons.person_outline_rounded,
+                            size: 15.sp, color: Colors.grey.shade600)
+                        : Text(
+                            initial,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
                   ),
                   SizedBox(width: 8.w),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        review['name'] ?? '',
+                        reviewerDisplayName,
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
@@ -909,7 +942,7 @@ class ProviderHomeScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        review['time'] ?? '',
+                        review.localizedTimeAgo(isBn),
                         style: TextStyle(
                           fontSize: 10.5.sp,
                           color: Colors.grey.shade500,
@@ -924,7 +957,7 @@ class ProviderHomeScreen extends StatelessWidget {
                 children: List.generate(
                   5,
                   (i) => Icon(
-                    i < (review['rating'] ?? 5)
+                    i < review.rating
                         ? Icons.star_rounded
                         : Icons.star_outline_rounded,
                     color: Colors.amber,
@@ -934,10 +967,10 @@ class ProviderHomeScreen extends StatelessWidget {
               ),
             ],
           ),
-          if ((review['comment'] ?? '').toString().isNotEmpty) ...[
+          if ((review.comment ?? '').trim().isNotEmpty) ...[
             SizedBox(height: 8.h),
             Text(
-              review['comment'],
+              review.comment!,
               textAlign: TextAlign.start,
               style: TextStyle(
                 fontSize: 12.sp,
@@ -948,69 +981,6 @@ class ProviderHomeScreen extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-
-  void _showAllReviewsModal(
-    BuildContext context,
-    List<Map<String, dynamic>> reviewsList,
-  ) {
-    Get.bottomSheet(
-      Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.75,
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'All Reviews'.tr,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => Get.back(),
-                ),
-              ],
-            ),
-            const Divider(),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: reviewsList.length,
-                itemBuilder: (context, index) {
-                  return _buildReviewItem(reviewsList[index]);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 

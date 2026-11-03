@@ -160,7 +160,6 @@ class AppTranslate extends Translations {
       'Ready to accept jobs': 'Ready to accept jobs',
       'Not accepting jobs right now': 'Not accepting jobs right now',
       'VERIFICATION LEVEL': 'VERIFICATION LEVEL',
-      'BASIC': 'BASIC',
       'Upload NID to get Verified': 'Upload NID to get Verified',
       'Upload NID': 'Upload NID',
       'Re-upload NID': 'Re-upload NID',
@@ -203,10 +202,8 @@ class AppTranslate extends Translations {
       'Verified Provider': 'Verified Provider',
       'Trusted Provider': 'Trusted Provider',
       'Service Provider': 'Service Provider',
-      'Customer Reviews': 'Customer Reviews',
       'View All': 'View All',
       'All Reviews': 'All Reviews',
-      'No reviews yet': 'No reviews yet',
       'CUSTOMER FEEDBACK SUMMARY': 'CUSTOMER FEEDBACK SUMMARY',
       'Customers appreciate this provider\'s punctuality and clean work.': 'Customers appreciate this provider\'s punctuality and clean work.',
       'Jobs Done': 'Jobs Done',
@@ -347,19 +344,9 @@ class AppTranslate extends Translations {
 
       // Seeker Bookings
       'My Bookings': 'My Bookings',
-      'Active': 'Active',
       'Completed': 'Completed',
       'Cancelled': 'Cancelled',
-      'In Progress / চলমান': 'In Progress',
-      'Initiated / শুরু হয়েছে': 'Initiated',
-      'Completed / সম্পন্ন': 'Completed',
-      'Cancelled / বাতিল': 'Cancelled',
-      'Expired / মেয়াদ উত্তীর্ণ': 'Expired',
-      'IN PROGRESS / চলমান': 'IN PROGRESS',
-      'INITIATED / শুরু হয়েছে': 'INITIATED',
-      'COMPLETED / সম্পন্ন': 'COMPLETED',
-      'CANCELLED / বাতিল': 'CANCELLED',
-      'EXPIRED / মেয়াদোত্তীর্ণ': 'EXPIRED',
+      'In Progress': 'In Progress',
       'Provider hire is confirmed. Work is scheduled or currently under way.':
           'Provider hire is confirmed. Work is scheduled or currently under way.',
       'Booking initiated. Please call provider and confirm schedule to finalize hire.':
@@ -412,7 +399,6 @@ class AppTranslate extends Translations {
       'Booking Cancelled': 'Booking Cancelled',
       'Booking Expired': 'Booking Expired',
       'Booking details not found': 'Booking details not found',
-      'Retry': 'Retry',
       'Provider Info': 'Provider Info',
       'Phone unlocked after booking': 'Phone unlocked after booking',
       'Phone hidden (Cancelled)': 'Phone hidden (Cancelled)',
@@ -427,14 +413,12 @@ class AppTranslate extends Translations {
       'Completed On': 'Completed On',
       'In Progress...': 'In Progress...',
       'Pending': 'Pending',
-      'Cancelled': 'Cancelled',
       'Booking was cancelled': 'Booking was cancelled',
       'Booking ID': 'Booking ID',
       'Copied': 'Copied',
       'Booking ID copied to clipboard': 'Booking ID copied to clipboard',
       'Mark as Completed': 'Mark as Completed',
       'Cancel Booking': 'Cancel Booking',
-      'Job Completed Successfully': 'Job Completed Successfully',
       'Schedule': 'Schedule',
       'Booked On': 'Booked On',
       'Phone revealed on initiation': 'Phone revealed on initiation',
@@ -454,7 +438,6 @@ class AppTranslate extends Translations {
       'Booking marked as completed!': 'Booking marked as completed!',
       'Could not complete booking': 'Could not complete booking',
       'Something went wrong': 'Something went wrong',
-      'Number not available': 'Number not available',
       'Could not launch phone dialer': 'Could not launch phone dialer',
 
       // Review & Rating
@@ -491,7 +474,6 @@ class AppTranslate extends Translations {
       'You have already reviewed this booking': 'You have already reviewed this booking',
       'Post-Job Review': 'Post-Job Review',
       'Booking ID missing': 'Booking ID missing',
-      'New': 'New',
 
       // Urgent Request Flow
       'Need It NOW?': 'Need It NOW?',
@@ -539,7 +521,6 @@ class AppTranslate extends Translations {
       'Are you sure you want to cancel this urgent broadcast? Nearby providers will not be notified.':
           'Are you sure you want to cancel this urgent broadcast? Nearby providers will not be notified.',
       'Keep Waiting': 'Keep Waiting',
-      'Yes, Cancel': 'Yes, Cancel',
       'No saved home address. Uses GPS by default.':
           'No saved home address. Uses GPS by default.',
       'GPS coordinates will be captured': 'GPS coordinates will be captured',
@@ -772,10 +753,8 @@ class AppTranslate extends Translations {
       'Verified Provider': 'অনুমোদিত কর্মী',
       'Trusted Provider': 'বিশ্বস্ত কর্মী',
       'Service Provider': 'সেবা প্রদানকারী',
-      'Customer Reviews': 'গ্রাহকদের রিভিউ',
       'View All': 'সবগুলো দেখুন',
       'All Reviews': 'সকল রিভিউ',
-      'No reviews yet': 'এখনও কোনো রিভিউ নেই',
       'CUSTOMER FEEDBACK SUMMARY': 'গ্রাহক মতামত সারসংক্ষেপ',
       'Customers appreciate this provider\'s punctuality and clean work.': 'গ্রাহকরা এই সার্ভিস প্রোভাইডারের সময়নিষ্ঠা এবং পরিচ্ছন্ন কাজের প্রশংসা করছেন।',
       'Jobs Done': 'সম্পন্ন কাজ',
@@ -797,7 +776,6 @@ class AppTranslate extends Translations {
       'Saving...': 'সংরক্ষণ করা হচ্ছে...',
       'Yes': 'হ্যাঁ',
       'No': 'না',
-      'Retry': 'পুনরায় চেষ্টা করুন',
       'Dashboard': 'ড্যাশবোর্ড',
       'Notifications': 'নোটিফিকেশন',
 
@@ -847,7 +825,6 @@ class AppTranslate extends Translations {
       'New': 'নতুন',
       'Smartphone': 'স্মার্টফোন',
       'General Service': 'সাধারণ সেবা',
-      'BASIC': 'অযাচাইকৃত',
       'basic': 'অযাচাইকৃত',
       'TRUSTED': 'বিশ্বস্ত',
       'trusted': 'বিশ্বস্ত',
@@ -916,19 +893,8 @@ class AppTranslate extends Translations {
 
       // Seeker Bookings
       'My Bookings': 'আমার বুকিং',
-      'Active': 'সক্রিয়',
       'Completed': 'সম্পন্ন',
       'Cancelled': 'বাতিল',
-      'In Progress / চলমান': 'চলমান',
-      'Initiated / শুরু হয়েছে': 'শুরু হয়েছে',
-      'Completed / সম্পন্ন': 'সম্পন্ন',
-      'Cancelled / বাতিল': 'বাতিল',
-      'Expired / মেয়াদ উত্তীর্ণ': 'মেয়াদ উত্তীর্ণ',
-      'IN PROGRESS / চলমান': 'চলমান',
-      'INITIATED / শুরু হয়েছে': 'শুরু হয়েছে',
-      'COMPLETED / সম্পন্ন': 'সম্পন্ন',
-      'CANCELLED / বাতিল': 'বাতিল',
-      'EXPIRED / মেয়াদোত্তীর্ণ': 'মেয়াদোত্তীর্ণ',
       'Provider hire is confirmed. Work is scheduled or currently under way.':
           'প্রোভাইডার নিয়োগ নিশ্চিত হয়েছে। কাজের সময় নির্ধারিত এবং কাজ প্রক্রিয়াধীন।',
       'Booking initiated. Please call provider and confirm schedule to finalize hire.':
@@ -997,14 +963,12 @@ class AppTranslate extends Translations {
       'Completed On': 'সম্পন্ন হয়েছে',
       'In Progress...': 'চলমান...',
       'Pending': 'অপেক্ষমান',
-      'Cancelled': 'বাতিল করা হয়েছে',
       'Booking was cancelled': 'বুকিংটি বাতিল করা হয়েছে',
       'Booking ID': 'বুকিং আইডি',
       'Copied': 'কপি হয়েছে',
       'Booking ID copied to clipboard': 'বুকিং আইডি ক্লিপবোর্ডে কপি করা হয়েছে',
       'Mark as Completed': 'সম্পন্ন চিহ্নিত করুন',
       'Cancel Booking': 'বুকিং বাতিল করুন',
-      'Job Completed Successfully': 'কাজ সফলভাবে সম্পন্ন হয়েছে',
       'Schedule': 'সময়সূচী',
       'Booked On': 'বুকিংয়ের সময়',
       'Phone revealed on initiation': 'বুকিং শুরুর পর নম্বর দেখানো হবে',
@@ -1024,7 +988,6 @@ class AppTranslate extends Translations {
       'Booking marked as completed!': 'বুকিং সফলভাবে সম্পন্ন চিহ্নিত হয়েছে!',
       'Could not complete booking': 'বুকিং সম্পন্ন করা যায়নি',
       'Something went wrong': 'কিছু ভুল হয়েছে, আবার চেষ্টা করুন',
-      'Number not available': 'ফোন নম্বর পাওয়া যায়নি',
       'Could not launch phone dialer': 'ফোন ডায়াল করা সম্ভব হয়নি',
 
       // Review & Rating
@@ -1061,7 +1024,6 @@ class AppTranslate extends Translations {
       'You have already reviewed this booking': 'আপনি ইতিমধ্যে এই কাজের রিভিউ জমা দিয়েছেন',
       'Post-Job Review': 'কাজের পরবর্তী রিভিউ',
       'Booking ID missing': 'বুকিং আইডি পাওয়া যায়নি',
-      'New': 'নতুন',
 
       // Urgent Request Flow
       'Need It NOW?': 'জরুরি সার্ভিস প্রয়োজন?',
@@ -1109,7 +1071,6 @@ class AppTranslate extends Translations {
       'Are you sure you want to cancel this urgent broadcast? Nearby providers will not be notified.':
           'আপনি কি নিশ্চিত যে এই জরুরি ব্রডকাস্ট বাতিল করতে চান? প্রোভাইডারদের আর খোঁজা হবে না।',
       'Keep Waiting': 'অপেক্ষা করুন',
-      'Yes, Cancel': 'হ্যাঁ, বাতিল করুন',
       'No saved home address. Uses GPS by default.':
           'বাসার ঠিকানা সংরক্ষিত নেই। জিপিএস ব্যবহার করা হচ্ছে।',
       'GPS coordinates will be captured': 'জিপিএস স্থানাঙ্ক সংযুক্ত হবে',

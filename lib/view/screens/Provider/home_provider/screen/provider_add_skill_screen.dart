@@ -78,7 +78,7 @@ class ProviderAddSkillScreen extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: controller.categories.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                separatorBuilder: (context, index) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   final cat = controller.categories[index];
                   final String catId = cat['id'].toString();

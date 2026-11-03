@@ -4,6 +4,7 @@ import '../../../../../../service/api_check.dart';
 import '../../../../../../service/api_client.dart';
 import '../../../../../../service/api_url.dart';
 import '../../../../../../utils/ToastMsg/toast_message.dart';
+import '../../../../../../model/review_model.dart';
 import '../model/provider_dashboard_model.dart';
 import '../model/provider_me_model.dart';
 
@@ -19,6 +20,15 @@ class ProviderHomeController extends GetxController {
   RxBool isAvailable = true.obs;
   RxDouble workRadius = 5.0.obs;
   double _lastConfirmedRadius = 5.0;
+
+  // Real Reviews state
+  var reviewsList = <ReviewItemModel>[].obs;
+  var isLoadingReviews = false.obs;
+  var isLoadingMoreReviews = false.obs;
+  var totalReviewsCount = 0.obs;
+  var currentReviewsPage = 1.obs;
+  var totalReviewsPages = 1.obs;
+  var hasMoreReviews = false.obs;
 
   void onRadiusDragStart() {
     _lastConfirmedRadius = workRadius.value;
@@ -65,10 +75,61 @@ class ProviderHomeController extends GetxController {
         verificationRejectionReason.value =
             meModel.verificationRejectionReason ?? '';
       }
+
+      // 3. Fetch real reviews for provider
+      final providerId = userMeData.value?.userId ?? dashboardData.value?.userId;
+      if (providerId != null && providerId.isNotEmpty) {
+        fetchProviderReviews(isRefresh: true);
+      }
     } catch (e) {
       debugPrint("Error fetching provider dashboard: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Fetch provider reviews from /api/v1/reviews/provider/{provider_id}
+  Future<void> fetchProviderReviews({bool isRefresh = true}) async {
+    final providerId = userMeData.value?.userId ?? dashboardData.value?.userId;
+    if (providerId == null || providerId.isEmpty) {
+      return;
+    }
+
+    if (isRefresh) {
+      isLoadingReviews.value = true;
+    } else {
+      if (!hasMoreReviews.value || isLoadingMoreReviews.value) return;
+      isLoadingMoreReviews.value = true;
+    }
+
+    try {
+      final page = isRefresh ? 1 : currentReviewsPage.value + 1;
+      final response = await ApiClient.getData(
+        ApiUrl.providerReviews(providerId, page: page, pageSize: 10),
+      );
+
+      if (response.statusCode == 200 && response.body is Map<String, dynamic>) {
+        final paginated = ProviderReviewPaginatedModel.fromJson(response.body);
+        if (isRefresh) {
+          reviewsList.value = paginated.items;
+        } else {
+          reviewsList.addAll(paginated.items);
+        }
+        totalReviewsCount.value = paginated.total;
+        currentReviewsPage.value = paginated.page;
+        totalReviewsPages.value = paginated.totalPages;
+        hasMoreReviews.value = paginated.hasNext;
+      } else {
+        debugPrint("Failed to fetch provider reviews: ${response.statusCode}");
+      }
+    } catch (e) {
+      debugPrint("Error fetching provider reviews: $e");
+    } finally {
+      if (isRefresh) {
+        isLoadingReviews.value = false;
+      } else {
+        isLoadingMoreReviews.value = false;
+      }
     }
   }
 
