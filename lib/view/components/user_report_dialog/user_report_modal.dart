@@ -153,7 +153,7 @@ class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
 
     String targetUserId = widget.reportedUserId.trim();
 
-    // Auto-resolve user ID from in-memory booking list if it was not passed or was empty
+    // 1. In-memory check from controllers
     if (targetUserId.isEmpty && widget.bookingId.isNotEmpty) {
       if (Get.isRegistered<SeekerBookingsController>()) {
         final sc = Get.find<SeekerBookingsController>();
@@ -178,13 +178,13 @@ class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
       }
     }
 
-    // Auto-resolve from backend API if still empty
+    // 2. Fetch booking detail endpoint if targetUserId still not resolved (as backend updates it)
     if (targetUserId.isEmpty && widget.bookingId.isNotEmpty) {
       setState(() => _isSubmitting = true);
       try {
         final res = await ApiClient.getData(ApiUrl.singleBookingDetail(widget.bookingId));
         if (res.statusCode == 200 && res.body != null) {
-          final data = res.body is Map ? res.body : (res.body is String ? {} : Map<String, dynamic>.from(res.body));
+          final data = res.body is Map ? res.body : Map<String, dynamic>.from(res.body);
           targetUserId = (widget.isReportingProvider
                   ? (data['provider_id'] ?? data['other_party_id'])
                   : (data['seeker_id'] ?? data['other_party_id']))
@@ -195,7 +195,7 @@ class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
               '';
         }
       } catch (e) {
-        debugPrint("Error auto-resolving targetUserId: $e");
+        debugPrint("Error fetching booking detail for user ID: $e");
       }
     }
 
@@ -203,8 +203,8 @@ class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
       if (mounted) setState(() => _isSubmitting = false);
       showCustomSnackBar(
         isBn
-            ? 'ব্যবহারকারীর আইডি পাওয়া যায়নি। রিপোর্ট জমা দেওয়া সম্ভব নয়।'
-            : 'Reported user ID not found. Cannot submit report.',
+            ? 'ব্যবহারকারীর আইডি পাওয়া যায়নি। ব্যাকএন্ডে বুকিং এ ইউজার আইডি যুক্ত হলে রিপোর্ট করা যাবে।'
+            : 'Reported user ID not found. Backend update on booking is required.',
         isError: true,
       );
       return;
@@ -531,4 +531,3 @@ class _UserReportBottomSheetState extends State<_UserReportBottomSheet> {
     );
   }
 }
-

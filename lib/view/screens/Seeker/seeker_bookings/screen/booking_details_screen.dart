@@ -15,6 +15,10 @@ class BookingDetailsScreen extends StatefulWidget {
   final String? skillName;
   final String? providerName;
   final String? providerId;
+  final String? providerPhone;
+  final int? skillId;
+  final double? jobLatitude;
+  final double? jobLongitude;
 
   const BookingDetailsScreen({
     super.key,
@@ -22,6 +26,10 @@ class BookingDetailsScreen extends StatefulWidget {
     this.skillName,
     this.providerName,
     this.providerId,
+    this.providerPhone,
+    this.skillId,
+    this.jobLatitude,
+    this.jobLongitude,
   });
 
   @override

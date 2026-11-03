@@ -73,6 +73,34 @@ class BookingItemModel {
       otherPartyId: resolvedPartyId,
     );
   }
+
+  BookingItemModel copyWith({
+    String? bookingId,
+    String? status,
+    int? skillId,
+    String? skillName,
+    DateTime? createdAt,
+    DateTime? workSchedule,
+    String? otherPartyName,
+    String? otherPartyPhone,
+    String? providerId,
+    String? seekerId,
+    String? otherPartyId,
+  }) {
+    return BookingItemModel(
+      bookingId: bookingId ?? this.bookingId,
+      status: status ?? this.status,
+      skillId: skillId ?? this.skillId,
+      skillName: skillName ?? this.skillName,
+      createdAt: createdAt ?? this.createdAt,
+      workSchedule: workSchedule ?? this.workSchedule,
+      otherPartyName: otherPartyName ?? this.otherPartyName,
+      otherPartyPhone: otherPartyPhone ?? this.otherPartyPhone,
+      providerId: providerId ?? this.providerId,
+      seekerId: seekerId ?? this.seekerId,
+      otherPartyId: otherPartyId ?? this.otherPartyId,
+    );
+  }
 }
 
 class BookingDetailModel {

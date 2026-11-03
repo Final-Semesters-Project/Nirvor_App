@@ -175,6 +175,8 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
               skillName: booking.skillName,
               providerName: booking.otherPartyName,
               providerId: booking.providerId ?? booking.otherPartyId,
+              providerPhone: booking.otherPartyPhone,
+              skillId: booking.skillId,
             ),
           ),
           borderRadius: BorderRadius.circular(14),
@@ -479,6 +481,8 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
                   skillName: booking.skillName,
                   providerName: booking.otherPartyName,
                   providerId: booking.providerId ?? booking.otherPartyId,
+                  providerPhone: booking.otherPartyPhone,
+                  skillId: booking.skillId,
                 ),
               ),
               style: OutlinedButton.styleFrom(
@@ -540,6 +544,8 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
                   skillName: booking.skillName,
                   providerName: booking.otherPartyName,
                   providerId: booking.providerId ?? booking.otherPartyId,
+                  providerPhone: booking.otherPartyPhone,
+                  skillId: booking.skillId,
                 ),
               ),
               style: OutlinedButton.styleFrom(
@@ -598,6 +604,8 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
               skillName: booking.skillName,
               providerName: booking.otherPartyName,
               providerId: booking.providerId ?? booking.otherPartyId,
+              providerPhone: booking.otherPartyPhone,
+              skillId: booking.skillId,
             ),
           ),
           icon: Icon(
