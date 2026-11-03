@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../utils/app_colors/app_colors.dart';
 import '../../../../../../utils/app_const/app_const.dart';
 import '../../../../components/custom_nav_bar/provider_nav_bar.dart';
@@ -8,6 +9,8 @@ import '../../../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../../../components/custom_text/custom_text.dart' show CustomText;
 import '../controller/provider_home_controller.dart';
 import '../model/provider_dashboard_model.dart';
+import '../../urgent_alert/model/urgent_broadcast_model.dart';
+import '../../urgent_alert/screen/provider_active_urgent_job_screen.dart';
 import 'provider_add_skill_screen.dart';
 import 'provider_nid_upload_screen.dart';
 import 'provider_nid_rejection_screen.dart';
@@ -124,6 +127,19 @@ class ProviderHomeScreen extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 16.h),
+
+                  // Active Ongoing Urgent Request Alert Card (if any)
+                  Obx(() {
+                    final urgentJob = controller.activeUrgentJob.value;
+                    if (urgentJob == null) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildActiveUrgentJobBanner(urgentJob, isBn),
+                        SizedBox(height: 16.h),
+                      ],
+                    );
+                  }),
 
                   // 2. Availability Toggle (Beautiful, clear black text, dynamic status)
                   Obx(
@@ -897,6 +913,163 @@ class ProviderHomeScreen extends StatelessWidget {
         }),
       ),
       bottomNavigationBar: const ProviderNavBar(currentIndex: 0),
+    );
+  }
+
+  Widget _buildActiveUrgentJobBanner(ActiveUrgentJobModel job, bool isBn) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(14.r),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF991B1B), Color(0xFFDC2626)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withValues(alpha: 0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(8.r),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: const Icon(
+                  Icons.bolt_rounded,
+                  color: Colors.amber,
+                  size: 24,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isBn ? 'চলমান জরুরি কাজ!' : 'Active Urgent Job!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      '${job.skillName} • ${isBn ? 'গ্রাহক' : 'Client'}: ${job.seekerName}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12.sp,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (job.distanceKm > 0)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    isBn
+                        ? '${job.distanceKm.toStringAsFixed(1)} কিমি'
+                        : '${job.distanceKm.toStringAsFixed(1)} km',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              // Call Button
+              if (job.seekerPhone.isNotEmpty)
+                Expanded(
+                  child: SizedBox(
+                    height: 38.h,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse("tel:${job.seekerPhone}");
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        } else {
+                          await launchUrl(uri,
+                              mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.call,
+                          size: 16, color: Colors.white),
+                      label: Text(
+                        isBn ? 'কল করুন' : 'Call',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF16A34A),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              if (job.seekerPhone.isNotEmpty) SizedBox(width: 8.w),
+              // View Details & Map Button
+              Expanded(
+                flex: job.seekerPhone.isNotEmpty ? 1 : 2,
+                child: SizedBox(
+                  height: 38.h,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Get.to(() => ProviderActiveUrgentJobScreen(job: job));
+                    },
+                    icon: const Icon(Icons.map_outlined,
+                        size: 16, color: Color(0xFF991B1B)),
+                    label: Text(
+                      isBn ? 'ম্যাপ ও বিবরণ' : 'Map & Details',
+                      style: TextStyle(
+                        color: const Color(0xFF991B1B),
+                        fontSize: 12.5.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

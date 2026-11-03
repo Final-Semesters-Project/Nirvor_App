@@ -6,7 +6,9 @@ import '../../../../../core/app_routes/app_routes.dart';
 import '../../../../../service/api_client.dart';
 import '../../../../../service/api_url.dart';
 import '../../../../../utils/ToastMsg/toast_message.dart';
+import '../../home_provider/controller/provider_home_controller.dart';
 import '../model/urgent_broadcast_model.dart';
+import '../screen/provider_active_urgent_job_screen.dart';
 
 class ProviderUrgentAlertController extends GetxController {
   final String broadcastId;
@@ -168,13 +170,39 @@ class ProviderUrgentAlertController extends GetxController {
 
       if (response.statusCode == 200) {
         _countdownTimer?.cancel();
+
+        final body = response.body is Map
+            ? Map<String, dynamic>.from(response.body)
+            : <String, dynamic>{};
+
+        final activeJob = ActiveUrgentJobModel(
+          broadcastId: broadcastId,
+          status: body['status']?.toString() ?? 'claimed',
+          seekerName: body['seeker_name']?.toString() ?? 'Seeker',
+          seekerPhone: body['seeker_phone']?.toString() ?? '',
+          skillName: skillName,
+          seekerLatitude: broadcastDetail.value?.seekerLatitude ?? 0.0,
+          seekerLongitude: broadcastDetail.value?.seekerLongitude ?? 0.0,
+          distanceKm: distanceKm.value ?? 0.0,
+          claimedAt: DateTime.now(),
+        );
+
+        // Save active job in local storage
+        await saveActiveUrgentJob(activeJob);
+
+        // Notify ProviderHomeController
+        if (Get.isRegistered<ProviderHomeController>()) {
+          Get.find<ProviderHomeController>().setActiveUrgentJob(activeJob);
+        }
+
         showCustomSnackBar(
           "কাজটি সফলভাবে গ্রহণ করা হয়েছে! / Urgent request accepted successfully!",
           isError: false,
           duration: const Duration(seconds: 3),
         );
-        // Navigate to provider home screen
-        Get.offAllNamed(AppRoutes.providerHomeScreen);
+
+        // Navigate directly to the Active Urgent Job tracking screen!
+        Get.off(() => ProviderActiveUrgentJobScreen(job: activeJob));
       } else if (response.statusCode == 409) {
         // Already claimed by another provider
         isExpiredOrClaimed.value = true;

@@ -7,6 +7,7 @@ import '../../../../../../utils/ToastMsg/toast_message.dart';
 import '../../../../../../helper/notification_helper/firebase_notification_helper.dart';
 import '../../../../../../model/review_model.dart';
 import '../model/provider_dashboard_model.dart';
+import '../../urgent_alert/model/urgent_broadcast_model.dart';
 import '../model/provider_me_model.dart';
 
 class ProviderHomeController extends GetxController {
@@ -38,15 +39,29 @@ class ProviderHomeController extends GetxController {
   var isUpdatingAvailability = false.obs;
   var isUpdatingRadius = false.obs;
 
+  // Active Ongoing Urgent Request
+  var activeUrgentJob = Rxn<ActiveUrgentJobModel>();
+
+  Future<void> loadActiveUrgentJob() async {
+    final job = await getActiveUrgentJob();
+    activeUrgentJob.value = job;
+  }
+
+  void setActiveUrgentJob(ActiveUrgentJobModel? job) {
+    activeUrgentJob.value = job;
+  }
+
   @override
   void onInit() {
     super.onInit();
+    loadActiveUrgentJob();
     getDashboardData();
     FirebaseNotificationHelper.syncTokenWithBackend();
   }
 
   /// Fetch provider dashboard data
   Future<void> getDashboardData({bool showLoading = true}) async {
+    loadActiveUrgentJob();
     if (showLoading) {
       isLoading.value = true;
     }
