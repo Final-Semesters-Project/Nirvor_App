@@ -30,6 +30,7 @@ class ApiUrl {
   ///========================= User =========================
   static const String userProfile = "/users/me";
   static const String seekerAddress = "/seeker/me/address";
+  static const String updateSeekerProfile = "/seeker/me/profile";
   static const String updatePassword = "/users/me/update-password";
 
   ///========================= Category & Skills =========================
@@ -73,6 +74,9 @@ class ApiUrl {
     int pageSize = 20,
   }) => "/reviews/provider/$providerId?page=$page&page_size=$pageSize";
 
+  ///========================= User Reports =========================
+  static const String userReports = "/user-reports";
+
   ///========================= Urgent Broadcast =========================
   static const String urgentBroadcast = "/urgentBroadcast/broadcast";
   static String urgentBroadcastStatus(String broadcastId) =>
@@ -88,4 +92,5 @@ class ApiUrl {
   ///========================= Cloudinary =========================
   static const String cloudinaryCloudName = "djcbaim7n";
   static const String cloudinaryUploadPreset = "nirbhor_nid";
+  static const String cloudinaryProfilePicturePreset = "nirbhor_profile_picture";
 }

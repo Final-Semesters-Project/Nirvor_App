@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,10 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  String _initialName = '';
+  String _initialAddress = '';
+  bool _addressManuallyChanged = false;
+  bool _nameManuallyChanged = false;
 
   @override
   void initState() {
@@ -31,9 +36,16 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
   }
 
   void _populateFields() {
+    final bool isBn = Get.locale?.languageCode == 'bn';
     final me = controller.providerMe.value;
     if (me != null) {
-      nameController.text = me.name;
+      if (isBn && me.nameBn != null && me.nameBn!.isNotEmpty) {
+        nameController.text = me.nameBn!;
+      } else if (!isBn && me.nameEn != null && me.nameEn!.isNotEmpty) {
+        nameController.text = me.nameEn!;
+      } else {
+        nameController.text = me.name;
+      }
       if (me.baseAddress != null && me.baseAddress!.isNotEmpty) {
         addressController.text = me.baseAddress!;
       }
@@ -48,10 +60,19 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
         controller.baseAddress.value.isNotEmpty) {
       addressController.text = controller.baseAddress.value;
     }
+
+    _initialName = nameController.text.trim();
+    _initialAddress = addressController.text.trim();
   }
 
   @override
   void dispose() {
+    controller.pickedProfileImage.value = null;
+    controller.pickedProfileImageBytes.value = null;
+    controller.pickedFrontNid.value = null;
+    controller.pickedFrontNidBytes.value = null;
+    controller.pickedBackNid.value = null;
+    controller.pickedBackNidBytes.value = null;
     nameController.dispose();
     addressController.dispose();
     super.dispose();
@@ -193,6 +214,8 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     children: [
                       Obx(() {
                         final picked = controller.pickedProfileImage.value;
+                        final pickedBytes =
+                            controller.pickedProfileImageBytes.value;
                         final isUpdatingPhoto =
                             controller.isUpdatingProfilePhoto.value;
                         final remotePhoto =
@@ -233,20 +256,27 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(21),
-                                  child: picked != null
-                                      ? Image.file(
-                                          picked,
+                                  child: pickedBytes != null
+                                      ? Image.memory(
+                                          pickedBytes,
                                           fit: BoxFit.cover,
                                           width: 106,
                                           height: 106,
                                         )
-                                      : CustomNetworkImage(
-                                          imageUrl: remotePhoto.isNotEmpty
-                                              ? remotePhoto
-                                              : AppConstants.profileImage,
-                                          width: 106,
-                                          height: 106,
-                                        ),
+                                      : picked != null
+                                          ? Image.file(
+                                              picked,
+                                              fit: BoxFit.cover,
+                                              width: 106,
+                                              height: 106,
+                                            )
+                                          : CustomNetworkImage(
+                                              imageUrl: remotePhoto.isNotEmpty
+                                                  ? remotePhoto
+                                                  : AppConstants.profileImage,
+                                              width: 106,
+                                              height: 106,
+                                            ),
                                 ),
                                 if (isUpdatingPhoto)
                                   Container(
@@ -372,6 +402,9 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                   const SizedBox(height: 6),
                   TextField(
                     controller: nameController,
+                    onChanged: (val) {
+                      _nameManuallyChanged = true;
+                    },
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF0F172A),
@@ -482,6 +515,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                   TextField(
                     controller: addressController,
                     onChanged: (val) {
+                      _addressManuallyChanged = true;
                       controller.baseAddress.value = val;
                       controller.onLocationQueryChanged(val);
                     },
@@ -516,6 +550,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                               icon: const Icon(Icons.close_rounded,
                                   size: 18, color: Colors.grey),
                               onPressed: () {
+                                _addressManuallyChanged = true;
                                 addressController.clear();
                                 controller.baseAddress.value = '';
                                 controller.locationSuggestions.clear();
@@ -541,6 +576,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                               ));
 
                               if (result != null && result is Map<String, dynamic>) {
+                                _addressManuallyChanged = true;
                                 final String addr = result['address'] ?? '';
                                 final double lat = result['latitude'] ?? 0.0;
                                 final double lng = result['longitude'] ?? 0.0;
@@ -647,6 +683,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                                   )
                                 : null,
                             onTap: () async {
+                              _addressManuallyChanged = true;
                               final chosen = await controller
                                   .selectLocationSuggestion(item);
                               addressController.text = chosen;
@@ -783,6 +820,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                                   ? 'পর্যালোচনাধীন (লক করা)'
                                   : 'Under Review (Locked)')),
                       pickedFile: picked,
+                      pickedBytes: controller.pickedFrontNidBytes.value,
                       remoteUrl: remoteUrl,
                       canUpdate: canUpdateNid,
                       status: status,
@@ -835,6 +873,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                                   ? 'পর্যালোচনাধীন (লক করা)'
                                   : 'Under Review (Locked)')),
                       pickedFile: picked,
+                      pickedBytes: controller.pickedBackNidBytes.value,
                       remoteUrl: remoteUrl,
                       canUpdate: canUpdateNid,
                       status: status,
@@ -914,9 +953,21 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                       ? null
                       : () async {
                           final navigator = Navigator.of(context);
+                          final currentName = nameController.text.trim();
+                          final currentAddress = addressController.text.trim();
+
+                          final bool nameChanged = _nameManuallyChanged &&
+                              currentName.isNotEmpty &&
+                              currentName != _initialName;
+                          final bool addressChanged = _addressManuallyChanged &&
+                              currentAddress.isNotEmpty &&
+                              currentAddress != _initialAddress;
+
                           final success = await controller.saveProfileChanges(
-                            newBaseAddress: addressController.text.trim(),
-                            newName: nameController.text.trim(),
+                            newName: nameChanged ? currentName : null,
+                            newNameBn: (nameChanged && isBn) ? currentName : null,
+                            newNameEn: (nameChanged && !isBn) ? currentName : null,
+                            newBaseAddress: addressChanged ? currentAddress : null,
                           );
                           if (success && mounted) {
                             navigator.pop();
@@ -992,13 +1043,15 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
     required String title,
     required String subtext,
     File? pickedFile,
+    Uint8List? pickedBytes,
     required String remoteUrl,
     required bool canUpdate,
     required String status,
     required bool isBn,
     required VoidCallback onTap,
   }) {
-    final bool hasImage = pickedFile != null || remoteUrl.isNotEmpty;
+    final bool hasImage =
+        pickedBytes != null || pickedFile != null || remoteUrl.isNotEmpty;
 
     return InkWell(
       onTap: onTap,
@@ -1024,18 +1077,25 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: pickedFile != null
-                        ? Image.file(
-                            pickedFile,
+                    child: pickedBytes != null
+                        ? Image.memory(
+                            pickedBytes,
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 120,
                           )
-                        : CustomNetworkImage(
-                            imageUrl: remoteUrl,
-                            width: double.infinity,
-                            height: 120,
-                          ),
+                        : pickedFile != null
+                            ? Image.file(
+                                pickedFile,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 120,
+                              )
+                            : CustomNetworkImage(
+                                imageUrl: remoteUrl,
+                                width: double.infinity,
+                                height: 120,
+                              ),
                   ),
                   // If update is NOT allowed, show lock badge and NO camera icon
                   if (!canUpdate)

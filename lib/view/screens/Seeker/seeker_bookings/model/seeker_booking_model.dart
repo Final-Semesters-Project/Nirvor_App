@@ -8,6 +8,8 @@ class BookingItemModel {
   final String otherPartyName;
   final String? otherPartyPhone;
   final String? providerId;
+  final String? seekerId;
+  final String? otherPartyId;
 
   BookingItemModel({
     required this.bookingId,
@@ -19,6 +21,8 @@ class BookingItemModel {
     required this.otherPartyName,
     this.otherPartyPhone,
     this.providerId,
+    this.seekerId,
+    this.otherPartyId,
   });
 
   bool get isActive =>
@@ -33,6 +37,18 @@ class BookingItemModel {
       status.toLowerCase() == 'auto_expired';
 
   factory BookingItemModel.fromJson(Map<String, dynamic> json) {
+    final String? resolvedPartyId = json['other_party_id']?.toString() ??
+        json['provider_id']?.toString() ??
+        json['seeker_id']?.toString() ??
+        json['user_id']?.toString() ??
+        json['other_party_user_id']?.toString() ??
+        json['reported_user_id']?.toString() ??
+        json['other_user_id']?.toString() ??
+        json['provider']?['id']?.toString() ??
+        json['provider']?['user_id']?.toString() ??
+        json['seeker']?['id']?.toString() ??
+        json['seeker']?['user_id']?.toString();
+
     return BookingItemModel(
       bookingId: json['booking_id']?.toString() ?? '',
       status: json['status']?.toString() ?? 'initiated',
@@ -48,7 +64,41 @@ class BookingItemModel {
       otherPartyPhone: json['other_party_phone']?.toString(),
       providerId: json['provider_id']?.toString() ??
           json['provider']?['id']?.toString() ??
-          json['other_party_id']?.toString(),
+          json['provider']?['user_id']?.toString() ??
+          resolvedPartyId,
+      seekerId: json['seeker_id']?.toString() ??
+          json['seeker']?['id']?.toString() ??
+          json['seeker']?['user_id']?.toString() ??
+          resolvedPartyId,
+      otherPartyId: resolvedPartyId,
+    );
+  }
+
+  BookingItemModel copyWith({
+    String? bookingId,
+    String? status,
+    int? skillId,
+    String? skillName,
+    DateTime? createdAt,
+    DateTime? workSchedule,
+    String? otherPartyName,
+    String? otherPartyPhone,
+    String? providerId,
+    String? seekerId,
+    String? otherPartyId,
+  }) {
+    return BookingItemModel(
+      bookingId: bookingId ?? this.bookingId,
+      status: status ?? this.status,
+      skillId: skillId ?? this.skillId,
+      skillName: skillName ?? this.skillName,
+      createdAt: createdAt ?? this.createdAt,
+      workSchedule: workSchedule ?? this.workSchedule,
+      otherPartyName: otherPartyName ?? this.otherPartyName,
+      otherPartyPhone: otherPartyPhone ?? this.otherPartyPhone,
+      providerId: providerId ?? this.providerId,
+      seekerId: seekerId ?? this.seekerId,
+      otherPartyId: otherPartyId ?? this.otherPartyId,
     );
   }
 }
@@ -67,7 +117,10 @@ class BookingDetailModel {
   final double? jobLatitude;
   final double? jobLongitude;
   final String? providerId;
+  final String? seekerId;
+  final String? otherPartyId;
   final bool? hasReviewed;
+  final Map<String, dynamic>? rawJson;
 
   BookingDetailModel({
     required this.bookingId,
@@ -83,7 +136,10 @@ class BookingDetailModel {
     this.jobLatitude,
     this.jobLongitude,
     this.providerId,
+    this.seekerId,
+    this.otherPartyId,
     this.hasReviewed,
+    this.rawJson,
   });
 
   bool get isInProgress => status.toLowerCase() == 'in_progress';
@@ -94,6 +150,18 @@ class BookingDetailModel {
       status.toLowerCase() == 'auto_expired';
 
   factory BookingDetailModel.fromJson(Map<String, dynamic> json) {
+    final String? resolvedPartyId = json['other_party_id']?.toString() ??
+        json['provider_id']?.toString() ??
+        json['seeker_id']?.toString() ??
+        json['user_id']?.toString() ??
+        json['other_party_user_id']?.toString() ??
+        json['reported_user_id']?.toString() ??
+        json['other_user_id']?.toString() ??
+        json['provider']?['id']?.toString() ??
+        json['provider']?['user_id']?.toString() ??
+        json['seeker']?['id']?.toString() ??
+        json['seeker']?['user_id']?.toString();
+
     return BookingDetailModel(
       bookingId: json['booking_id']?.toString() ?? '',
       status: json['status']?.toString() ?? 'initiated',
@@ -123,10 +191,17 @@ class BookingDetailModel {
           : null,
       providerId: json['provider_id']?.toString() ??
           json['provider']?['id']?.toString() ??
-          json['other_party_id']?.toString(),
+          json['provider']?['user_id']?.toString() ??
+          resolvedPartyId,
+      seekerId: json['seeker_id']?.toString() ??
+          json['seeker']?['id']?.toString() ??
+          json['seeker']?['user_id']?.toString() ??
+          resolvedPartyId,
+      otherPartyId: resolvedPartyId,
       hasReviewed: json['has_reviewed'] == true ||
           json['is_reviewed'] == true ||
           json['reviewed'] == true,
+      rawJson: json,
     );
   }
 
@@ -134,6 +209,9 @@ class BookingDetailModel {
     bool? hasReviewed,
     String? status,
     DateTime? completedAt,
+    String? providerId,
+    String? seekerId,
+    String? otherPartyId,
   }) {
     return BookingDetailModel(
       bookingId: bookingId,
@@ -148,8 +226,11 @@ class BookingDetailModel {
       otherPartyPhone: otherPartyPhone,
       jobLatitude: jobLatitude,
       jobLongitude: jobLongitude,
-      providerId: providerId,
+      providerId: providerId ?? this.providerId,
+      seekerId: seekerId ?? this.seekerId,
+      otherPartyId: otherPartyId ?? this.otherPartyId,
       hasReviewed: hasReviewed ?? this.hasReviewed,
+      rawJson: rawJson,
     );
   }
 }

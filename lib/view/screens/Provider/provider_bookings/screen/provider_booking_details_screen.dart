@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
+import '../../../../components/user_report_dialog/user_report_modal.dart';
 import '../../../Seeker/seeker_bookings/model/seeker_booking_model.dart';
 import '../controller/provider_bookings_controller.dart';
 
@@ -10,12 +11,14 @@ class ProviderBookingDetailsScreen extends StatefulWidget {
   final String bookingId;
   final String? skillName;
   final String? seekerName;
+  final String? seekerId;
 
   const ProviderBookingDetailsScreen({
     super.key,
     required this.bookingId,
     this.skillName,
     this.seekerName,
+    this.seekerId,
   });
 
   @override
@@ -135,6 +138,70 @@ class _ProviderBookingDetailsScreenState
         leftIcon: true,
         centerTitleEnable: false,
         showLanguageSwitcher: false,
+        actions: [
+          Obx(() {
+            final detail = controller.singleBookingDetail.value;
+            if (detail != null && detail.isCompleted) {
+              final targetName = detail.otherPartyName.isNotEmpty
+                  ? detail.otherPartyName
+                  : (widget.seekerName ?? 'Customer');
+              final existingBooking = controller.completedBookings
+                      .firstWhereOrNull((b) => b.bookingId == widget.bookingId) ??
+                  controller.activeBookings
+                      .firstWhereOrNull((b) => b.bookingId == widget.bookingId);
+              final targetId = widget.seekerId ??
+                  existingBooking?.seekerId ??
+                  existingBooking?.otherPartyId ??
+                  detail.seekerId ??
+                  detail.otherPartyId ??
+                  '';
+
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded,
+                    color: Color(0xFF0F172A)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.white,
+                onSelected: (value) {
+                  if (value == 'report') {
+                    UserReportModal.show(
+                      context: context,
+                      bookingId: detail.bookingId,
+                      reportedUserId: targetId,
+                      reportedUserName: targetName,
+                      isReportingProvider: false,
+                    );
+                  }
+                },
+                itemBuilder: (context) {
+                  final bool isBn = Get.locale?.languageCode == 'bn';
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'report',
+                      child: Row(
+                        children: [
+                          Icon(Icons.flag_outlined,
+                              size: 18, color: Colors.red.shade700),
+                          const SizedBox(width: 10),
+                          Text(
+                            isBn ? 'গ্রাহককে রিপোর্ট করুন' : 'Report Seeker',
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoadingDetail.value &&

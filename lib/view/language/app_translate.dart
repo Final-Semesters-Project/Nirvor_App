@@ -71,6 +71,19 @@ class AppTranslate extends Translations {
       'Please enter an address': 'Please enter an address',
       'Address must be at least 5 characters': 'Address must be at least 5 characters',
       'Tap the camera to change photo separately': 'Tap the camera to change photo separately',
+      'Report': 'Report',
+      'Report Provider': 'Report Provider',
+      'Report Seeker': 'Report Seeker',
+      'Submit Report': 'Submit Report',
+      'Report submitted successfully. Our team will review it.':
+          'Report submitted successfully. Our team will review it.',
+      'Failed to submit report': 'Failed to submit report',
+      'Please select or describe a reason for the report':
+          'Please select or describe a reason for the report',
+      'Reason must be at least 5 characters':
+          'Reason must be at least 5 characters',
+      'Reported user ID not found. Cannot submit report.':
+          'Reported user ID not found. Cannot submit report.',
 
       // Welcome Screen
       'Welcome': 'Welcome',
@@ -668,6 +681,19 @@ class AppTranslate extends Translations {
       'Please enter an address': 'অনুগ্রহ করে ঠিকানা লিখুন',
       'Address must be at least 5 characters': 'ঠিকানা কমপক্ষে ৫ অক্ষরের হতে হবে',
       'Tap the camera to change photo separately': 'ছবি আলাদাভাবে পরিবর্তন করতে ক্যামেরাতে চাপুন',
+      'Report': 'রিপোর্ট',
+      'Report Provider': 'প্রোভাইডারকে রিপোর্ট করুন',
+      'Report Seeker': 'গ্রাহককে রিপোর্ট করুন',
+      'Submit Report': 'রিপোর্ট জমা দিন',
+      'Report submitted successfully. Our team will review it.':
+          'রিপোর্ট সফলভাবে জমা দেওয়া হয়েছে। আমাদের টিম পর্যালোচনা করবে।',
+      'Failed to submit report': 'রিপোর্ট জমা দিতে ব্যর্থ হয়েছে',
+      'Please select or describe a reason for the report':
+          'অনুগ্রহ করে রিপোর্টের একটি কারণ নির্বাচন করুন অথবা লিখুন',
+      'Reason must be at least 5 characters':
+          'রিপোর্টের কারণ কমপক্ষে ৫ অক্ষরের হতে হবে',
+      'Reported user ID not found. Cannot submit report.':
+          'ব্যবহারকারীর আইডি পাওয়া যায়নি। রিপোর্ট জমা দেওয়া সম্ভব নয়।',
 
       // Welcome Screen
       'Welcome': 'স্বাগতম',

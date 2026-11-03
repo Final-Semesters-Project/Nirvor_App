@@ -194,13 +194,12 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
   }
 
   Widget _buildReviewItem(ReviewItemModel review) {
-    final String displayName = review.reviewerName.trim().isNotEmpty
-        ? review.reviewerName.trim()
-        : 'Seeker'.tr;
+    final bool isBn = Get.locale?.languageCode == 'bn';
+    final String displayName = review.getReviewerDisplayName(isBn);
 
-    final String initial = displayName.isNotEmpty
+    final String initial = (!review.isAnonymous && displayName.isNotEmpty)
         ? displayName[0].toUpperCase()
-        : 'S';
+        : 'A';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,18 +208,26 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar showing 1st letter of reviewer's name
+            // Avatar: Privacy icon if anonymous, else 1st letter of reviewer's name
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-              child: Text(
-                initial,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                ),
-              ),
+              backgroundColor: review.isAnonymous
+                  ? Colors.grey.shade200
+                  : AppColors.primary.withValues(alpha: 0.12),
+              child: review.isAnonymous
+                  ? Icon(
+                      Icons.person_outline_rounded,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    )
+                  : Text(
+                      initial,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
             ),
             const SizedBox(width: 10),
 
@@ -229,13 +236,57 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    displayName,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          displayName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: review.isAnonymous
+                                ? Colors.grey.shade700
+                                : Colors.black87,
+                            fontStyle: review.isAnonymous
+                                ? FontStyle.italic
+                                : FontStyle.normal,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (review.isAnonymous) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.visibility_off_outlined,
+                                size: 10,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                isBn ? 'গোপন' : 'Hidden',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -248,7 +299,7 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
                         ),
                       ),
                       Text(
-                        ' • ${review.timeAgo}',
+                        ' • ${review.localizedTimeAgo(isBn)}',
                         style: TextStyle(
                           fontSize: 10,
                           color: Colors.grey.shade600,

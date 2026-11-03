@@ -228,12 +228,14 @@ class ProviderBookingsController extends GetxController
   }
 
   /// Open details screen
-  void openBookingDetails(String bookingId, {String? skillName, String? seekerName}) {
+  void openBookingDetails(String bookingId,
+      {String? skillName, String? seekerName, String? seekerId}) {
     Get.to(
       () => ProviderBookingDetailsScreen(
         bookingId: bookingId,
         skillName: skillName,
         seekerName: seekerName,
+        seekerId: seekerId,
       ),
     );
   }

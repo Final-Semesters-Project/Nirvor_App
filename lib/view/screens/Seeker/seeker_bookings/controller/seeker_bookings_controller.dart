@@ -1007,7 +1007,21 @@ class SeekerBookingsController extends GetxController {
   }
 
   /// Open single booking details screen
-  void openBookingDetails(String bookingId) {
-    Get.to(() => BookingDetailsScreen(bookingId: bookingId));
+  void openBookingDetails(String bookingId,
+      {String? skillName, String? providerName, String? providerId}) {
+    final booking = bookings.firstWhereOrNull((b) => b.bookingId == bookingId);
+    final String? resolvedProviderId =
+        providerId ?? booking?.providerId ?? booking?.otherPartyId;
+    final String? resolvedProviderName = providerName ?? booking?.otherPartyName;
+    final String? resolvedSkillName = skillName ?? booking?.skillName;
+
+    Get.to(
+      () => BookingDetailsScreen(
+        bookingId: bookingId,
+        skillName: resolvedSkillName,
+        providerName: resolvedProviderName,
+        providerId: resolvedProviderId,
+      ),
+    );
   }
 }

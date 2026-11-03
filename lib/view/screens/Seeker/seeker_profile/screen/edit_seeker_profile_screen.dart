@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
 import 'package:nirbhor/view/components/custom_text/custom_text.dart';
 import 'package:nirbhor/view/components/custom_text_field/custom_text_field.dart';
 import 'package:nirbhor/view/screens/auth_screen/setup_details/map_location_picker_screen.dart';
 import '../controller/seeker_profile_controller.dart';
+import '../model/user_model.dart';
 
 class EditSeekerProfileScreen extends StatefulWidget {
   const EditSeekerProfileScreen({super.key});
@@ -19,45 +21,174 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
 
+  String _initialName = '';
+  String _initialAddress = '';
+  bool _nameManuallyChanged = false;
+  bool _addressManuallyChanged = false;
+  Worker? _userWorker;
+
   @override
   void initState() {
     super.initState();
-    if (controller.user.value != null) {
-      nameController.text = controller.user.value!.name;
-    }
-
-    if (controller.homeAddress.value.isNotEmpty) {
-      addressController.text = controller.homeAddress.value;
-    } else if (controller.user.value != null && controller.user.value!.homeAddress.isNotEmpty) {
-      addressController.text = controller.user.value!.homeAddress;
-      controller.homeAddress.value = controller.user.value!.homeAddress;
-      if (controller.user.value!.homeLatitude != null) {
-        controller.homeLatitude.value = controller.user.value!.homeLatitude!;
+    _populateFields();
+    _userWorker = ever(controller.user, (UserModel? u) {
+      if (mounted && u != null && !_nameManuallyChanged) {
+        _populateNameField(u);
+        if (addressController.text.isEmpty && u.homeAddress.isNotEmpty && !_addressManuallyChanged) {
+          addressController.text = u.homeAddress;
+          _initialAddress = u.homeAddress.trim();
+        }
+        setState(() {});
       }
-      if (controller.user.value!.homeLongitude != null) {
-        controller.homeLongitude.value = controller.user.value!.homeLongitude!;
-      }
-    }
+    });
 
-    // Refresh address from backend GET /api/v1/seeker/me/address
+    // 2. Fetch fresh user profile if not yet loaded or to ensure latest
+    controller.getUserProfile(showLoading: controller.user.value == null).then((_) {
+      if (mounted && controller.user.value != null && !_nameManuallyChanged) {
+        _populateNameField(controller.user.value!);
+        setState(() {});
+      }
+    });
+
+    // 3. Refresh address from backend GET /api/v1/seeker/me/address
     controller.fetchSeekerAddress().then((_) {
-      if (mounted && addressController.text.isEmpty && controller.homeAddress.value.isNotEmpty) {
+      if (mounted && addressController.text.isEmpty && controller.homeAddress.value.isNotEmpty && !_addressManuallyChanged) {
         setState(() {
           addressController.text = controller.homeAddress.value;
+          _initialAddress = controller.homeAddress.value.trim();
         });
       }
     });
   }
 
+  void _populateFields() {
+    final u = controller.user.value;
+    if (u != null) {
+      _populateNameField(u);
+    }
+
+    if (controller.homeAddress.value.isNotEmpty) {
+      addressController.text = controller.homeAddress.value;
+    } else if (u != null && u.homeAddress.isNotEmpty) {
+      addressController.text = u.homeAddress;
+      controller.homeAddress.value = u.homeAddress;
+      if (u.homeLatitude != null) {
+        controller.homeLatitude.value = u.homeLatitude!;
+      }
+      if (u.homeLongitude != null) {
+        controller.homeLongitude.value = u.homeLongitude!;
+      }
+    }
+
+    _initialName = nameController.text.trim();
+    _initialAddress = addressController.text.trim();
+  }
+
+  void _populateNameField(UserModel u) {
+    final bool isBn = Get.locale?.languageCode == 'bn';
+    String resolvedName = '';
+    if (isBn && u.nameBn != null && u.nameBn!.isNotEmpty) {
+      resolvedName = u.nameBn!;
+    } else if (!isBn && u.nameEn != null && u.nameEn!.isNotEmpty) {
+      resolvedName = u.nameEn!;
+    } else if (u.name.isNotEmpty) {
+      resolvedName = u.name;
+    } else if (u.nameEn != null && u.nameEn!.isNotEmpty) {
+      resolvedName = u.nameEn!;
+    } else if (u.nameBn != null && u.nameBn!.isNotEmpty) {
+      resolvedName = u.nameBn!;
+    }
+    nameController.text = resolvedName;
+    _initialName = resolvedName.trim();
+  }
+
   @override
   void dispose() {
+    _userWorker?.dispose();
+    controller.pickedProfileImage.value = null;
+    controller.pickedProfileImageBytes.value = null;
     nameController.dispose();
     addressController.dispose();
     super.dispose();
   }
 
+  void _showImagePickerSheet({required Function(ImageSource) onSourceSelected}) {
+    final bool isBn = Get.locale?.languageCode == 'bn';
+    Get.bottomSheet(
+      Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isBn ? 'ছবি নির্বাচন করুন' : 'Select Photo Source',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: AppColors.primary),
+                ),
+                title: Text(
+                  isBn ? 'ক্যামেরা দিয়ে ছবি তুলুন' : 'Take photo with camera',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Get.back();
+                  onSourceSelected(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded,
+                      color: Color(0xFF0284C7)),
+                ),
+                title: Text(
+                  isBn ? 'গ্যালারি থেকে পছন্দ করুন' : 'Choose from gallery',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Get.back();
+                  onSourceSelected(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bool isBn = Get.locale?.languageCode == 'bn';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -84,28 +215,69 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
             Stack(
               alignment: Alignment.bottomRight,
               children: [
-                Obx(() {
-                  final user = controller.user.value;
-                  return CircleAvatar(
-                    radius: 54,
-                    backgroundColor: Colors.grey.shade200,
-                    backgroundImage: (user != null && user.photoUrl.isNotEmpty)
-                        ? NetworkImage(user.photoUrl)
-                        : null,
-                    child: (user == null || user.photoUrl.isEmpty)
-                        ? const Icon(Icons.person, size: 54, color: Colors.grey)
-                        : null,
-                  );
-                }),
                 GestureDetector(
                   onTap: () {
-                    showCustomSnackBar("Update Profile Picture not available yet.".tr, isError: false);
+                    _showImagePickerSheet(
+                      onSourceSelected: (source) {
+                        controller.pickProfilePhoto(source);
+                      },
+                    );
+                  },
+                  child: Obx(() {
+                    final bytes = controller.pickedProfileImageBytes.value;
+                    final picked = controller.pickedProfileImage.value;
+                    final user = controller.user.value;
+                    final remoteUrl = user?.photoUrl ?? '';
+
+                    ImageProvider? imageProvider;
+                    if (bytes != null && bytes.isNotEmpty) {
+                      imageProvider = MemoryImage(bytes);
+                    } else if (picked != null && picked.existsSync()) {
+                      imageProvider = FileImage(picked);
+                    } else if (remoteUrl.isNotEmpty) {
+                      imageProvider = NetworkImage(remoteUrl);
+                    }
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          width: 3,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 54,
+                        backgroundColor: Colors.grey.shade100,
+                        backgroundImage: imageProvider,
+                        child: (imageProvider == null)
+                            ? const Icon(Icons.person, size: 54, color: Colors.grey)
+                            : null,
+                      ),
+                    );
+                  }),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _showImagePickerSheet(
+                      onSourceSelected: (source) {
+                        controller.pickProfilePhoto(source);
+                      },
+                    );
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
+                    padding: const EdgeInsets.all(9),
+                    decoration: BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       Icons.camera_alt,
@@ -116,13 +288,15 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             CustomText(
-              text: "Tap the camera to change photo separately".tr,
+              text: isBn
+                  ? "ছবি পরিবর্তন করতে ক্যামেরা আইকনে চাপ দিন"
+                  : "Tap camera icon to change profile photo",
               fontSize: 12,
               color: Colors.grey.shade600,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
             // 2. Basic Information Section
             Align(
@@ -139,6 +313,10 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
             // 3. Full Name Field
             TextField(
               controller: nameController,
+              onChanged: (val) {
+                _nameManuallyChanged = true;
+                setState(() {});
+              },
               decoration: InputDecoration(
                 labelText: 'Full Name'.tr,
                 labelStyle: TextStyle(color: Colors.grey.shade700, fontSize: 14),
@@ -193,6 +371,7 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                       return IconButton(
                         icon: const Icon(Icons.clear, size: 18, color: Colors.grey),
                         onPressed: () {
+                          _addressManuallyChanged = true;
                           addressController.clear();
                           controller.homeAddress.value = '';
                           controller.locationSuggestions.clear();
@@ -218,6 +397,7 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                             : null,
                       ));
                       if (result != null && result is Map<String, dynamic>) {
+                        _addressManuallyChanged = true;
                         final lat = double.tryParse(result['latitude']?.toString() ?? '0') ?? 0.0;
                         final lng = double.tryParse(result['longitude']?.toString() ?? '0') ?? 0.0;
                         final addr = result['address']?.toString() ?? '';
@@ -249,6 +429,7 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                 ],
               ),
               onChanged: (val) {
+                _addressManuallyChanged = true;
                 setState(() {});
                 controller.onLocationQueryChanged(val);
               },
@@ -338,6 +519,7 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                                 )
                               : null,
                           onTap: () async {
+                            _addressManuallyChanged = true;
                             final chosen = await controller.selectLocationSuggestion(suggestion);
                             if (chosen.isNotEmpty) {
                               addressController.text = chosen;
@@ -401,7 +583,9 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
 
             // 8. Save Changes Button
             Obx(() {
-              final isSaving = controller.isUpdatingProfile.value;
+              final isSaving = controller.isSaving.value;
+              final statusText = controller.savingStatusText.value;
+
               return SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -409,37 +593,54 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                   onPressed: isSaving
                       ? null
                       : () async {
-                          final name = nameController.text.trim();
-                          final address = addressController.text.trim();
+                          final navigator = Navigator.of(context);
+                          final currentName = nameController.text.trim();
+                          final currentAddress = addressController.text.trim();
 
-                          if (name.isEmpty) {
+                          if (currentName.isEmpty) {
                             showCustomSnackBar("Please enter your name".tr, isError: true);
                             return;
                           }
 
-                          if (address.isEmpty) {
+                          if (currentAddress.isEmpty) {
                             showCustomSnackBar("Please enter an address".tr, isError: true);
                             return;
                           }
 
-                          if (address.length < 5) {
+                          if (currentAddress.length < 5) {
                             showCustomSnackBar("Address must be at least 5 characters".tr, isError: true);
                             return;
                           }
 
-                          final bool isAddressModified = address != controller.homeAddress.value;
-                          final success = await controller.updateSeekerAddressAndProfile(
-                            name: name,
-                            address: address,
-                            latitude: isAddressModified ? null : controller.homeLatitude.value,
-                            longitude: isAddressModified ? null : controller.homeLongitude.value,
+                          final bool nameChanged = _nameManuallyChanged &&
+                              currentName.isNotEmpty &&
+                              currentName != _initialName;
+
+                          final bool addressChanged = _addressManuallyChanged &&
+                              currentAddress.isNotEmpty &&
+                              currentAddress != _initialAddress;
+
+                          final bool photoChanged =
+                              controller.pickedProfileImageBytes.value != null ||
+                              controller.pickedProfileImage.value != null;
+
+                          if (!nameChanged && !addressChanged && !photoChanged) {
+                            showCustomSnackBar("No changes to save".tr, isError: false);
+                            return;
+                          }
+
+                          final success = await controller.saveProfileAndAddressChanges(
+                            newName: nameChanged ? currentName : null,
+                            newNameBn: (nameChanged && isBn) ? currentName : null,
+                            newNameEn: (nameChanged && !isBn) ? currentName : null,
+                            newAddress: addressChanged ? currentAddress : null,
+                            newLatitude: addressChanged ? controller.homeLatitude.value : null,
+                            newLongitude: addressChanged ? controller.homeLongitude.value : null,
+                            addressChanged: addressChanged,
                           );
 
-                          if (success) {
-                            if (context.mounted) {
-                              Navigator.of(context).pop(true);
-                            }
-                            showCustomSnackBar("Profile updated successfully".tr, isError: false);
+                          if (success && mounted) {
+                            navigator.pop(true);
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -451,21 +652,44 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                     elevation: 2,
                   ),
                   child: isSaving
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.2,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              statusText.isNotEmpty
+                                  ? statusText
+                                  : (isBn ? 'সংরক্ষণ করা হচ্ছে...' : 'Saving changes...'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         )
-                      : Text(
-                          'Save Changes'.tr,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.save_outlined, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Save Changes'.tr,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                 ),
               );
