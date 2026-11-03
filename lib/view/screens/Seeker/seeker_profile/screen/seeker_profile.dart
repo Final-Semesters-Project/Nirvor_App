@@ -450,10 +450,14 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
                                         ),
                                         // Quick Edit button
                                         InkWell(
-                                          onTap: () => Get.to(
-                                            () =>
-                                                const EditSeekerProfileScreen(),
-                                          ),
+                                          onTap: () async {
+                                            await Get.to(
+                                              () =>
+                                                  const EditSeekerProfileScreen(),
+                                            );
+                                            await controller.getUserProfile();
+                                            await controller.fetchSeekerAddress();
+                                          },
                                           borderRadius:
                                               BorderRadius.circular(8),
                                           child: Container(
@@ -633,8 +637,11 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
                               iconColor: const Color(0xFF0284C7),
                               title: 'Edit Profile'.tr,
                               subtitle: 'Manage personal info'.tr,
-                              onTap: () =>
-                                  Get.to(() => const EditSeekerProfileScreen()),
+                              onTap: () async {
+                                await Get.to(() => const EditSeekerProfileScreen());
+                                await controller.getUserProfile();
+                                await controller.fetchSeekerAddress();
+                              },
                             ),
                             Divider(
                               height: 1,

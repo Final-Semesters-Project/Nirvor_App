@@ -84,4 +84,8 @@ class ApiUrl {
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";
+
+  ///========================= Cloudinary =========================
+  static const String cloudinaryCloudName = "djcbaim7n";
+  static const String cloudinaryUploadPreset = "nirbhor_nid";
 }

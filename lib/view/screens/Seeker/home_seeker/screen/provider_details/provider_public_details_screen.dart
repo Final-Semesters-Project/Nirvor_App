@@ -773,7 +773,7 @@ class _ProviderPublicDetailsScreenState
                             ),
                           )
                         : Text(
-                            'Cancel / বাতিল'.tr,
+                            'Cancel'.tr,
                             style: TextStyle(
                               color: Colors.grey.shade800,
                               fontWeight: FontWeight.bold,
@@ -814,7 +814,7 @@ class _ProviderPublicDetailsScreenState
                             ),
                           )
                         : Text(
-                            'Confirm Hire / নিশ্চিত করুন'.tr,
+                            'Confirm Hire'.tr,
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

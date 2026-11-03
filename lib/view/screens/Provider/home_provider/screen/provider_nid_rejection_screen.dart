@@ -53,7 +53,7 @@ class ProviderNidRejectionScreen extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.06),
+                      color: Colors.red.withValues(alpha: 0.06),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -357,7 +357,7 @@ class ProviderNidRejectionScreen extends StatelessWidget {
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildCardPlaceholder(),
+                  errorBuilder: (context, error, stackTrace) => _buildCardPlaceholder(),
                 ),
               )
             else
@@ -366,7 +366,7 @@ class ProviderNidRejectionScreen extends StatelessWidget {
             // Dark dim overlay
             Positioned.fill(
               child: Container(
-                color: Colors.black.withOpacity(0.55),
+                color: Colors.black.withValues(alpha: 0.55),
               ),
             ),
 
@@ -376,17 +376,17 @@ class ProviderNidRejectionScreen extends StatelessWidget {
               children: [
                 Icon(
                   Icons.do_not_disturb_alt_rounded,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   size: 38.sp,
                 ),
                 SizedBox(height: 6.h),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.65),
+                    color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(6.r),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),

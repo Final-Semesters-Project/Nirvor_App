@@ -10,6 +10,7 @@ import '../../../../../../service/api_client.dart';
 import '../../../../../../service/api_url.dart';
 import '../../../../../../utils/ToastMsg/toast_message.dart';
 import '../../../Seeker/seeker_profile/model/user_model.dart';
+import '../../home_provider/controller/provider_home_controller.dart';
 import '../../home_provider/model/provider_me_model.dart';
 
 class ProviderProfileController extends GetxController {
@@ -18,6 +19,7 @@ class ProviderProfileController extends GetxController {
   var isLoading = false.obs;
   var isSaving = false.obs;
   var isUpdatingProfile = false.obs;
+  var isUpdatingProfilePhoto = false.obs;
   var savingStatusText = ''.obs;
 
   var baseAddress = ''.obs;
@@ -67,8 +69,21 @@ class ProviderProfileController extends GetxController {
           homeAddress: providerMe.value!.baseAddress ?? '',
         );
 
+        if (providerMe.value?.latitude != null && baseLatitude.value == 0.0) {
+          baseLatitude.value = providerMe.value!.latitude!;
+        }
+        if (providerMe.value?.longitude != null && baseLongitude.value == 0.0) {
+          baseLongitude.value = providerMe.value!.longitude!;
+        }
+
         if (providerMe.value?.baseAddress?.isNotEmpty == true) {
           baseAddress.value = providerMe.value!.baseAddress!;
+        } else if (baseLatitude.value != 0.0 && baseLongitude.value != 0.0) {
+          reverseGeocode(baseLatitude.value, baseLongitude.value).then((addr) {
+            if (addr != null && addr.isNotEmpty && baseAddress.value.isEmpty) {
+              baseAddress.value = addr;
+            }
+          });
         }
       } else {
         ApiChecker.checkApi(response);
@@ -80,7 +95,7 @@ class ProviderProfileController extends GetxController {
     }
   }
 
-  // Pick profile photo
+  // Pick and immediately upload profile photo to Cloudinary & update backend
   Future<void> pickProfilePhoto(ImageSource source) async {
     try {
       final XFile? file = await _picker.pickImage(
@@ -89,11 +104,61 @@ class ProviderProfileController extends GetxController {
         maxWidth: 1024,
         maxHeight: 1024,
       );
-      if (file != null) {
-        pickedProfileImage.value = File(file.path);
+      if (file == null) return;
+
+      final selectedFile = File(file.path);
+      pickedProfileImage.value = selectedFile;
+      isUpdatingProfilePhoto.value = true;
+      savingStatusText.value = 'Uploading profile photo...'.tr;
+
+      final photoRes = await uploadProfilePhotoToCloudinary(selectedFile);
+      if (photoRes == null || (photoRes['url'] ?? '').isEmpty) {
+        showCustomSnackBar("Failed to upload profile photo".tr, isError: true);
+        return;
+      }
+
+      final String photoUrl = photoRes['url']!;
+      final String photoPublicId = photoRes['public_id'] ?? '';
+
+      savingStatusText.value = 'Saving profile photo...'.tr;
+      final updateBody = <String, dynamic>{
+        'photo_url': photoUrl,
+        if (photoPublicId.isNotEmpty) 'photo_public_id': photoPublicId,
+      };
+
+      debugPrint("====> Calling PATCH ${ApiUrl.updateProviderProfile} with: $updateBody");
+      final response = await ApiClient.patchData(
+        ApiUrl.updateProviderProfile,
+        updateBody,
+      );
+
+      if (response.statusCode == 200) {
+        showCustomSnackBar("Profile photo updated successfully".tr, isError: false);
+        if (user.value != null) {
+          user.value = UserModel(
+            userId: user.value!.userId,
+            role: user.value!.role,
+            phone: user.value!.phone,
+            name: user.value!.name,
+            isActive: user.value!.isActive,
+            createdAt: user.value!.createdAt,
+            photoUrl: photoUrl,
+            homeAddress: user.value!.homeAddress,
+          );
+        }
+        await getUserProfile();
+        if (Get.isRegistered<ProviderHomeController>()) {
+          Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
+        }
+      } else {
+        ApiChecker.checkApi(response);
       }
     } catch (e) {
-      debugPrint("Error picking profile image: $e");
+      debugPrint("Error picking/updating profile photo: $e");
+      showCustomSnackBar("Failed to update profile photo".tr, isError: true);
+    } finally {
+      isUpdatingProfilePhoto.value = false;
+      savingStatusText.value = '';
     }
   }
 
@@ -102,6 +167,20 @@ class ProviderProfileController extends GetxController {
     required bool isFront,
     required ImageSource source,
   }) async {
+    final status = providerMe.value?.verificationStatus.toLowerCase() ??
+        'not_initiated';
+    final bool canUpdateVerification =
+        (status == 'not_initiated' || status == 'rejected');
+    if (!canUpdateVerification) {
+      showCustomSnackBar(
+        status == 'approved'
+            ? 'Your NID is already approved and locked.'.tr
+            : 'Your NID is under review and cannot be modified.'.tr,
+        isError: false,
+      );
+      return;
+    }
+
     try {
       final XFile? file = await _picker.pickImage(
         source: source,
@@ -148,7 +227,8 @@ class ProviderProfileController extends GetxController {
       final String folder = sigData['folder']?.toString() ?? '';
       final String publicId = sigData['public_id']?.toString() ?? '';
       final String uploadPreset = sigData['upload_preset']?.toString() ?? '';
-      final String accessType = sigData['access_type']?.toString() ?? '';
+      final String type = (sigData['type'] ?? sigData['access_type'])?.toString() ?? '';
+      final dynamic overwrite = sigData['overwrite'];
 
       savingStatusText.value = side == 'front'
           ? 'Uploading Front NID...'.tr
@@ -164,7 +244,10 @@ class ProviderProfileController extends GetxController {
       if (folder.isNotEmpty) request.fields['folder'] = folder;
       if (publicId.isNotEmpty) request.fields['public_id'] = publicId;
       if (uploadPreset.isNotEmpty) request.fields['upload_preset'] = uploadPreset;
-      if (accessType.isNotEmpty) request.fields['access_type'] = accessType;
+      if (type.isNotEmpty) request.fields['type'] = type;
+      if (overwrite != null) {
+        request.fields['overwrite'] = overwrite.toString();
+      }
 
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
@@ -187,16 +270,236 @@ class ProviderProfileController extends GetxController {
     }
   }
 
+  /// Geocode address if user typed manually without selecting suggestion or map
+  Future<Map<String, double>?> geocodeAddress(String address) async {
+    try {
+      if (ApiUrl.mapKey.isNotEmpty) {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'address': address,
+            'key': ApiUrl.mapKey,
+            'components': 'country:bd',
+          },
+        );
+        final res = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (res.statusCode == 200) {
+          final data = json.decode(res.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final loc = data['results'][0]['geometry']?['location'];
+            if (loc != null) {
+              double lat = double.tryParse(loc['lat'].toString()) ?? 0.0;
+              double lng = double.tryParse(loc['lng'].toString()) ?? 0.0;
+              if (lat != 0.0 && lng != 0.0) {
+                return {'lat': lat, 'lng': lng};
+              }
+            }
+          }
+        }
+      }
+
+      // Nominatim Fallback
+      final encodedQuery = Uri.encodeComponent(address);
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&countrycodes=bd&limit=1',
+      );
+      final res = await http.get(url, headers: {
+        'User-Agent': 'NirbhorApp/1.0',
+      }).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final List data = json.decode(res.body);
+        if (data.isNotEmpty) {
+          final lat = double.tryParse(data[0]['lat']?.toString() ?? '0') ?? 0.0;
+          final lon = double.tryParse(data[0]['lon']?.toString() ?? '0') ?? 0.0;
+          if (lat != 0.0 && lon != 0.0) {
+            return {'lat': lat, 'lng': lon};
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error geocoding address: $e");
+    }
+    return null;
+  }
+
+  /// Reverse geocode coordinates to human-readable address string
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    final lang = Get.locale?.languageCode ?? 'en';
+    if (ApiUrl.mapKey.isNotEmpty) {
+      try {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'latlng': '$lat,$lng',
+            'key': ApiUrl.mapKey,
+            'language': lang,
+          },
+        );
+        final response =
+            await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final formatted =
+                data['results'][0]['formatted_address']?.toString();
+            if (formatted != null && formatted.isNotEmpty) {
+              return formatted;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Google reverse geocode error: $e");
+      }
+    }
+
+    // Nominatim fallback
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lng&format=json&accept-language=$lang',
+      );
+      final response = await http.get(uri, headers: {
+        'User-Agent': 'NirbhorApp/1.0',
+      }).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['display_name']?.toString();
+      }
+    } catch (e) {
+      debugPrint("Nominatim reverse geocode error: $e");
+    }
+    return null;
+  }
+
+  /// Direct upload profile photo to Cloudinary without backend signature
+  Future<Map<String, String>?> uploadProfilePhotoToCloudinary(File file) async {
+    try {
+      savingStatusText.value = 'Uploading profile photo...'.tr;
+
+      const String cloudName = ApiUrl.cloudinaryCloudName;
+      final uri =
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      // Presets to try for direct unsigned upload
+      final presetsToTry = [
+        ApiUrl.cloudinaryUploadPreset,
+        'nirbhor_profile',
+        'ml_default',
+      ];
+
+      for (final preset in presetsToTry) {
+        try {
+          debugPrint("====> Trying direct Cloudinary upload with preset: $preset");
+          final request = http.MultipartRequest('POST', uri);
+          request.fields['upload_preset'] = preset;
+          request.files
+              .add(await http.MultipartFile.fromPath('file', file.path));
+
+          final streamedResponse = await request.send();
+          final response = await http.Response.fromStream(streamedResponse);
+
+          debugPrint(
+              "====> Cloudinary upload response [$preset] [${response.statusCode}]: ${response.body}");
+
+          if (response.statusCode == 200) {
+            final resJson = jsonDecode(response.body);
+            final String secureUrl = resJson['secure_url']?.toString() ?? '';
+            final String resPublicId = resJson['public_id']?.toString() ?? '';
+            debugPrint("====> Direct Cloudinary upload success!");
+            debugPrint("====> Photo URL: $secureUrl");
+            debugPrint("====> Public ID: $resPublicId");
+            return {
+              'url': secureUrl,
+              'public_id': resPublicId,
+            };
+          }
+        } catch (ex) {
+          debugPrint("Error trying preset $preset: $ex");
+        }
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint("Error uploading profile photo to Cloudinary: $e");
+      return null;
+    }
+  }
+
   // Save changes from Edit Provider Profile screen
-  Future<bool> saveProfileChanges() async {
+  Future<bool> saveProfileChanges({
+    String? newBaseAddress,
+    String? newName,
+  }) async {
     isSaving.value = true;
     savingStatusText.value = 'Saving changes...'.tr;
 
     try {
       final Map<String, dynamic> updateBody = {};
 
-      // 1. Upload Front NID if picked
-      if (pickedFrontNid.value != null) {
+      // 1. Name update
+      final cleanName = newName?.trim() ?? '';
+      final currentName = providerMe.value?.name ?? user.value?.name ?? '';
+      if (cleanName.isNotEmpty && cleanName != currentName) {
+        updateBody['name'] = cleanName;
+      }
+
+      // 2. Base Address update
+      final cleanAddress = (newBaseAddress ?? baseAddress.value).trim();
+      final currentAddress = providerMe.value?.baseAddress ?? '';
+
+      if (cleanAddress.isNotEmpty && cleanAddress != currentAddress) {
+        if (cleanAddress.length < 5) {
+          showCustomSnackBar("Address must be at least 5 characters".tr,
+              isError: true);
+          return false;
+        }
+
+        double lat = baseLatitude.value;
+        double lng = baseLongitude.value;
+
+        if (lat == 0.0 || lng == 0.0) {
+          savingStatusText.value = 'Locating address...'.tr;
+          final coords = await geocodeAddress(cleanAddress);
+          if (coords != null) {
+            lat = coords['lat']!;
+            lng = coords['lng']!;
+            baseLatitude.value = lat;
+            baseLongitude.value = lng;
+          }
+        }
+
+        updateBody['base_address'] = cleanAddress;
+        updateBody['latitude'] = (lat != 0.0) ? lat : 23.8103;
+        updateBody['longitude'] = (lng != 0.0) ? lng : 90.4125;
+      }
+
+      // 3. Check verification status gating for photos
+      final status = providerMe.value?.verificationStatus.toLowerCase() ??
+          'not_initiated';
+      final bool canUpdateVerification =
+          (status == 'not_initiated' || status == 'rejected');
+
+      // 4. Upload Profile Image if picked (can change anytime)
+      if (pickedProfileImage.value != null) {
+        final photoRes =
+            await uploadProfilePhotoToCloudinary(pickedProfileImage.value!);
+        if (photoRes != null) {
+          updateBody['photo_url'] = photoRes['url'];
+          updateBody['photo_public_id'] = photoRes['public_id'];
+        } else {
+          showCustomSnackBar("Failed to upload profile photo".tr,
+              isError: true);
+          return false;
+        }
+      }
+
+      // 5. Upload Front NID if allowed and picked
+      if (canUpdateVerification && pickedFrontNid.value != null) {
         final frontRes = await uploadToCloudinary(
           file: pickedFrontNid.value!,
           side: 'front',
@@ -205,13 +508,14 @@ class ProviderProfileController extends GetxController {
           updateBody['nid_url_front'] = frontRes['url'];
           updateBody['nid_front_public_id'] = frontRes['public_id'];
         } else {
-          showCustomSnackBar("Failed to upload front NID image".tr);
+          showCustomSnackBar("Failed to upload front NID image".tr,
+              isError: true);
           return false;
         }
       }
 
-      // 2. Upload Back NID if picked
-      if (pickedBackNid.value != null) {
+      // 6. Upload Back NID if allowed and picked
+      if (canUpdateVerification && pickedBackNid.value != null) {
         final backRes = await uploadToCloudinary(
           file: pickedBackNid.value!,
           side: 'back',
@@ -220,7 +524,8 @@ class ProviderProfileController extends GetxController {
           updateBody['nid_url_back'] = backRes['url'];
           updateBody['nid_back_public_id'] = backRes['public_id'];
         } else {
-          showCustomSnackBar("Failed to upload back NID image".tr);
+          showCustomSnackBar("Failed to upload back NID image".tr,
+              isError: true);
           return false;
         }
       }
@@ -233,6 +538,8 @@ class ProviderProfileController extends GetxController {
       }
 
       savingStatusText.value = 'Updating profile...'.tr;
+      debugPrint(
+          "====> Calling PATCH ${ApiUrl.updateProviderProfile} with: $updateBody");
       final response = await ApiClient.patchData(
         ApiUrl.updateProviderProfile,
         updateBody,
@@ -243,7 +550,27 @@ class ProviderProfileController extends GetxController {
         pickedFrontNid.value = null;
         pickedBackNid.value = null;
         pickedProfileImage.value = null;
+
+        // Immediately update local name/photo/address if changed
+        if (user.value != null) {
+          user.value = UserModel(
+            userId: user.value!.userId,
+            role: user.value!.role,
+            phone: user.value!.phone,
+            name: cleanName.isNotEmpty ? cleanName : user.value!.name,
+            isActive: user.value!.isActive,
+            createdAt: user.value!.createdAt,
+            photoUrl: updateBody['photo_url'] ?? user.value!.photoUrl,
+            homeAddress:
+                updateBody['base_address'] ?? user.value!.homeAddress,
+          );
+        }
+
         await getUserProfile();
+        if (Get.isRegistered<ProviderHomeController>()) {
+          Get.find<ProviderHomeController>()
+              .getDashboardData(showLoading: false);
+        }
         return true;
       } else {
         ApiChecker.checkApi(response);
@@ -251,7 +578,7 @@ class ProviderProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error saving provider profile: $e");
-      showCustomSnackBar("Failed to save changes".tr);
+      showCustomSnackBar("Failed to save changes".tr, isError: true);
       return false;
     } finally {
       isSaving.value = false;

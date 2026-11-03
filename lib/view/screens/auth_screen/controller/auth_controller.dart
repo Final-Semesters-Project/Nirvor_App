@@ -7,8 +7,8 @@ import '../../../../core/app_routes/app_routes.dart';
 import '../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../utils/app_const/app_const.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../../../../helper/notification_helper/firebase_notification_helper.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -552,25 +552,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> sendFcmToken() async {
-    String? fcmToken;
-    try {
-      fcmToken = await FirebaseMessaging.instance.getToken();
-    } catch (e) {
-      debugPrint("Error fetching FCM token: $e");
-    }
-    
-    // Fallback if token is null for any reason
-    String finalToken = fcmToken ?? "dummy_token_fallback";
-
-    String deviceType = "unknown";
-    if (Platform.isAndroid) {
-      deviceType = "android";
-    } else if (Platform.isIOS) {
-      deviceType = "ios";
-    }
-
-    Map<String, String> body = {"token": finalToken, "device_type": deviceType};
-    await ApiClient.postData("${ApiUrl.fcmToken}?token=$finalToken", body);
+    await FirebaseNotificationHelper.syncTokenWithBackend();
   }
 
   Future<void> logout() async {

@@ -130,15 +130,13 @@ class ProviderUrgentAlertController extends GetxController {
       position ??= await Geolocator.getCurrentPosition()
           .timeout(const Duration(seconds: 4));
 
-      if (position != null) {
-        final meters = Geolocator.distanceBetween(
-          position.latitude,
-          position.longitude,
-          seekerLat,
-          seekerLng,
-        );
-        distanceKm.value = meters / 1000.0;
-      }
+      final meters = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        seekerLat,
+        seekerLng,
+      );
+      distanceKm.value = meters / 1000.0;
     } catch (e) {
       debugPrint("UrgentAlert: error calculating distance: $e");
     }

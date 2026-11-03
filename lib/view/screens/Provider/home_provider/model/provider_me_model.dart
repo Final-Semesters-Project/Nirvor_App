@@ -8,6 +8,8 @@ class ProviderMeModel {
   final String verificationStatus; // "not_initiated" | "pending" | "approved" | "rejected"
   final String? verificationRejectionReason;
   final String? baseAddress;
+  final double? latitude;
+  final double? longitude;
   final int? workingRadiusKm;
   final bool hasSmartphone;
   final bool isAvailable;
@@ -29,6 +31,8 @@ class ProviderMeModel {
     required this.verificationStatus,
     this.verificationRejectionReason,
     this.baseAddress,
+    this.latitude,
+    this.longitude,
     this.workingRadiusKm,
     this.hasSmartphone = true,
     this.isAvailable = true,
@@ -56,6 +60,12 @@ class ProviderMeModel {
       verificationRejectionReason:
           json['verification_rejection_reason']?.toString(),
       baseAddress: json['base_address']?.toString(),
+      latitude: json['latitude'] != null
+          ? double.tryParse(json['latitude'].toString())
+          : null,
+      longitude: json['longitude'] != null
+          ? double.tryParse(json['longitude'].toString())
+          : null,
       workingRadiusKm: json['working_radius_km'] != null
           ? int.tryParse(json['working_radius_km'].toString())
           : null,

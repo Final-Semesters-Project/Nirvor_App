@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,10 +69,10 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                         vertical: 6.h,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20.r),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -83,7 +82,7 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                           Icon(
                             Icons.timer_outlined,
                             size: 14.sp,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                           SizedBox(width: 5.w),
                           Text(
@@ -110,12 +109,12 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                     color: const Color(0xFFB91C1C),
                     borderRadius: BorderRadius.circular(22.r),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.18),
+                      color: Colors.white.withValues(alpha: 0.18),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.25),
+                        color: Colors.black.withValues(alpha: 0.25),
                         blurRadius: 16,
                         offset: const Offset(0, 6),
                       ),
@@ -151,7 +150,7 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                   "Someone needs an $currentSkill RIGHT NOW!",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w500,
                   ),
@@ -167,12 +166,12 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                     color: const Color(0xFF121212),
                     borderRadius: BorderRadius.circular(18.r),
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.12),
+                      color: Colors.white.withValues(alpha: 0.12),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.35),
+                        color: Colors.black.withValues(alpha: 0.35),
                         blurRadius: 14,
                         offset: const Offset(0, 6),
                       ),
@@ -209,15 +208,15 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                                 vertical: 6.h,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF0F766E).withOpacity(0.95),
+                                color: const Color(0xFF0F766E).withValues(alpha: 0.95),
                                 borderRadius: BorderRadius.circular(14.r),
                                 border: Border.all(
-                                  color: const Color(0xFF2DD4BF).withOpacity(0.4),
+                                  color: const Color(0xFF2DD4BF).withValues(alpha: 0.4),
                                   width: 1,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
                                   ),
@@ -259,7 +258,7 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.25),
+                      color: Colors.black.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Text(
@@ -289,7 +288,7 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF16A34A),
                       disabledBackgroundColor:
-                          const Color(0xFF16A34A).withOpacity(0.4),
+                          const Color(0xFF16A34A).withValues(alpha: 0.4),
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12.r),
@@ -338,11 +337,11 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                     child: Text(
                       "Decline / প্রত্যাখ্যান করুন",
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w500,
                         decoration: TextDecoration.underline,
-                        decorationColor: Colors.white.withOpacity(0.85),
+                        decorationColor: Colors.white.withValues(alpha: 0.85),
                       ),
                     ),
                   ),
@@ -366,7 +365,7 @@ class _RadarMapPainter extends CustomPainter {
 
     // 1. Draw subtle isometric / street grid lines
     final gridPaint = Paint()
-      ..color = Colors.white.withOpacity(0.04)
+      ..color = Colors.white.withValues(alpha: 0.04)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -387,12 +386,12 @@ class _RadarMapPainter extends CustomPainter {
 
     // 2. Concentric radar circles
     final radarPaint = Paint()
-      ..color = const Color(0xFF14B8A6).withOpacity(0.18)
+      ..color = const Color(0xFF14B8A6).withValues(alpha: 0.18)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
     final dashPaint = Paint()
-      ..color = Colors.white.withOpacity(0.09)
+      ..color = Colors.white.withValues(alpha: 0.09)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -403,7 +402,7 @@ class _RadarMapPainter extends CustomPainter {
 
     // 3. Subtle radar crosshairs
     final crossPaint = Paint()
-      ..color = const Color(0xFF14B8A6).withOpacity(0.12)
+      ..color = const Color(0xFF14B8A6).withValues(alpha: 0.12)
       ..strokeWidth = 1.0;
 
     canvas.drawLine(
@@ -419,7 +418,7 @@ class _RadarMapPainter extends CustomPainter {
 
     // 4. Center glow pulse
     final glowPaint = Paint()
-      ..color = const Color(0xFF14B8A6).withOpacity(0.15)
+      ..color = const Color(0xFF14B8A6).withValues(alpha: 0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
     canvas.drawCircle(center, 20, glowPaint);
   }

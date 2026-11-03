@@ -280,7 +280,17 @@ class UrgentRequestController extends GetxController {
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.body != null) {
         final resData = response.body;
-        broadcastId.value = resData['broadcast_id']?.toString() ?? '';
+        final status = resData['status']?.toString() ?? '';
+        final bId = resData['broadcast_id']?.toString() ?? '';
+
+        if (status == 'no_providers' || bId.isEmpty) {
+          final msg = resData['message']?.toString() ??
+              'No one is available nearby right now. Please try a manual search.'.tr;
+          showCustomSnackBar(msg, isError: true);
+          return;
+        }
+
+        broadcastId.value = bId;
         broadcastMessage.value = resData['message']?.toString() ?? 'Urgent request sent'.tr;
         secondsRemaining.value = 300; // 5 minutes
 

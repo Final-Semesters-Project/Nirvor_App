@@ -99,15 +99,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   String _getStatusTitle(String status) {
     switch (status.toLowerCase()) {
       case 'in_progress':
-        return 'In Progress / চলমান'.tr;
+        return 'In Progress'.tr;
       case 'initiated':
-        return 'Initiated / শুরু হয়েছে'.tr;
+        return 'Initiated'.tr;
       case 'completed':
-        return 'Completed / সম্পন্ন'.tr;
+        return 'Completed'.tr;
       case 'cancelled':
-        return 'Cancelled / বাতিল'.tr;
+        return 'Cancelled'.tr;
       case 'auto_expired':
-        return 'Expired / মেয়াদ উত্তীর্ণ'.tr;
+        return 'Expired'.tr;
       default:
         return status.toUpperCase();
     }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../../../helper/shared_prefe/shared_prefe.dart';
@@ -248,6 +249,15 @@ class SeekerProfileController extends GetxController {
       homeLongitude.value = double.tryParse(location['lon']?.toString() ?? '0') ?? 0.0;
     }
 
+    // Fallback if Place Details did not resolve coordinates
+    if (homeLatitude.value == 0.0 || homeLongitude.value == 0.0) {
+      final coords = await geocodeAddress(chosenAddress);
+      if (coords != null) {
+        homeLatitude.value = coords['lat'] ?? 0.0;
+        homeLongitude.value = coords['lng'] ?? 0.0;
+      }
+    }
+
     return chosenAddress;
   }
 
@@ -348,13 +358,48 @@ class SeekerProfileController extends GetxController {
       double finalLat = latitude ?? homeLatitude.value;
       double finalLng = longitude ?? homeLongitude.value;
 
-      // If coordinates are missing, auto-geocode the address
-      if (finalLat == 0.0 || finalLng == 0.0) {
+      // If the address text was changed and coordinates were not freshly set via picker or suggestions,
+      // re-geocode the address so that old coordinates are not kept.
+      final bool addressChanged = homeAddress.value.isNotEmpty && cleanAddress != homeAddress.value;
+      if (addressChanged || finalLat == 0.0 || finalLng == 0.0) {
+        debugPrint("Re-geocoding address: $cleanAddress");
         final coords = await geocodeAddress(cleanAddress);
-        if (coords != null) {
-          finalLat = coords['lat'] ?? 0.0;
-          finalLng = coords['lng'] ?? 0.0;
+        if (coords != null && coords['lat'] != 0.0 && coords['lng'] != 0.0) {
+          finalLat = coords['lat']!;
+          finalLng = coords['lng']!;
+        } else if (finalLat == 0.0 || finalLng == 0.0) {
+          // If geocoding failed and no coords available, try device GPS
+          try {
+            bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+            if (serviceEnabled) {
+              LocationPermission permission = await Geolocator.checkPermission();
+              if (permission == LocationPermission.denied) {
+                permission = await Geolocator.requestPermission();
+              }
+              if (permission == LocationPermission.whileInUse ||
+                  permission == LocationPermission.always) {
+                Position position = await Geolocator.getCurrentPosition(
+                  desiredAccuracy: LocationAccuracy.high,
+                  timeLimit: const Duration(seconds: 4),
+                );
+                finalLat = position.latitude;
+                finalLng = position.longitude;
+              }
+            }
+          } catch (e) {
+            debugPrint("GPS fallback error: $e");
+          }
         }
+      }
+
+      // Check if we still have no coordinates
+      if (finalLat == 0.0 || finalLng == 0.0) {
+        showCustomSnackBar(
+          "Please pin your location on the map to get accurate coordinates".tr,
+          isError: true,
+        );
+        isUpdatingProfile.value = false;
+        return false;
       }
 
       final body = {
@@ -363,6 +408,7 @@ class SeekerProfileController extends GetxController {
         "home_address": cleanAddress,
       };
 
+      debugPrint("====> PATCH Seeker Address Body: $body");
       final response = await ApiClient.patchData(
         ApiUrl.seekerAddress,
         body,
@@ -377,21 +423,9 @@ class SeekerProfileController extends GetxController {
         await SharePrefsHelper.setString("seeker_home_lat", finalLat.toString());
         await SharePrefsHelper.setString("seeker_home_lng", finalLng.toString());
 
-        if (user.value != null) {
-          user.value = UserModel(
-            userId: user.value!.userId,
-            role: user.value!.role,
-            phone: user.value!.phone,
-            name: cleanName,
-            isActive: user.value!.isActive,
-            createdAt: user.value!.createdAt,
-            photoUrl: user.value!.photoUrl,
-            homeAddress: cleanAddress,
-            homeLatitude: finalLat,
-            homeLongitude: finalLng,
-          );
-          update();
-        }
+        // Refresh user profile and seeker address from server
+        await getUserProfile();
+        await fetchSeekerAddress();
 
         // Keep HomeSeekerController synced
         if (Get.isRegistered<HomeSeekerController>()) {

@@ -109,7 +109,7 @@ class SearchResultsScreen extends StatelessWidget {
                           const Icon(Icons.bolt, color: AppColors.primary, size: 20),
                           const SizedBox(width: 6),
                           Text(
-                            'Active Booking / সক্রিয় বুকিং'.tr,
+                            'Active Booking'.tr,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -257,7 +257,7 @@ class SearchResultsScreen extends StatelessWidget {
                                   ),
                                 )
                               : Text(
-                                  'Cancel / বাতিল'.tr,
+                                  'Cancel'.tr,
                                   style: TextStyle(
                                     color: Colors.grey.shade800,
                                     fontWeight: FontWeight.bold,
@@ -294,7 +294,7 @@ class SearchResultsScreen extends StatelessWidget {
                                   ),
                                 )
                               : Text(
-                                  'Confirm Hire / নিশ্চিত করুন'.tr,
+                                  'Confirm Hire'.tr,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
@@ -401,7 +401,7 @@ class SearchResultsScreen extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Obx(
                 () => Text(
-                  '${'Search Results / অনুসন্ধানের ফলাফল'.tr} (${controller.providers.length})',
+                  '${'Search Results'.tr} (${controller.providers.length})',
                   style: TextStyle(
                     color: Colors.grey.shade800,
                     fontSize: 15,
