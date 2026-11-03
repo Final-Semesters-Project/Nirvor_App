@@ -103,7 +103,7 @@ class HomeSeekerScreen extends StatelessWidget {
                           const Icon(Icons.bolt, color: AppColors.primary, size: 18),
                           const SizedBox(width: 6),
                           Text(
-                            'Active Booking / সক্রিয় বুকিং'.tr,
+                            'Active Booking'.tr,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -157,7 +157,7 @@ class HomeSeekerScreen extends StatelessWidget {
                                   ),
                                 )
                               : Text(
-                                  'Cancel / বাতিল'.tr,
+                                  'Cancel'.tr,
                                   style: TextStyle(
                                     color: Colors.grey.shade800,
                                     fontSize: 12,
@@ -191,7 +191,7 @@ class HomeSeekerScreen extends StatelessWidget {
                                   ),
                                 )
                               : Text(
-                                  'Confirm / নিশ্চিত'.tr,
+                                  'Confirm'.tr,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,

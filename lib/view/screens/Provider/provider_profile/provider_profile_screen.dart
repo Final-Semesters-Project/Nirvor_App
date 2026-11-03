@@ -384,8 +384,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                                 : (isBn ? 'সেবা প্রদানকারী' : 'Provider'));
                         final String displayPhone =
                             (me?.phone.isNotEmpty == true) ? me!.phone : user.phone;
-                        final String verificationLevel =
-                            (me?.verificationLevel.toUpperCase() ?? 'BASIC');
                         final String verificationStatus =
                             (me?.verificationStatus.toLowerCase() ?? 'not_initiated');
 
@@ -552,70 +550,29 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 6),
-                                      // Role Tag + Level + Verification Status
-                                      Wrap(
-                                        spacing: 6,
-                                        runSpacing: 4,
-                                        children: [
-                                          // Level Pill
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF0F766E),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.check_circle_rounded,
-                                                  size: 10,
-                                                  color: Colors.white,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  verificationLevel,
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    letterSpacing: 0.4,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                      // Verification Status Pill
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: statusBg,
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: statusColor
+                                                .withValues(alpha: 0.3),
                                           ),
-                                          // Status Pill
-                                          Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
-                                              horizontal: 7,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: statusBg,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: statusColor
-                                                    .withValues(alpha: 0.3),
-                                              ),
-                                            ),
-                                            child: Text(
-                                              statusText,
-                                              style: TextStyle(
-                                                fontSize: 10.5,
-                                                fontWeight: FontWeight.bold,
-                                                color: statusColor,
-                                              ),
-                                            ),
+                                        ),
+                                        child: Text(
+                                          statusText,
+                                          style: TextStyle(
+                                            fontSize: 10.5,
+                                            fontWeight: FontWeight.bold,
+                                            color: statusColor,
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ],
                                   ),

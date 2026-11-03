@@ -223,7 +223,7 @@ class RegisterScreen extends StatelessWidget {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[\u0980-\u09FF\s]')),
               ],
-              hintText: 'আপনার পুরো নাম লিখুন (বাংলা)'.tr,
+              hintText: 'Enter your full name (Bangla)'.tr,
               title: 'Full Name (Bangla)'.tr,
             ),
 
@@ -302,7 +302,7 @@ class RegisterScreen extends StatelessWidget {
                           r'^[\u0980-\u09FF\s]+$',
                         ).hasMatch(nameBnController.text.trim())) {
                           showCustomSnackBar(
-                            "দয়া করে সঠিক বাংলা নাম লিখুন".tr,
+                            'Please enter Bangla name using Bangla letters only'.tr,
                             isError: true,
                           );
                           return;

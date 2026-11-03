@@ -12,6 +12,7 @@ import 'provider_add_skill_screen.dart';
 import 'provider_nid_upload_screen.dart';
 import 'provider_nid_rejection_screen.dart';
 import '../../../../../../model/review_model.dart';
+import '../../../../../../utils/ToastMsg/toast_message.dart';
 import 'provider_all_reviews_screen.dart';
 
 class ProviderHomeScreen extends StatelessWidget {
@@ -404,32 +405,46 @@ class ProviderHomeScreen extends StatelessWidget {
                             ),
                           )
                         else if (status == 'pending')
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.amber.shade300),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.access_time_rounded,
-                                    color: Colors.amber.shade800, size: 18.sp),
-                                SizedBox(width: 8.w),
-                                Flexible(
-                                  child: Text(
-                                    'Your documents are under review by admin'.tr,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: Colors.amber.shade900,
-                                      fontSize: 12.5.sp,
-                                      fontWeight: FontWeight.w600,
+                          InkWell(
+                            onTap: () {
+                              showCustomSnackBar(
+                                'আপনার NID তথ্য পর্যালোচনায় রয়েছে। অ্যাডমিনের অনুমোদন সম্পন্ন হওয়া পর্যন্ত অপেক্ষা করুন।'
+                                    .tr,
+                                isError: false,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 12.h, horizontal: 12.w),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border:
+                                    Border.all(color: Colors.amber.shade300),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.access_time_rounded,
+                                      color: Colors.amber.shade800,
+                                      size: 18.sp),
+                                  SizedBox(width: 8.w),
+                                  Flexible(
+                                    child: Text(
+                                      'Your documents are under review by admin'
+                                          .tr,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.amber.shade900,
+                                        fontSize: 12.5.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           )
                         else if (status == 'rejected')
@@ -456,7 +471,7 @@ class ProviderHomeScreen extends StatelessWidget {
                                     ),
                                     SizedBox(width: 6.w),
                                     CustomText(
-                                      text: 'রিজেকশনের কারণ দেখুন ও পুনরায় আপলোড করুন'.tr,
+                                      text: 'View Rejection Details & Re-upload'.tr,
                                       color: Colors.red.shade800,
                                       fontSize: 13.sp,
                                       fontWeight: FontWeight.w700,

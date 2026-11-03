@@ -59,7 +59,7 @@ class SetupDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             CustomText(
-              text: 'আপনার পেশা / Choose Your Category'.tr,
+              text: 'Choose Your Category'.tr,
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black54,
@@ -419,7 +419,7 @@ class SetupDetailsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    text: 'কাজের এলাকা / Work Radius'.tr,
+                    text: 'Work Radius'.tr,
                     color: Colors.grey.shade600,
                     fontSize: 12,
                   ),
@@ -488,12 +488,12 @@ class SetupDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          text: 'আমার স্মার্টফোন আছে'.tr,
+                          text: 'I have a smartphone'.tr,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                         CustomText(
-                          text: 'I have a smartphone'.tr,
+                          text: 'Smart device enabled for GPS & work alerts'.tr,
                           fontSize: 12,
                           color: Colors.grey.shade600,
                         ),

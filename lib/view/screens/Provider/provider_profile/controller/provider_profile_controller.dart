@@ -10,6 +10,7 @@ import '../../../../../../service/api_client.dart';
 import '../../../../../../service/api_url.dart';
 import '../../../../../../utils/ToastMsg/toast_message.dart';
 import '../../../Seeker/seeker_profile/model/user_model.dart';
+import '../../home_provider/controller/provider_home_controller.dart';
 import '../../home_provider/model/provider_me_model.dart';
 
 class ProviderProfileController extends GetxController {
@@ -69,6 +70,12 @@ class ProviderProfileController extends GetxController {
 
         if (providerMe.value?.baseAddress?.isNotEmpty == true) {
           baseAddress.value = providerMe.value!.baseAddress!;
+        }
+        if (providerMe.value?.latitude != null && baseLatitude.value == 0.0) {
+          baseLatitude.value = providerMe.value!.latitude!;
+        }
+        if (providerMe.value?.longitude != null && baseLongitude.value == 0.0) {
+          baseLongitude.value = providerMe.value!.longitude!;
         }
       } else {
         ApiChecker.checkApi(response);
@@ -148,7 +155,8 @@ class ProviderProfileController extends GetxController {
       final String folder = sigData['folder']?.toString() ?? '';
       final String publicId = sigData['public_id']?.toString() ?? '';
       final String uploadPreset = sigData['upload_preset']?.toString() ?? '';
-      final String accessType = sigData['access_type']?.toString() ?? '';
+      final String type = (sigData['type'] ?? sigData['access_type'])?.toString() ?? '';
+      final dynamic overwrite = sigData['overwrite'];
 
       savingStatusText.value = side == 'front'
           ? 'Uploading Front NID...'.tr
@@ -164,7 +172,10 @@ class ProviderProfileController extends GetxController {
       if (folder.isNotEmpty) request.fields['folder'] = folder;
       if (publicId.isNotEmpty) request.fields['public_id'] = publicId;
       if (uploadPreset.isNotEmpty) request.fields['upload_preset'] = uploadPreset;
-      if (accessType.isNotEmpty) request.fields['access_type'] = accessType;
+      if (type.isNotEmpty) request.fields['type'] = type;
+      if (overwrite != null) {
+        request.fields['overwrite'] = overwrite.toString();
+      }
 
       request.files.add(await http.MultipartFile.fromPath('file', file.path));
 
@@ -187,16 +198,107 @@ class ProviderProfileController extends GetxController {
     }
   }
 
+  /// Geocode address if user typed manually without selecting suggestion or map
+  Future<Map<String, double>?> geocodeAddress(String address) async {
+    try {
+      if (ApiUrl.mapKey.isNotEmpty) {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'address': address,
+            'key': ApiUrl.mapKey,
+            'components': 'country:bd',
+          },
+        );
+        final res = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (res.statusCode == 200) {
+          final data = json.decode(res.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final loc = data['results'][0]['geometry']?['location'];
+            if (loc != null) {
+              double lat = double.tryParse(loc['lat'].toString()) ?? 0.0;
+              double lng = double.tryParse(loc['lng'].toString()) ?? 0.0;
+              if (lat != 0.0 && lng != 0.0) {
+                return {'lat': lat, 'lng': lng};
+              }
+            }
+          }
+        }
+      }
+
+      // Nominatim Fallback
+      final encodedQuery = Uri.encodeComponent(address);
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$encodedQuery&format=json&countrycodes=bd&limit=1',
+      );
+      final res = await http.get(url, headers: {
+        'User-Agent': 'NirbhorApp/1.0',
+      }).timeout(const Duration(seconds: 5));
+      if (res.statusCode == 200) {
+        final List data = json.decode(res.body);
+        if (data.isNotEmpty) {
+          final lat = double.tryParse(data[0]['lat']?.toString() ?? '0') ?? 0.0;
+          final lon = double.tryParse(data[0]['lon']?.toString() ?? '0') ?? 0.0;
+          if (lat != 0.0 && lon != 0.0) {
+            return {'lat': lat, 'lng': lon};
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error geocoding address: $e");
+    }
+    return null;
+  }
+
   // Save changes from Edit Provider Profile screen
-  Future<bool> saveProfileChanges() async {
+  Future<bool> saveProfileChanges({String? newBaseAddress}) async {
     isSaving.value = true;
     savingStatusText.value = 'Saving changes...'.tr;
 
     try {
       final Map<String, dynamic> updateBody = {};
 
-      // 1. Upload Front NID if picked
-      if (pickedFrontNid.value != null) {
+      // 1. Base Address update
+      final cleanAddress = (newBaseAddress ?? baseAddress.value).trim();
+      final currentAddress = providerMe.value?.baseAddress ?? '';
+
+      if (cleanAddress.isNotEmpty && cleanAddress != currentAddress) {
+        if (cleanAddress.length < 5) {
+          showCustomSnackBar("Address must be at least 5 characters".tr,
+              isError: true);
+          return false;
+        }
+
+        double lat = baseLatitude.value;
+        double lng = baseLongitude.value;
+
+        if (lat == 0.0 || lng == 0.0) {
+          savingStatusText.value = 'Locating address...'.tr;
+          final coords = await geocodeAddress(cleanAddress);
+          if (coords != null) {
+            lat = coords['lat']!;
+            lng = coords['lng']!;
+            baseLatitude.value = lat;
+            baseLongitude.value = lng;
+          }
+        }
+
+        updateBody['base_address'] = cleanAddress;
+        updateBody['latitude'] = (lat != 0.0) ? lat : 23.8103;
+        updateBody['longitude'] = (lng != 0.0) ? lng : 90.4125;
+      }
+
+      // 2. Check NID verification status gating
+      final status = providerMe.value?.verificationStatus.toLowerCase() ??
+          'not_initiated';
+      final bool canUpdateNid =
+          (status == 'not_initiated' || status == 'rejected');
+
+      // 3. Upload Front NID if allowed and picked
+      if (canUpdateNid && pickedFrontNid.value != null) {
         final frontRes = await uploadToCloudinary(
           file: pickedFrontNid.value!,
           side: 'front',
@@ -210,8 +312,8 @@ class ProviderProfileController extends GetxController {
         }
       }
 
-      // 2. Upload Back NID if picked
-      if (pickedBackNid.value != null) {
+      // 4. Upload Back NID if allowed and picked
+      if (canUpdateNid && pickedBackNid.value != null) {
         final backRes = await uploadToCloudinary(
           file: pickedBackNid.value!,
           side: 'back',
@@ -244,6 +346,10 @@ class ProviderProfileController extends GetxController {
         pickedBackNid.value = null;
         pickedProfileImage.value = null;
         await getUserProfile();
+        if (Get.isRegistered<ProviderHomeController>()) {
+          Get.find<ProviderHomeController>()
+              .getDashboardData(showLoading: false);
+        }
         return true;
       } else {
         ApiChecker.checkApi(response);

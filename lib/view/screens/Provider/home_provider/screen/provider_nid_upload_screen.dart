@@ -90,6 +90,7 @@ class ProviderNidUploadScreen extends StatelessWidget {
               () => _buildUploadCard(
                 context: context,
                 imageFile: controller.frontImage.value,
+                networkUrl: controller.frontSecureUrl.value,
                 isFront: true,
                 controller: controller,
                 title: 'NID Front'.tr,
@@ -111,6 +112,7 @@ class ProviderNidUploadScreen extends StatelessWidget {
               () => _buildUploadCard(
                 context: context,
                 imageFile: controller.backImage.value,
+                networkUrl: controller.backSecureUrl.value,
                 isFront: false,
                 controller: controller,
                 title: 'NID Back'.tr,
@@ -134,11 +136,14 @@ class ProviderNidUploadScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Obx(() {
-            final isReady = controller.frontImage.value != null &&
-                controller.backImage.value != null;
-            final isUploading = controller.isUploading.value;
+            final isFrontReady = controller.isFrontUploaded.value ||
+                (controller.frontImage.value != null);
+            final isBackReady = controller.isBackUploaded.value ||
+                (controller.backImage.value != null);
+            final isReady = isFrontReady && isBackReady;
+            final isSubmitting = controller.isSubmitting.value;
 
-            if (isUploading) {
+            if (isSubmitting) {
               return Container(
                 height: 52.h,
                 alignment: Alignment.center,
@@ -161,7 +166,7 @@ class ProviderNidUploadScreen extends StatelessWidget {
                     Text(
                       controller.uploadProgressText.value.isNotEmpty
                           ? controller.uploadProgressText.value
-                          : 'Uploading...'.tr,
+                          : 'Submitting for verification...'.tr,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14.sp,
@@ -175,7 +180,7 @@ class ProviderNidUploadScreen extends StatelessWidget {
 
             return CustomButton(
               onTap: isReady ? controller.submitNid : null,
-              title: 'Upload & Submit'.tr,
+              title: 'Submit for Verification'.tr,
               fillColor: isReady ? AppColors.primary : Colors.grey.shade300,
               textColor: isReady ? Colors.white : Colors.grey.shade600,
               fontSize: 16.sp,
@@ -190,17 +195,34 @@ class ProviderNidUploadScreen extends StatelessWidget {
   Widget _buildUploadCard({
     required BuildContext context,
     required File? imageFile,
+    required String networkUrl,
     required bool isFront,
     required ProviderNidUploadController controller,
     required String title,
   }) {
-    if (imageFile != null) {
+    final hasImage = imageFile != null || networkUrl.isNotEmpty;
+    final isUploading = isFront
+        ? controller.isFrontUploading.value
+        : controller.isBackUploading.value;
+    final isUploaded = isFront
+        ? controller.isFrontUploaded.value
+        : controller.isBackUploaded.value;
+    final errorText = isFront
+        ? controller.frontUploadError.value
+        : controller.backUploadError.value;
+
+    if (hasImage) {
       return Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(color: AppColors.primary, width: 1.5),
+          border: Border.all(
+            color: errorText.isNotEmpty
+                ? Colors.red.shade400
+                : (isUploaded ? AppColors.primary : Colors.grey.shade300),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -211,47 +233,181 @@ class ProviderNidUploadScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(13.r)),
-              child: Image.file(
-                imageFile,
-                height: 180.h,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(13.r)),
+                  child: imageFile != null
+                      ? Image.file(
+                          imageFile,
+                          height: 180.h,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          networkUrl,
+                          height: 180.h,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (ctx, err, stack) => Container(
+                            height: 180.h,
+                            color: Colors.grey.shade200,
+                            alignment: Alignment.center,
+                            child: Icon(Icons.broken_image_rounded,
+                                size: 40.sp, color: Colors.grey.shade400),
+                          ),
+                        ),
+                ),
+                // Clear / Remove image button on top-right
+                if (!isUploading)
+                  Positioned(
+                    top: 8.h,
+                    right: 8.w,
+                    child: Material(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => controller.clearImage(isFront),
+                        child: Padding(
+                          padding: EdgeInsets.all(6.r),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 18.sp,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (isUploading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(13.r)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          ),
+                          SizedBox(height: 10.h),
+                          Text(
+                            isFront
+                                ? 'Uploading Front NID...'.tr
+                                : 'Uploading Back NID...'.tr,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (isUploading)
+                          SizedBox(
+                            width: 16.w,
+                            height: 16.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        else if (isUploaded)
+                          const Icon(Icons.check_circle,
+                              color: AppColors.primary, size: 20)
+                        else if (errorText.isNotEmpty)
+                          Icon(Icons.error_outline,
+                              color: Colors.red.shade700, size: 20)
+                        else
+                          const Icon(Icons.photo_rounded,
+                              color: Colors.grey, size: 20),
+                        SizedBox(width: 6.w),
+                        Flexible(
+                          child: Text(
+                            isUploading
+                                ? 'Uploading to Cloudinary...'.tr
+                                : (isUploaded
+                                    ? '$title ${'Selected'.tr}'
+                                    : (errorText.isNotEmpty
+                                        ? errorText
+                                        : '$title ${'Selected'.tr}')),
+                            style: TextStyle(
+                              fontSize: 12.5.sp,
+                              fontWeight: FontWeight.w600,
+                              color: errorText.isNotEmpty
+                                  ? Colors.red.shade700
+                                  : (isUploaded
+                                      ? AppColors.primary
+                                      : const Color(0xFF1E293B)),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
-                      SizedBox(width: 6.w),
-                      Text(
-                        '$title ${'Selected'.tr}',
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                      if (errorText.isNotEmpty && imageFile != null && !isUploading) ...[
+                        TextButton(
+                          onPressed: () => controller.uploadToCloudinary(
+                            file: imageFile,
+                            side: isFront ? 'front' : 'back',
+                          ),
+                          child: Text(
+                            'Retry Upload'.tr,
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12.5.sp,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 4.w),
+                      ],
+                      TextButton.icon(
+                        onPressed: isUploading
+                            ? null
+                            : () => controller.showImagePickerOptions(
+                                  context: context,
+                                  isFront: isFront,
+                                ),
+                        icon: const Icon(Icons.camera_alt_rounded,
+                            size: 16, color: AppColors.primary),
+                        label: Text(
+                          'Retake'.tr,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                  TextButton.icon(
-                    onPressed: () => controller.pickNidImage(
-                      isFront: isFront,
-                      source: ImageSource.camera,
-                    ),
-                    icon: const Icon(Icons.camera_alt_rounded, size: 16, color: AppColors.primary),
-                    label: Text(
-                      'Retake'.tr,
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                 ],
               ),
@@ -280,8 +436,8 @@ class ProviderNidUploadScreen extends StatelessWidget {
         children: [
           Container(
             padding: EdgeInsets.all(14.w),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -300,33 +456,60 @@ class ProviderNidUploadScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16.h),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => controller.pickNidImage(
-                isFront: isFront,
-                source: ImageSource.camera,
-              ),
-              icon: const Icon(Icons.camera_alt_rounded, size: 18, color: Colors.white),
-              label: Text(
-                'Take with Camera'.tr,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => controller.pickNidImage(
+                    isFront: isFront,
+                    source: ImageSource.camera,
+                  ),
+                  icon: const Icon(Icons.camera_alt_rounded,
+                      size: 18, color: Colors.white),
+                  label: Text(
+                    'Take with Camera'.tr,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r)),
+                    padding: EdgeInsets.symmetric(vertical: 11.h),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                padding: EdgeInsets.symmetric(vertical: 10.h),
+              SizedBox(width: 10.w),
+              OutlinedButton.icon(
+                onPressed: () => controller.pickNidImage(
+                  isFront: isFront,
+                  source: ImageSource.gallery,
+                ),
+                icon: const Icon(Icons.photo_library_rounded,
+                    size: 18, color: AppColors.primary),
+                label: Text(
+                  'Gallery'.tr,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primary, width: 1.2),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r)),
+                  padding: EdgeInsets.symmetric(vertical: 11.h, horizontal: 14.w),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 }
-

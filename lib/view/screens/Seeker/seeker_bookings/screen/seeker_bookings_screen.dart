@@ -66,15 +66,15 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
   String _getStatusLabel(String status) {
     switch (status.toLowerCase()) {
       case 'in_progress':
-        return 'IN PROGRESS / চলমান'.tr;
+        return 'IN PROGRESS'.tr;
       case 'initiated':
-        return 'INITIATED / শুরু হয়েছে'.tr;
+        return 'INITIATED'.tr;
       case 'completed':
-        return 'COMPLETED / সম্পন্ন'.tr;
+        return 'COMPLETED'.tr;
       case 'cancelled':
-        return 'CANCELLED / বাতিল'.tr;
+        return 'CANCELLED'.tr;
       case 'auto_expired':
-        return 'EXPIRED / মেয়াদোত্তীর্ণ'.tr;
+        return 'EXPIRED'.tr;
       default:
         return status.toUpperCase();
     }
