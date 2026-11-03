@@ -115,6 +115,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isBn = Get.locale?.languageCode == 'bn';
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -489,17 +490,18 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     final remoteUrl =
                         controller.providerMe.value?.nidUrlFront ?? '';
                     return _buildNidSlot(
-                      title: 'NID Front / এনআইডি সামনের দিক',
-                      subtext: 'JPG, PNG up to 5MB',
+                      title: isBn
+                          ? 'এনআইডি সামনের দিক'
+                          : 'NID Front Side',
+                      subtext: isBn
+                          ? 'ক্যামেরা দিয়ে ছবি তুলুন'
+                          : 'Take photo with camera',
                       pickedFile: picked,
                       remoteUrl: remoteUrl,
                       onTap: () {
-                        _showImagePickerSheet(
-                          onSourceSelected: (source) =>
-                              controller.pickNidImage(
-                            isFront: true,
-                            source: source,
-                          ),
+                        controller.pickNidImage(
+                          isFront: true,
+                          source: ImageSource.camera,
                         );
                       },
                     );
@@ -513,17 +515,18 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     final remoteUrl =
                         controller.providerMe.value?.nidUrlBack ?? '';
                     return _buildNidSlot(
-                      title: 'NID Back / এনআইডি পিছনের দিক',
-                      subtext: 'JPG, PNG up to 5MB',
+                      title: isBn
+                          ? 'এনআইডি পিছনের দিক'
+                          : 'NID Back Side',
+                      subtext: isBn
+                          ? 'ক্যামেরা দিয়ে ছবি তুলুন'
+                          : 'Take photo with camera',
                       pickedFile: picked,
                       remoteUrl: remoteUrl,
                       onTap: () {
-                        _showImagePickerSheet(
-                          onSourceSelected: (source) =>
-                              controller.pickNidImage(
-                            isFront: false,
-                            source: source,
-                          ),
+                        controller.pickNidImage(
+                          isFront: false,
+                          source: ImageSource.camera,
                         );
                       },
                     );
@@ -579,10 +582,11 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                   onPressed: isSaving
                       ? null
                       : () async {
+                          final navigator = Navigator.of(context);
                           final success =
                               await controller.saveProfileChanges();
                           if (success && mounted) {
-                            Get.back();
+                            navigator.pop();
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -655,6 +659,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
     required VoidCallback onTap,
   }) {
     final bool hasImage = pickedFile != null || remoteUrl.isNotEmpty;
+    final bool isBn = Get.locale?.languageCode == 'bn';
 
     return InkWell(
       onTap: onTap,
@@ -706,15 +711,15 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                           color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.cached_rounded,
+                            const Icon(Icons.camera_alt_rounded,
                                 color: Colors.white, size: 13),
-                            SizedBox(width: 4),
+                            const SizedBox(width: 4),
                             Text(
-                              'Change / পরিবর্তন',
-                              style: TextStyle(
+                              isBn ? 'পুনরায় তুলুন' : 'Retake',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.bold,
@@ -732,13 +737,13 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.insert_drive_file_outlined,
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
                         size: 26,
-                        color: Colors.grey.shade500,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(height: 8),

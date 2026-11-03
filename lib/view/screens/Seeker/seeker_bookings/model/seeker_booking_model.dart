@@ -46,7 +46,9 @@ class BookingItemModel {
           : null,
       otherPartyName: json['other_party_name']?.toString() ?? 'Provider',
       otherPartyPhone: json['other_party_phone']?.toString(),
-      providerId: json['provider_id']?.toString(),
+      providerId: json['provider_id']?.toString() ??
+          json['provider']?['id']?.toString() ??
+          json['other_party_id']?.toString(),
     );
   }
 }
@@ -119,10 +121,35 @@ class BookingDetailModel {
       jobLongitude: json['job_longitude'] != null
           ? double.tryParse(json['job_longitude'].toString())
           : null,
-      providerId: json['provider_id']?.toString(),
+      providerId: json['provider_id']?.toString() ??
+          json['provider']?['id']?.toString() ??
+          json['other_party_id']?.toString(),
       hasReviewed: json['has_reviewed'] == true ||
           json['is_reviewed'] == true ||
           json['reviewed'] == true,
+    );
+  }
+
+  BookingDetailModel copyWith({
+    bool? hasReviewed,
+    String? status,
+    DateTime? completedAt,
+  }) {
+    return BookingDetailModel(
+      bookingId: bookingId,
+      status: status ?? this.status,
+      skillId: skillId,
+      createdAt: createdAt,
+      callUnlockedAt: callUnlockedAt,
+      confirmedAt: confirmedAt,
+      workSchedule: workSchedule,
+      completedAt: completedAt ?? this.completedAt,
+      otherPartyName: otherPartyName,
+      otherPartyPhone: otherPartyPhone,
+      jobLatitude: jobLatitude,
+      jobLongitude: jobLongitude,
+      providerId: providerId,
+      hasReviewed: hasReviewed ?? this.hasReviewed,
     );
   }
 }

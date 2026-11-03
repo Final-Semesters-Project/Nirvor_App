@@ -8,6 +8,7 @@ import '../../../../../../service/api_check.dart';
 import '../../../../../../service/api_client.dart';
 import '../../../../../../service/api_url.dart';
 import '../../../../../../utils/ToastMsg/toast_message.dart';
+import '../../../../../../core/app_routes/app_routes.dart';
 import 'provider_home_controller.dart';
 
 class ProviderNidUploadController extends GetxController {
@@ -165,7 +166,8 @@ class ProviderNidUploadController extends GetxController {
           Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
         }
 
-        Get.back();
+        // Return to home screen
+        Get.until((route) => route.isFirst || route.settings.name == AppRoutes.providerHomeScreen);
       } else {
         ApiChecker.checkApi(patchResponse);
       }

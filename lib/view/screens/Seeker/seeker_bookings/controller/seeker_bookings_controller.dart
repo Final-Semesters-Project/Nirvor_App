@@ -46,12 +46,17 @@ class SeekerBookingsController extends GetxController {
   void markBookingAsReviewed(String bookingId) {
     if (bookingId.isNotEmpty) {
       reviewedBookingIds.add(bookingId);
+      if (singleBookingDetail.value != null &&
+          singleBookingDetail.value!.bookingId == bookingId) {
+        singleBookingDetail.value =
+            singleBookingDetail.value!.copyWith(hasReviewed: true);
+      }
     }
   }
 
   bool isBookingReviewed(String bookingId, {bool? backendHasReviewed}) {
-    if (backendHasReviewed == true) return true;
-    return reviewedBookingIds.contains(bookingId);
+    final local = reviewedBookingIds.contains(bookingId);
+    return (backendHasReviewed == true) || local;
   }
 
   @override
@@ -149,6 +154,9 @@ class SeekerBookingsController extends GetxController {
       if (response.statusCode == 200 && response.body != null) {
         final detail = BookingDetailModel.fromJson(response.body);
         singleBookingDetail.value = detail;
+        if (detail.hasReviewed == true) {
+          reviewedBookingIds.add(detail.bookingId);
+        }
         if (detail.providerId != null && detail.providerId!.isNotEmpty) {
           fetchProviderPublicProfile(detail.providerId!);
         }

@@ -87,8 +87,9 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
       appBar: CustomRoyelAppbar(
         titleName: 'My Bookings'.tr,
         leftIcon: false,
-        centerTitleEnable: true,
-        showLanguageSwitcher: true,
+        centerTitleEnable: false,
+        showLanguageSwitcher: false,
+        titleSpacing: 20,
       ),
       bottomNavigationBar: const SeekerNavbar(currentIndex: 1),
       body: Obx(() {
@@ -172,6 +173,7 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
               bookingId: booking.bookingId,
               skillName: booking.skillName,
               providerName: booking.otherPartyName,
+              providerId: booking.providerId,
             ),
           ),
           borderRadius: BorderRadius.circular(14),

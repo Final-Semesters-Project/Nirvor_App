@@ -8,6 +8,7 @@ import 'core/app_routes/app_routes.dart';
 import 'core/dependency/dependency_injection.dart';
 import 'view/language/app_translate.dart';
 import 'helper/device_helper/device_helper.dart';
+import 'helper/notification_helper/firebase_notification_helper.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -15,6 +16,9 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Initialize Push Notification Listener
+  await FirebaseNotificationHelper.init();
 
   await DeviceHelper.initUserAgent();
   await ScreenUtil.ensureScreenSize();
