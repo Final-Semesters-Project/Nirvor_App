@@ -3,6 +3,8 @@ class UserModel {
   final String role;
   final String phone;
   final String name;
+  final String? nameEn;
+  final String? nameBn;
   final bool isActive;
   final String createdAt;
   final String photoUrl;
@@ -15,6 +17,8 @@ class UserModel {
     required this.role,
     required this.phone,
     required this.name,
+    this.nameEn,
+    this.nameBn,
     required this.isActive,
     required this.createdAt,
     this.photoUrl = '',
@@ -28,7 +32,12 @@ class UserModel {
       userId: json['user_id']?.toString() ?? '',
       role: json['role']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
-      name: json['name']?.toString() ?? json['name_en']?.toString() ?? '',
+      nameEn: json['name_en']?.toString(),
+      nameBn: json['name_bn']?.toString(),
+      name: json['name']?.toString() ??
+          (json['name_bn'] != null && json['name_bn'].toString().isNotEmpty
+              ? json['name_bn'].toString()
+              : json['name_en']?.toString() ?? ''),
       isActive: json['is_active'] == true,
       createdAt: json['created_at']?.toString() ?? '',
       photoUrl: json['photo_url']?.toString() ?? '',

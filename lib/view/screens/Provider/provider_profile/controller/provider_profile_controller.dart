@@ -49,8 +49,8 @@ class ProviderProfileController extends GetxController {
     super.onClose();
   }
 
-  Future<void> getUserProfile() async {
-    isLoading.value = true;
+  Future<void> getUserProfile({bool showLoading = true}) async {
+    if (showLoading) isLoading.value = true;
     try {
       final response = await ApiClient.getData(ApiUrl.userProfile);
       if (response.statusCode == 200 && response.body is Map<String, dynamic>) {
@@ -63,6 +63,8 @@ class ProviderProfileController extends GetxController {
           role: providerMe.value!.role,
           phone: providerMe.value!.phone,
           name: providerMe.value!.name,
+          nameEn: providerMe.value!.nameEn,
+          nameBn: providerMe.value!.nameBn,
           isActive: providerMe.value!.isActive,
           createdAt: providerMe.value!.createdAt ?? '',
           photoUrl: providerMe.value!.photoUrl ?? '',
@@ -91,11 +93,83 @@ class ProviderProfileController extends GetxController {
     } catch (e) {
       debugPrint("Error fetching provider user profile: $e");
     } finally {
-      isLoading.value = false;
+      if (showLoading) isLoading.value = false;
     }
   }
 
-  // Pick and immediately upload profile photo to Cloudinary & update backend
+  /// Realtime in-memory locale switch so UI immediately flips without waiting for network
+  void onLanguageChanged(String langCode) {
+    final bool isBn = langCode == 'bn';
+    final me = providerMe.value;
+    if (me != null) {
+      String newName = me.name;
+      if (isBn && me.nameBn != null && me.nameBn!.isNotEmpty) {
+        newName = me.nameBn!;
+      } else if (!isBn && me.nameEn != null && me.nameEn!.isNotEmpty) {
+        newName = me.nameEn!;
+      }
+      providerMe.value = ProviderMeModel(
+        userId: me.userId,
+        role: me.role,
+        phone: me.phone,
+        name: newName,
+        nameEn: me.nameEn,
+        nameBn: me.nameBn,
+        isActive: me.isActive,
+        verificationLevel: me.verificationLevel,
+        verificationStatus: me.verificationStatus,
+        verificationRejectionReason: me.verificationRejectionReason,
+        baseAddress: me.baseAddress,
+        latitude: me.latitude,
+        longitude: me.longitude,
+        workingRadiusKm: me.workingRadiusKm,
+        hasSmartphone: me.hasSmartphone,
+        isAvailable: me.isAvailable,
+        averageRating: me.averageRating,
+        photoUrl: me.photoUrl,
+        nidUrlFront: me.nidUrlFront,
+        nidUrlBack: me.nidUrlBack,
+        warningStatus: me.warningStatus,
+        aiReviewSummary: me.aiReviewSummary,
+        createdAt: me.createdAt,
+      );
+    }
+
+    if (user.value != null) {
+      final u = user.value!;
+      String newName = u.name;
+      if (isBn && u.nameBn != null && u.nameBn!.isNotEmpty) {
+        newName = u.nameBn!;
+      } else if (!isBn && u.nameEn != null && u.nameEn!.isNotEmpty) {
+        newName = u.nameEn!;
+      }
+      user.value = UserModel(
+        userId: u.userId,
+        role: u.role,
+        phone: u.phone,
+        name: newName,
+        nameEn: u.nameEn,
+        nameBn: u.nameBn,
+        isActive: u.isActive,
+        createdAt: u.createdAt,
+        photoUrl: u.photoUrl,
+        homeAddress: u.homeAddress,
+        homeLatitude: u.homeLatitude,
+        homeLongitude: u.homeLongitude,
+      );
+    }
+
+    // Refresh reverse geocode in new language if coordinates exist
+    if (baseLatitude.value != 0.0 && baseLongitude.value != 0.0) {
+      reverseGeocode(baseLatitude.value, baseLongitude.value).then((addr) {
+        if (addr != null && addr.isNotEmpty) {
+          baseAddress.value = addr;
+        }
+      });
+    }
+  }
+
+  // Pick profile photo locally (auto-upload disabled: only uploads when Save Changes is tapped)
   Future<void> pickProfilePhoto(ImageSource source) async {
     try {
       final XFile? file = await _picker.pickImage(
@@ -108,57 +182,9 @@ class ProviderProfileController extends GetxController {
 
       final selectedFile = File(file.path);
       pickedProfileImage.value = selectedFile;
-      isUpdatingProfilePhoto.value = true;
-      savingStatusText.value = 'Uploading profile photo...'.tr;
-
-      final photoRes = await uploadProfilePhotoToCloudinary(selectedFile);
-      if (photoRes == null || (photoRes['url'] ?? '').isEmpty) {
-        showCustomSnackBar("Failed to upload profile photo".tr, isError: true);
-        return;
-      }
-
-      final String photoUrl = photoRes['url']!;
-      final String photoPublicId = photoRes['public_id'] ?? '';
-
-      savingStatusText.value = 'Saving profile photo...'.tr;
-      final updateBody = <String, dynamic>{
-        'photo_url': photoUrl,
-        if (photoPublicId.isNotEmpty) 'photo_public_id': photoPublicId,
-      };
-
-      debugPrint("====> Calling PATCH ${ApiUrl.updateProviderProfile} with: $updateBody");
-      final response = await ApiClient.patchData(
-        ApiUrl.updateProviderProfile,
-        updateBody,
-      );
-
-      if (response.statusCode == 200) {
-        showCustomSnackBar("Profile photo updated successfully".tr, isError: false);
-        if (user.value != null) {
-          user.value = UserModel(
-            userId: user.value!.userId,
-            role: user.value!.role,
-            phone: user.value!.phone,
-            name: user.value!.name,
-            isActive: user.value!.isActive,
-            createdAt: user.value!.createdAt,
-            photoUrl: photoUrl,
-            homeAddress: user.value!.homeAddress,
-          );
-        }
-        await getUserProfile();
-        if (Get.isRegistered<ProviderHomeController>()) {
-          Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
-        }
-      } else {
-        ApiChecker.checkApi(response);
-      }
     } catch (e) {
-      debugPrint("Error picking/updating profile photo: $e");
-      showCustomSnackBar("Failed to update profile photo".tr, isError: true);
-    } finally {
-      isUpdatingProfilePhoto.value = false;
-      savingStatusText.value = '';
+      debugPrint("Error picking profile photo: $e");
+      showCustomSnackBar("Failed to select image".tr, isError: true);
     }
   }
 
@@ -385,10 +411,12 @@ class ProviderProfileController extends GetxController {
       final uri =
           Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
 
-      // Presets to try for direct unsigned upload
+      // Presets to try for direct unsigned upload - user preset: nirbhor_profile_picture
       final presetsToTry = [
-        ApiUrl.cloudinaryUploadPreset,
+        ApiUrl.cloudinaryProfilePicturePreset,
+        'nirbhor_profile_picture',
         'nirbhor_profile',
+        ApiUrl.cloudinaryUploadPreset,
         'ml_default',
       ];
 
@@ -434,48 +462,86 @@ class ProviderProfileController extends GetxController {
   Future<bool> saveProfileChanges({
     String? newBaseAddress,
     String? newName,
+    String? newNameEn,
+    String? newNameBn,
+    int? workingRadiusKm,
+    bool? hasSmartphone,
+    bool? isAvailable,
   }) async {
     isSaving.value = true;
     savingStatusText.value = 'Saving changes...'.tr;
 
     try {
       final Map<String, dynamic> updateBody = {};
+      String cleanName = '';
+      final lang = Get.locale?.languageCode ?? 'en';
+      final bool isBn = lang == 'bn';
 
-      // 1. Name update
-      final cleanName = newName?.trim() ?? '';
-      final currentName = providerMe.value?.name ?? user.value?.name ?? '';
-      if (cleanName.isNotEmpty && cleanName != currentName) {
-        updateBody['name'] = cleanName;
-      }
-
-      // 2. Base Address update
-      final cleanAddress = (newBaseAddress ?? baseAddress.value).trim();
-      final currentAddress = providerMe.value?.baseAddress ?? '';
-
-      if (cleanAddress.isNotEmpty && cleanAddress != currentAddress) {
-        if (cleanAddress.length < 5) {
-          showCustomSnackBar("Address must be at least 5 characters".tr,
-              isError: true);
-          return false;
-        }
-
-        double lat = baseLatitude.value;
-        double lng = baseLongitude.value;
-
-        if (lat == 0.0 || lng == 0.0) {
-          savingStatusText.value = 'Locating address...'.tr;
-          final coords = await geocodeAddress(cleanAddress);
-          if (coords != null) {
-            lat = coords['lat']!;
-            lng = coords['lng']!;
-            baseLatitude.value = lat;
-            baseLongitude.value = lng;
+      // 1. Language-aware name field update (name_bn or name_en)
+      // Tracks name changes accurately without adding any location fields
+      if (newNameBn != null && newNameBn.trim().isNotEmpty) {
+        cleanName = newNameBn.trim();
+        updateBody['name_bn'] = cleanName;
+      } else if (newNameEn != null && newNameEn.trim().isNotEmpty) {
+        cleanName = newNameEn.trim();
+        updateBody['name_en'] = cleanName;
+      } else if (newName != null && newName.trim().isNotEmpty) {
+        cleanName = newName.trim();
+        final currentName = (isBn
+                ? (providerMe.value?.nameBn ?? providerMe.value?.name)
+                : (providerMe.value?.nameEn ?? providerMe.value?.name)) ??
+            user.value?.name ??
+            '';
+        if (cleanName != currentName.trim()) {
+          if (isBn) {
+            updateBody['name_bn'] = cleanName;
+          } else {
+            updateBody['name_en'] = cleanName;
           }
         }
+      }
 
-        updateBody['base_address'] = cleanAddress;
-        updateBody['latitude'] = (lat != 0.0) ? lat : 23.8103;
-        updateBody['longitude'] = (lng != 0.0) ? lng : 90.4125;
+      // 2. Base Address update (ONLY if newBaseAddress was explicitly provided and differs)
+      if (newBaseAddress != null && newBaseAddress.trim().isNotEmpty) {
+        final cleanAddress = newBaseAddress.trim();
+        final currentAddress = (providerMe.value?.baseAddress ?? '').trim();
+
+        if (cleanAddress != currentAddress) {
+          if (cleanAddress.length < 5) {
+            showCustomSnackBar("Address must be at least 5 characters".tr,
+                isError: true);
+            return false;
+          }
+
+          double lat = baseLatitude.value;
+          double lng = baseLongitude.value;
+
+          if (lat == 0.0 || lng == 0.0) {
+            savingStatusText.value = 'Locating address...'.tr;
+            final coords = await geocodeAddress(cleanAddress);
+            if (coords != null) {
+              lat = coords['lat']!;
+              lng = coords['lng']!;
+              baseLatitude.value = lat;
+              baseLongitude.value = lng;
+            }
+          }
+
+          updateBody['base_address'] = cleanAddress;
+          updateBody['latitude'] = (lat != 0.0) ? lat : 23.8103;
+          updateBody['longitude'] = (lng != 0.0) ? lng : 90.4125;
+        }
+      }
+
+      // 3. Optional fields if provided
+      if (workingRadiusKm != null) {
+        updateBody['working_radius_km'] = workingRadiusKm;
+      }
+      if (hasSmartphone != null) {
+        updateBody['has_smartphone'] = hasSmartphone;
+      }
+      if (isAvailable != null) {
+        updateBody['is_available'] = isAvailable;
       }
 
       // 3. Check verification status gating for photos
@@ -484,14 +550,19 @@ class ProviderProfileController extends GetxController {
       final bool canUpdateVerification =
           (status == 'not_initiated' || status == 'rejected');
 
-      // 4. Upload Profile Image if picked (can change anytime)
+      // 4. Upload Profile Image if picked (uploads on Save Changes with nirbhor_profile_picture preset)
       if (pickedProfileImage.value != null) {
+        isUpdatingProfilePhoto.value = true;
+        savingStatusText.value = 'Uploading profile photo...'.tr;
         final photoRes =
             await uploadProfilePhotoToCloudinary(pickedProfileImage.value!);
-        if (photoRes != null) {
+        if (photoRes != null && (photoRes['url'] ?? '').isNotEmpty) {
           updateBody['photo_url'] = photoRes['url'];
-          updateBody['photo_public_id'] = photoRes['public_id'];
+          if ((photoRes['public_id'] ?? '').isNotEmpty) {
+            updateBody['photo_public_id'] = photoRes['public_id'];
+          }
         } else {
+          isUpdatingProfilePhoto.value = false;
           showCustomSnackBar("Failed to upload profile photo".tr,
               isError: true);
           return false;
@@ -582,6 +653,7 @@ class ProviderProfileController extends GetxController {
       return false;
     } finally {
       isSaving.value = false;
+      isUpdatingProfilePhoto.value = false;
       savingStatusText.value = '';
     }
   }

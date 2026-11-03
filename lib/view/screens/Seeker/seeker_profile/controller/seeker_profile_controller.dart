@@ -40,10 +40,10 @@ class SeekerProfileController extends GetxController {
   }
 
   /// 1. Fetch user profile from /users/me
-  Future<void> getUserProfile() async {
-    isLoading.value = true;
+  Future<void> getUserProfile({bool showLoading = true}) async {
+    if (showLoading) isLoading.value = true;
     final response = await ApiClient.getData(ApiUrl.userProfile);
-    isLoading.value = false;
+    if (showLoading) isLoading.value = false;
 
     if (response.statusCode == 200) {
       user.value = UserModel.fromJson(response.body);
@@ -61,6 +61,34 @@ class SeekerProfileController extends GetxController {
           await ensureHomeLocationCached(user.value!.homeAddress);
         }
       }
+    }
+  }
+
+  /// Realtime in-memory locale switch for seeker
+  void onLanguageChanged(String langCode) {
+    final bool isBn = langCode == 'bn';
+    if (user.value != null) {
+      final u = user.value!;
+      String newName = u.name;
+      if (isBn && u.nameBn != null && u.nameBn!.isNotEmpty) {
+        newName = u.nameBn!;
+      } else if (!isBn && u.nameEn != null && u.nameEn!.isNotEmpty) {
+        newName = u.nameEn!;
+      }
+      user.value = UserModel(
+        userId: u.userId,
+        role: u.role,
+        phone: u.phone,
+        name: newName,
+        nameEn: u.nameEn,
+        nameBn: u.nameBn,
+        isActive: u.isActive,
+        createdAt: u.createdAt,
+        photoUrl: u.photoUrl,
+        homeAddress: u.homeAddress,
+        homeLatitude: u.homeLatitude,
+        homeLongitude: u.homeLongitude,
+      );
     }
   }
 

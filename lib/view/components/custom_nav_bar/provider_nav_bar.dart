@@ -21,20 +21,28 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
   final List<IconData> icons = [
     Icons.dashboard_outlined,
     Icons.receipt_long,
-    Icons.notifications_outlined,
     Icons.person_outline,
   ];
   final List<IconData> activeIcons = [
     Icons.dashboard,
     Icons.receipt_long,
-    Icons.notifications,
     Icons.person,
   ];
 
   @override
   void initState() {
-    bottomNavIndex = widget.currentIndex;
+    bottomNavIndex = widget.currentIndex == 3 ? 2 : widget.currentIndex;
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant ProviderNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentIndex != oldWidget.currentIndex) {
+      setState(() {
+        bottomNavIndex = widget.currentIndex == 3 ? 2 : widget.currentIndex;
+      });
+    }
   }
 
   @override
@@ -42,14 +50,13 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
     final List<String> labels = [
       'Dashboard'.tr,
       'Bookings'.tr,
-      'Notifications'.tr,
       'Profile'.tr,
     ];
 
     return Container(
       padding: EdgeInsets.only(
-        left: 10.w,
-        right: 10.w,
+        left: 20.w,
+        right: 20.w,
         top: 12.h,
         bottom: MediaQuery.of(context).padding.bottom > 0
             ? MediaQuery.of(context).padding.bottom
@@ -67,12 +74,11 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
       ),
       width: MediaQuery.of(context).size.width,
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(0, labels[0]),
           _buildNavItem(1, labels[1]),
           _buildNavItem(2, labels[2]),
-          _buildNavItem(3, labels[3]),
         ],
       ),
     );
@@ -85,7 +91,7 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
       onTap: () => onTap(index),
       borderRadius: BorderRadius.circular(20.r),
       child: SizedBox(
-        width: 70.w,
+        width: 80.w,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -103,6 +109,7 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
                 color: isSelected ? AppColors.primary : Colors.grey.shade500,
               ),
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -124,9 +131,6 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
           Get.offAll(() => const ProviderBookingsScreen());
           break;
         case 2:
-          // Get.to(() => NotificationsScreen());
-          break;
-        case 3:
           Get.offAll(() => const ProviderProfileScreen());
           break;
       }

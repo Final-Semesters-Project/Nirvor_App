@@ -88,4 +88,5 @@ class ApiUrl {
   ///========================= Cloudinary =========================
   static const String cloudinaryCloudName = "djcbaim7n";
   static const String cloudinaryUploadPreset = "nirbhor_nid";
+  static const String cloudinaryProfilePicturePreset = "nirbhor_profile_picture";
 }

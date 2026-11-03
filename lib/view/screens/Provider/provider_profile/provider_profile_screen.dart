@@ -8,6 +8,7 @@ import 'package:nirbhor/view/screens/auth_screen/controller/auth_controller.dart
 import 'package:nirbhor/view/screens/legal/privacy_policy_screen.dart';
 import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../home_provider/controller/provider_home_controller.dart';
 import 'controller/provider_profile_controller.dart';
 import 'screen/edit_provider_profile_screen.dart';
 import 'package:nirbhor/view/screens/change_password/change_password_screen.dart';
@@ -34,8 +35,20 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       await prefs.setString('languageCode', 'en');
       await prefs.setString('countryCode', 'US');
     }
+
+    // 1. Immediately flip in-memory profile model name & address (0ms real-time flip)
+    controller.onLanguageChanged(langCode);
+
     if (mounted) {
       setState(() {});
+    }
+
+    // 2. Fetch fresh profile from /api/v1/users/me with new Accept-Language
+    await controller.getUserProfile(showLoading: false);
+
+    // 3. Refresh ProviderHomeController dashboard if registered
+    if (Get.isRegistered<ProviderHomeController>()) {
+      Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
     }
   }
 
@@ -377,11 +390,22 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             : (user.photoUrl.isNotEmpty
                                 ? user.photoUrl
                                 : AppConstants.profileImage);
-                        final String displayName = (me?.name.isNotEmpty == true)
-                            ? me!.name
-                            : (user.name.isNotEmpty
-                                ? user.name
-                                : (isBn ? 'সেবা প্রদানকারী' : 'Provider'));
+                        final String displayName = (isBn
+                                ? (me?.nameBn?.isNotEmpty == true
+                                    ? me!.nameBn!
+                                    : (user.nameBn?.isNotEmpty == true
+                                        ? user.nameBn!
+                                        : null))
+                                : (me?.nameEn?.isNotEmpty == true
+                                    ? me!.nameEn!
+                                    : (user.nameEn?.isNotEmpty == true
+                                        ? user.nameEn!
+                                        : null))) ??
+                            ((me?.name.isNotEmpty == true)
+                                ? me!.name
+                                : (user.name.isNotEmpty
+                                    ? user.name
+                                    : (isBn ? 'সেবা প্রদানকারী' : 'Provider')));
                         final String displayPhone =
                             (me?.phone.isNotEmpty == true) ? me!.phone : user.phone;
                         final String verificationStatus =
@@ -981,7 +1005,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
         );
       }),
-      bottomNavigationBar: const ProviderNavBar(currentIndex: 3),
+      bottomNavigationBar: const ProviderNavBar(currentIndex: 2),
     );
   }
 

@@ -3,6 +3,8 @@ class ProviderMeModel {
   final String role;
   final String phone;
   final String name;
+  final String? nameEn;
+  final String? nameBn;
   final bool isActive;
   final String verificationLevel; // "basic" | "verified" | "trusted"
   final String verificationStatus; // "not_initiated" | "pending" | "approved" | "rejected"
@@ -26,6 +28,8 @@ class ProviderMeModel {
     required this.role,
     required this.phone,
     required this.name,
+    this.nameEn,
+    this.nameBn,
     required this.isActive,
     required this.verificationLevel,
     required this.verificationStatus,
@@ -50,7 +54,12 @@ class ProviderMeModel {
       userId: json['user_id']?.toString() ?? '',
       role: json['role']?.toString() ?? 'provider',
       phone: json['phone']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
+      nameEn: json['name_en']?.toString(),
+      nameBn: json['name_bn']?.toString(),
+      name: json['name']?.toString() ??
+          (json['name_bn'] != null && json['name_bn'].toString().isNotEmpty
+              ? json['name_bn'].toString()
+              : json['name_en']?.toString() ?? ''),
       isActive: json['is_active'] == true,
       verificationLevel:
           json['verification_level']?.toString().toLowerCase() ?? 'basic',

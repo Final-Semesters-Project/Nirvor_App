@@ -33,9 +33,16 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
       await prefs.setString('languageCode', 'en');
       await prefs.setString('countryCode', 'US');
     }
+
+    // 1. Immediately flip in-memory profile model name (0ms real-time flip)
+    controller.onLanguageChanged(langCode);
+
     if (mounted) {
       setState(() {});
     }
+
+    // 2. Fetch fresh profile from /api/v1/users/me with new Accept-Language
+    await controller.getUserProfile(showLoading: false);
   }
 
   void _showLogoutDialog(BuildContext context, AuthController auth) {
@@ -436,9 +443,18 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            user.name.isNotEmpty
-                                                ? user.name
-                                                : (isBn ? 'সেবাপ্রার্থী' : 'Seeker'),
+                                            (isBn
+                                                    ? (user.nameBn?.isNotEmpty == true
+                                                        ? user.nameBn!
+                                                        : null)
+                                                    : (user.nameEn?.isNotEmpty == true
+                                                        ? user.nameEn!
+                                                        : null)) ??
+                                                (user.name.isNotEmpty
+                                                    ? user.name
+                                                    : (isBn
+                                                        ? 'সেবাপ্রার্থী'
+                                                        : 'Seeker')),
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
