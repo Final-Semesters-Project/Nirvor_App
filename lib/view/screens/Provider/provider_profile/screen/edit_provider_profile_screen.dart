@@ -61,64 +61,71 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
       {required Function(ImageSource) onSourceSelected}) {
     final bool isBn = Get.locale?.languageCode == 'bn';
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isBn ? 'ছবি নির্বাচন করুন' : 'Select Photo Source',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+      Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isBn ? 'ছবি নির্বাচন করুন' : 'Select Photo Source',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
                 ),
-                child: const Icon(Icons.camera_alt_rounded,
-                    color: AppColors.primary),
               ),
-              title: Text(
-                isBn ? 'ক্যামেরা দিয়ে ছবি তুলুন' : 'Take photo with camera',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              onTap: () {
-                Get.back();
-                onSourceSelected(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0284C7).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 16),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.photo_library_rounded,
-                    color: Color(0xFF0284C7)),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: AppColors.primary),
+                ),
+                title: Text(
+                  isBn ? 'ক্যামেরা দিয়ে ছবি তুলুন' : 'Take photo with camera',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Get.back();
+                  onSourceSelected(ImageSource.camera);
+                },
               ),
-              title: Text(
-                isBn ? 'গ্যালারি থেকে পছন্দ করুন' : 'Choose from gallery',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded,
+                      color: Color(0xFF0284C7)),
+                ),
+                title: Text(
+                  isBn ? 'গ্যালারি থেকে পছন্দ করুন' : 'Choose from gallery',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                onTap: () {
+                  Get.back();
+                  onSourceSelected(ImageSource.gallery);
+                },
               ),
-              onTap: () {
-                Get.back();
-                onSourceSelected(ImageSource.gallery);
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -186,80 +193,126 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     children: [
                       Obx(() {
                         final picked = controller.pickedProfileImage.value;
+                        final isUpdatingPhoto =
+                            controller.isUpdatingProfilePhoto.value;
                         final remotePhoto =
                             controller.providerMe.value?.photoUrl ??
                                 controller.user.value?.photoUrl ??
                                 '';
 
-                        return Container(
-                          width: 106,
-                          height: 106,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
-                              color: Colors.grey.shade200,
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(21),
-                            child: picked != null
-                                ? Image.file(
-                                    picked,
-                                    fit: BoxFit.cover,
-                                    width: 106,
-                                    height: 106,
-                                  )
-                                : CustomNetworkImage(
-                                    imageUrl: remotePhoto.isNotEmpty
-                                        ? remotePhoto
-                                        : AppConstants.profileImage,
-                                    width: 106,
-                                    height: 106,
-                                  ),
-                          ),
-                        );
-                      }),
-                      // Circular camera/edit button at bottom-right
-                      Positioned(
-                        bottom: -4,
-                        right: -4,
-                        child: GestureDetector(
-                          onTap: () {
-                            _showImagePickerSheet(
-                              onSourceSelected: (source) =>
-                                  controller.pickProfilePhoto(source),
-                            );
-                          },
+                        return InkWell(
+                          onTap: isUpdatingPhoto
+                              ? null
+                              : () {
+                                  _showImagePickerSheet(
+                                    onSourceSelected: (source) =>
+                                        controller.pickProfilePhoto(source),
+                                  );
+                                },
+                          borderRadius: BorderRadius.circular(22),
                           child: Container(
-                            padding: const EdgeInsets.all(7),
+                            width: 106,
+                            height: 106,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F766E),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(22),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1.5,
+                              ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.edit_rounded,
-                              size: 15,
-                              color: Colors.white,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(21),
+                                  child: picked != null
+                                      ? Image.file(
+                                          picked,
+                                          fit: BoxFit.cover,
+                                          width: 106,
+                                          height: 106,
+                                        )
+                                      : CustomNetworkImage(
+                                          imageUrl: remotePhoto.isNotEmpty
+                                              ? remotePhoto
+                                              : AppConstants.profileImage,
+                                          width: 106,
+                                          height: 106,
+                                        ),
+                                ),
+                                if (isUpdatingPhoto)
+                                  Container(
+                                    width: 106,
+                                    height: 106,
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.45),
+                                      borderRadius: BorderRadius.circular(21),
+                                    ),
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 26,
+                                        height: 26,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-                        ),
+                        );
+                      }),
+                      // Circular camera/edit button at bottom-right (always available for provider)
+                      Positioned(
+                        bottom: -4,
+                        right: -4,
+                        child: Obx(() {
+                          final isUpdatingPhoto =
+                              controller.isUpdatingProfilePhoto.value;
+                          return GestureDetector(
+                            onTap: isUpdatingPhoto
+                                ? null
+                                : () {
+                                    _showImagePickerSheet(
+                                      onSourceSelected: (source) =>
+                                          controller.pickProfilePhoto(source),
+                                    );
+                                  },
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F766E),
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        Colors.black.withValues(alpha: 0.15),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                size: 15,
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        }),
                       ),
                     ],
                   ),
@@ -863,6 +916,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                           final navigator = Navigator.of(context);
                           final success = await controller.saveProfileChanges(
                             newBaseAddress: addressController.text.trim(),
+                            newName: nameController.text.trim(),
                           );
                           if (success && mounted) {
                             navigator.pop();

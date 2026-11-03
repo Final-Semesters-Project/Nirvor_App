@@ -14,7 +14,7 @@ void showCustomSnackBar(String? message, {bool isError = true, Duration? duratio
     if (Get.isSnackbarOpen) {
       Get.closeCurrentSnackbar();
     }
-    Get.closeAllSnackbars();
+    // Get.closeAllSnackbars();
 
     Get.rawSnackbar(
       messageText: Row(
@@ -56,7 +56,7 @@ void showCustomSnackBar(String? message, {bool isError = true, Duration? duratio
         ),
       ],
     );
-  } catch (e) {
+  } on Object catch (e) {
     debugPrint("Snackbar error: $e");
     // Safe fallback to simple bottom toast if overlay context is unavailable
     Fluttertoast.showToast(

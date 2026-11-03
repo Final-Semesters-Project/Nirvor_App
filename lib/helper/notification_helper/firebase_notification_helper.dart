@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../helper/shared_prefe/shared_prefe.dart';
+import '../../service/api_client.dart';
+import '../../service/api_url.dart';
+import '../../utils/app_const/app_const.dart';
 import '../../view/screens/Provider/urgent_alert/screen/provider_urgent_alert_screen.dart';
 import '../../view/screens/Provider/home_provider/screen/provider_nid_rejection_screen.dart';
 import '../../view/screens/Provider/home_provider/controller/provider_home_controller.dart';
@@ -27,6 +33,15 @@ class FirebaseNotificationHelper {
       debugPrint(
         "FCM Notification permission status: ${settings.authorizationStatus}",
       );
+
+      // Listen for token refreshes
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+        debugPrint("FCM Token refreshed: $newToken");
+        syncTokenWithBackend();
+      });
+
+      // Sync token if user is already logged in
+      syncTokenWithBackend();
 
       // 1. Background state: When app is running in background and user taps notification
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -159,6 +174,36 @@ class FirebaseNotificationHelper {
     }
   }
 
+  /// Sync device FCM token with backend /api/v1/auth/fcm/token
+  static Future<void> syncTokenWithBackend() async {
+    try {
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null || token.isEmpty) return;
+
+      final bearerToken =
+          await SharePrefsHelper.getString(AppConstants.bearerToken);
+      if (bearerToken.isEmpty) {
+        debugPrint(
+            "FCM Token obtained ($token), waiting for user login before registering with backend.");
+        return;
+      }
+
+      final String deviceType =
+          Platform.isAndroid ? "android" : (Platform.isIOS ? "ios" : "unknown");
+
+      final body = jsonEncode({
+        "token": token,
+        "device_type": deviceType,
+      });
+
+      final response = await ApiClient.postData(ApiUrl.fcmToken, body);
+      debugPrint(
+          "====> FCM Token registered to backend [${response.statusCode}]: $token");
+    } catch (e) {
+      debugPrint("Error syncing FCM token with backend: $e");
+    }
+  }
+
   static void handleNotificationRouting(Map<String, dynamic> data) {
     final type = data['type']?.toString();
     debugPrint("Handling notification routing for type: $type");
@@ -196,4 +241,3 @@ class FirebaseNotificationHelper {
     );
   }
 }
-
