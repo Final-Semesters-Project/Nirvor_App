@@ -4,6 +4,7 @@ import '../../../../../../service/api_check.dart';
 import '../../../../../../service/api_client.dart';
 import '../../../../../../service/api_url.dart';
 import '../../../../../../utils/ToastMsg/toast_message.dart';
+import '../../../../../../helper/notification_helper/firebase_notification_helper.dart';
 import '../../../../../../model/review_model.dart';
 import '../model/provider_dashboard_model.dart';
 import '../model/provider_me_model.dart';
@@ -41,6 +42,7 @@ class ProviderHomeController extends GetxController {
   void onInit() {
     super.onInit();
     getDashboardData();
+    FirebaseNotificationHelper.syncTokenWithBackend();
   }
 
   /// Fetch provider dashboard data

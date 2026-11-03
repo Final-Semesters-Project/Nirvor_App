@@ -358,7 +358,8 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
             // 7. Visual Confirmation when coordinates are pinned
             Obx(() {
               final hasCoords = controller.homeLatitude.value != 0.0 && controller.homeLongitude.value != 0.0;
-              if (!hasCoords) return const SizedBox();
+              final bool isSynced = hasCoords && addressController.text.trim() == controller.homeAddress.value;
+              if (!hasCoords && addressController.text.trim().isEmpty) return const SizedBox();
               return Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
@@ -366,20 +367,26 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.08),
+                      color: (isSynced ? AppColors.primary : Colors.amber.shade700).withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+                      border: Border.all(color: (isSynced ? AppColors.primary : Colors.amber.shade700).withValues(alpha: 0.25)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.check_circle, size: 14, color: AppColors.primary),
+                        Icon(
+                          isSynced ? Icons.check_circle : Icons.info_outline,
+                          size: 14,
+                          color: isSynced ? AppColors.primary : Colors.amber.shade800,
+                        ),
                         const SizedBox(width: 6),
                         Text(
-                          "Location pinned on map".tr,
-                          style: const TextStyle(
+                          isSynced
+                              ? "Location pinned on map".tr
+                              : "Auto-detecting GPS or tap map to pin".tr,
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.primary,
+                            color: isSynced ? AppColors.primary : Colors.amber.shade900,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -420,16 +427,17 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                             return;
                           }
 
+                          final bool isAddressModified = address != controller.homeAddress.value;
                           final success = await controller.updateSeekerAddressAndProfile(
                             name: name,
                             address: address,
-                            latitude: controller.homeLatitude.value,
-                            longitude: controller.homeLongitude.value,
+                            latitude: isAddressModified ? null : controller.homeLatitude.value,
+                            longitude: isAddressModified ? null : controller.homeLongitude.value,
                           );
 
                           if (success) {
                             if (context.mounted) {
-                              Navigator.of(context).pop();
+                              Navigator.of(context).pop(true);
                             }
                             showCustomSnackBar("Profile updated successfully".tr, isError: false);
                           }

@@ -69,14 +69,21 @@ class ProviderProfileController extends GetxController {
           homeAddress: providerMe.value!.baseAddress ?? '',
         );
 
-        if (providerMe.value?.baseAddress?.isNotEmpty == true) {
-          baseAddress.value = providerMe.value!.baseAddress!;
-        }
         if (providerMe.value?.latitude != null && baseLatitude.value == 0.0) {
           baseLatitude.value = providerMe.value!.latitude!;
         }
         if (providerMe.value?.longitude != null && baseLongitude.value == 0.0) {
           baseLongitude.value = providerMe.value!.longitude!;
+        }
+
+        if (providerMe.value?.baseAddress?.isNotEmpty == true) {
+          baseAddress.value = providerMe.value!.baseAddress!;
+        } else if (baseLatitude.value != 0.0 && baseLongitude.value != 0.0) {
+          reverseGeocode(baseLatitude.value, baseLongitude.value).then((addr) {
+            if (addr != null && addr.isNotEmpty && baseAddress.value.isEmpty) {
+              baseAddress.value = addr;
+            }
+          });
         }
       } else {
         ApiChecker.checkApi(response);
@@ -314,6 +321,57 @@ class ProviderProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error geocoding address: $e");
+    }
+    return null;
+  }
+
+  /// Reverse geocode coordinates to human-readable address string
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    final lang = Get.locale?.languageCode ?? 'en';
+    if (ApiUrl.mapKey.isNotEmpty) {
+      try {
+        final uri = Uri.https(
+          'maps.googleapis.com',
+          '/maps/api/geocode/json',
+          {
+            'latlng': '$lat,$lng',
+            'key': ApiUrl.mapKey,
+            'language': lang,
+          },
+        );
+        final response =
+            await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (data['status'] == 'OK' &&
+              data['results'] != null &&
+              (data['results'] as List).isNotEmpty) {
+            final formatted =
+                data['results'][0]['formatted_address']?.toString();
+            if (formatted != null && formatted.isNotEmpty) {
+              return formatted;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Google reverse geocode error: $e");
+      }
+    }
+
+    // Nominatim fallback
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lng&format=json&accept-language=$lang',
+      );
+      final response = await http.get(uri, headers: {
+        'User-Agent': 'NirbhorApp/1.0',
+      }).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['display_name']?.toString();
+      }
+    } catch (e) {
+      debugPrint("Nominatim reverse geocode error: $e");
     }
     return null;
   }

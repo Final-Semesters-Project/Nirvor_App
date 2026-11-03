@@ -191,10 +191,10 @@ class FirebaseNotificationHelper {
       final String deviceType =
           Platform.isAndroid ? "android" : (Platform.isIOS ? "ios" : "unknown");
 
-      final body = jsonEncode({
+      final body = {
         "token": token,
         "device_type": deviceType,
-      });
+      };
 
       final response = await ApiClient.postData(ApiUrl.fcmToken, body);
       debugPrint(
