@@ -6,6 +6,7 @@ import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../../components/provider_reviews_widget/provider_reviews_widget.dart';
+import '../../../../components/user_report_dialog/user_report_modal.dart';
 import '../controller/seeker_bookings_controller.dart';
 import '../model/seeker_booking_model.dart';
 
@@ -37,7 +38,13 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         ? Get.find<SeekerBookingsController>()
         : Get.put(SeekerBookingsController());
 
-    controller.fetchBookingDetail(widget.bookingId);
+    controller.fetchBookingDetail(widget.bookingId).then((_) {
+      final d = controller.singleBookingDetail.value;
+      final pid = widget.providerId ?? d?.providerId ?? d?.otherPartyId;
+      if (pid != null && pid.isNotEmpty && controller.providerPublicProfile.value == null) {
+        controller.fetchProviderPublicProfile(pid);
+      }
+    });
     if (widget.providerId != null && widget.providerId!.isNotEmpty) {
       controller.fetchProviderPublicProfile(widget.providerId!);
     }
@@ -138,6 +145,73 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         titleName: 'Booking Details'.tr,
         leftIcon: true,
         centerTitleEnable: true,
+        actions: [
+          Obx(() {
+            final detail = controller.singleBookingDetail.value;
+            if (detail != null && detail.isCompleted) {
+              final provider = controller.providerPublicProfile.value;
+              final displayName = provider?.name.isNotEmpty == true
+                  ? provider!.name
+                  : (detail.otherPartyName.isNotEmpty
+                      ? detail.otherPartyName
+                      : (widget.providerName ?? 'Provider'));
+              final existingBooking = controller.bookings.firstWhereOrNull((b) => b.bookingId == widget.bookingId);
+              final String effectiveProviderId = widget.providerId?.isNotEmpty == true
+                  ? widget.providerId!
+                  : (existingBooking?.providerId?.isNotEmpty == true
+                      ? existingBooking!.providerId!
+                      : (existingBooking?.otherPartyId?.isNotEmpty == true
+                          ? existingBooking!.otherPartyId!
+                          : (detail.providerId?.isNotEmpty == true
+                              ? detail.providerId!
+                              : (detail.otherPartyId?.isNotEmpty == true
+                                  ? detail.otherPartyId!
+                                  : (provider?.userId ?? '')))));
+
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert_rounded, color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: Colors.white,
+                onSelected: (value) {
+                  if (value == 'report') {
+                    UserReportModal.show(
+                      context: context,
+                      bookingId: detail.bookingId,
+                      reportedUserId: effectiveProviderId,
+                      reportedUserName: displayName,
+                      isReportingProvider: true,
+                    );
+                  }
+                },
+                itemBuilder: (context) {
+                  final bool isBn = Get.locale?.languageCode == 'bn';
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'report',
+                      child: Row(
+                        children: [
+                          Icon(Icons.flag_outlined, size: 18, color: Colors.red.shade700),
+                          const SizedBox(width: 10),
+                          Text(
+                            isBn ? 'প্রোভাইডারকে রিপোর্ট করুন' : 'Report Provider',
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoadingDetail.value &&

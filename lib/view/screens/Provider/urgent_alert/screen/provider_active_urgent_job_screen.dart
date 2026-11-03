@@ -23,8 +23,6 @@ class ProviderActiveUrgentJobScreen extends StatefulWidget {
 
 class _ProviderActiveUrgentJobScreenState
     extends State<ProviderActiveUrgentJobScreen> {
-  GoogleMapController? _mapController;
-
   Future<void> _makePhoneCall(String phone) async {
     if (phone.isEmpty) {
       showCustomSnackBar("গ্রাহকের ফোন নম্বর পাওয়া যায়নি / Phone number not found",
@@ -528,7 +526,7 @@ class _ProviderActiveUrgentJobScreenState
                           },
                           zoomControlsEnabled: false,
                           myLocationButtonEnabled: false,
-                          onMapCreated: (ctrl) => _mapController = ctrl,
+                          onMapCreated: (_) {},
                         ),
                       ),
                     ),

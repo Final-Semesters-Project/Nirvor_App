@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../../service/api_client.dart';
 import '../../../../../service/api_url.dart';
@@ -15,6 +17,13 @@ class SeekerProfileController extends GetxController {
   var user = Rxn<UserModel>();
   var isLoading = false.obs;
   var isUpdatingProfile = false.obs;
+
+  // Profile photo & save states
+  var pickedProfileImage = Rxn<File>();
+  var pickedProfileImageBytes = Rxn<Uint8List>();
+  var isSaving = false.obs;
+  var savingStatusText = ''.obs;
+  final ImagePicker _picker = ImagePicker();
 
   // Seeker home address & coordinates
   var homeAddress = ''.obs;
@@ -497,6 +506,310 @@ class SeekerProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error ensuring home location cached: $e");
+    }
+  }
+
+  /// Pick profile photo locally (auto-upload disabled: only uploads when Save Changes is tapped)
+  Future<void> pickProfilePhoto(ImageSource source) async {
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+      if (file == null) return;
+      // Read bytes immediately so the image is securely kept in memory
+      final bytes = await file.readAsBytes();
+      pickedProfileImageBytes.value = bytes;
+      pickedProfileImage.value = File(file.path);
+    } catch (e) {
+      debugPrint("Error picking profile photo: $e");
+      showCustomSnackBar("Failed to select image".tr, isError: true);
+    }
+  }
+
+  /// Direct upload profile photo to Cloudinary with nirbhor_profile_picture preset
+  Future<Map<String, String>?> uploadProfilePhotoToCloudinary({File? file, Uint8List? bytes}) async {
+    try {
+      savingStatusText.value = 'Uploading profile photo...'.tr;
+
+      Uint8List? imageBytes = bytes ?? pickedProfileImageBytes.value;
+      if (imageBytes == null && file != null && await file.exists()) {
+        try {
+          imageBytes = await file.readAsBytes();
+        } catch (e) {
+          debugPrint("Could not read file bytes: $e");
+        }
+      }
+
+      if (imageBytes == null || imageBytes.isEmpty) {
+        debugPrint("Error: No image bytes available for upload");
+        return null;
+      }
+
+      const String cloudName = ApiUrl.cloudinaryCloudName;
+      final uri =
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      final presetsToTry = [
+        ApiUrl.cloudinaryProfilePicturePreset,
+        'nirbhor_profile_picture',
+        'nirbhor_profile',
+        ApiUrl.cloudinaryUploadPreset,
+        'ml_default',
+      ];
+
+      for (final preset in presetsToTry) {
+        try {
+          debugPrint("====> Trying direct Cloudinary upload with preset: $preset");
+          final request = http.MultipartRequest('POST', uri);
+          request.fields['upload_preset'] = preset;
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              imageBytes,
+              filename: 'profile_photo_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            ),
+          );
+
+          final streamedResponse = await request.send();
+          final response = await http.Response.fromStream(streamedResponse);
+
+          debugPrint(
+              "====> Cloudinary upload response [$preset] [${response.statusCode}]: ${response.body}");
+
+          if (response.statusCode == 200) {
+            final resJson = jsonDecode(response.body);
+            final String secureUrl = resJson['secure_url']?.toString() ?? '';
+            final String resPublicId = resJson['public_id']?.toString() ?? '';
+            debugPrint("====> Direct Cloudinary upload success!");
+            debugPrint("====> Photo URL: $secureUrl");
+            debugPrint("====> Public ID: $resPublicId");
+            return {
+              'url': secureUrl,
+              'public_id': resPublicId,
+            };
+          }
+        } catch (ex) {
+          debugPrint("Error trying preset $preset: $ex");
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Error uploading profile photo to Cloudinary: $e");
+      return null;
+    }
+  }
+
+  /// Comprehensive save handler:
+  /// 1. If name or photo changed -> PATCH /api/v1/seeker/me/profile
+  /// 2. If address/location changed -> PATCH /api/v1/seeker/me/address
+  Future<bool> saveProfileAndAddressChanges({
+    String? newName,
+    String? newNameBn,
+    String? newNameEn,
+    String? newAddress,
+    double? newLatitude,
+    double? newLongitude,
+    bool addressChanged = false,
+  }) async {
+    isSaving.value = true;
+    savingStatusText.value = 'Saving changes...'.tr;
+
+    try {
+      final lang = Get.locale?.languageCode ?? 'en';
+      final bool isBn = lang == 'bn';
+      final Map<String, dynamic> profileBody = {};
+      bool hasProfileChanges = false;
+
+      // 1. Language-aware name update
+      String cleanName = '';
+      if (newNameBn != null && newNameBn.trim().isNotEmpty) {
+        cleanName = newNameBn.trim();
+        profileBody['name_bn'] = cleanName;
+        hasProfileChanges = true;
+      } else if (newNameEn != null && newNameEn.trim().isNotEmpty) {
+        cleanName = newNameEn.trim();
+        profileBody['name_en'] = cleanName;
+        hasProfileChanges = true;
+      } else if (newName != null && newName.trim().isNotEmpty) {
+        cleanName = newName.trim();
+        final currentName = (isBn
+                ? (user.value?.nameBn ?? user.value?.name)
+                : (user.value?.nameEn ?? user.value?.name)) ??
+            user.value?.name ??
+            '';
+        if (cleanName != currentName.trim()) {
+          if (isBn) {
+            profileBody['name_bn'] = cleanName;
+          } else {
+            profileBody['name_en'] = cleanName;
+          }
+          hasProfileChanges = true;
+        }
+      }
+
+      // 2. Profile photo upload if picked
+      final bool hasPickedPhoto = pickedProfileImageBytes.value != null ||
+          pickedProfileImage.value != null;
+      if (hasPickedPhoto) {
+        savingStatusText.value = 'Uploading profile photo...'.tr;
+        final photoRes = await uploadProfilePhotoToCloudinary(
+          file: pickedProfileImage.value,
+          bytes: pickedProfileImageBytes.value,
+        );
+        if (photoRes != null && (photoRes['url'] ?? '').isNotEmpty) {
+          profileBody['photo_url'] = photoRes['url'];
+          if ((photoRes['public_id'] ?? '').isNotEmpty) {
+            profileBody['photo_public_id'] = photoRes['public_id'];
+          }
+          hasProfileChanges = true;
+        } else {
+          showCustomSnackBar("Failed to upload profile photo".tr,
+              isError: true);
+          isSaving.value = false;
+          return false;
+        }
+      }
+
+      // 3. Call PATCH /api/v1/seeker/me/profile if name or photo changed
+      if (hasProfileChanges) {
+        savingStatusText.value = 'Updating profile...'.tr;
+        debugPrint(
+            "====> Calling PATCH ${ApiUrl.updateSeekerProfile} with: $profileBody");
+        final profileResponse = await ApiClient.patchData(
+          ApiUrl.updateSeekerProfile,
+          profileBody,
+        );
+
+        if (profileResponse.statusCode != 200 &&
+            profileResponse.statusCode != 204) {
+          String errMsg = "Failed to update profile".tr;
+          if (profileResponse.body != null &&
+              profileResponse.body is Map &&
+              profileResponse.body['detail'] != null) {
+            errMsg = profileResponse.body['detail'].toString();
+          }
+          showCustomSnackBar(errMsg, isError: true);
+          isSaving.value = false;
+          return false;
+        }
+      }
+
+      // 4. Update address via PATCH /api/v1/seeker/me/address ONLY if address actually changed!
+      bool addressUpdated = false;
+      if (addressChanged &&
+          newAddress != null &&
+          newAddress.trim().isNotEmpty) {
+        final cleanAddress = newAddress.trim();
+        final currentAddress = homeAddress.value.trim();
+
+        if (cleanAddress != currentAddress ||
+            (newLatitude != null && newLatitude != 0.0)) {
+          if (cleanAddress.length < 5) {
+            showCustomSnackBar(
+                "Address must be at least 5 characters".tr,
+                isError: true);
+            isSaving.value = false;
+            return false;
+          }
+
+          savingStatusText.value = 'Updating address...'.tr;
+          double finalLat = newLatitude ?? homeLatitude.value;
+          double finalLng = newLongitude ?? homeLongitude.value;
+
+          if (finalLat == 0.0 || finalLng == 0.0) {
+            savingStatusText.value = 'Locating address...'.tr;
+            final coords = await geocodeAddress(cleanAddress);
+            if (coords != null &&
+                coords['lat'] != 0.0 &&
+                coords['lng'] != 0.0) {
+              finalLat = coords['lat']!;
+              finalLng = coords['lng']!;
+            }
+          }
+
+          if (finalLat == 0.0 || finalLng == 0.0) {
+            showCustomSnackBar(
+              "Please pin your location on the map to get accurate coordinates"
+                  .tr,
+              isError: true,
+            );
+            isSaving.value = false;
+            return false;
+          }
+
+          final addressBody = {
+            "latitude": finalLat,
+            "longitude": finalLng,
+            "home_address": cleanAddress,
+          };
+
+          debugPrint(
+              "====> Calling PATCH ${ApiUrl.seekerAddress} with: $addressBody");
+          final addressResponse = await ApiClient.patchData(
+            ApiUrl.seekerAddress,
+            addressBody,
+          );
+
+          if (addressResponse.statusCode == 200 ||
+              addressResponse.statusCode == 204) {
+            homeAddress.value = cleanAddress;
+            homeLatitude.value = finalLat;
+            homeLongitude.value = finalLng;
+            await SharePrefsHelper.setString(
+                "seeker_home_address", cleanAddress);
+            await SharePrefsHelper.setString(
+                "seeker_home_lat", finalLat.toString());
+            await SharePrefsHelper.setString(
+                "seeker_home_lng", finalLng.toString());
+            addressUpdated = true;
+          } else {
+            String errMsg = "Failed to update address".tr;
+            if (addressResponse.body != null &&
+                addressResponse.body is Map &&
+                addressResponse.body['detail'] != null) {
+              errMsg = addressResponse.body['detail'].toString();
+            }
+            showCustomSnackBar(errMsg, isError: true);
+            await getUserProfile(showLoading: false);
+            isSaving.value = false;
+            return false;
+          }
+        }
+      }
+
+      if (!hasProfileChanges && !addressUpdated && !addressChanged) {
+        showCustomSnackBar("No changes to save".tr, isError: false);
+        isSaving.value = false;
+        return true;
+      }
+
+      // Success! Clear picked image
+      pickedProfileImage.value = null;
+      pickedProfileImageBytes.value = null;
+
+      // Refresh data
+      await getUserProfile(showLoading: false);
+      if (addressUpdated) {
+        await fetchSeekerAddress();
+      }
+
+      if (Get.isRegistered<HomeSeekerController>()) {
+        Get.find<HomeSeekerController>().loadHomeLocationData();
+      }
+
+      showCustomSnackBar("Profile updated successfully".tr, isError: false);
+      return true;
+    } catch (e) {
+      debugPrint("Error saving seeker profile and address: $e");
+      showCustomSnackBar(
+          "An error occurred while updating profile".tr,
+          isError: true);
+      return false;
+    } finally {
+      isSaving.value = false;
     }
   }
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -67,8 +68,11 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
   @override
   void dispose() {
     controller.pickedProfileImage.value = null;
+    controller.pickedProfileImageBytes.value = null;
     controller.pickedFrontNid.value = null;
+    controller.pickedFrontNidBytes.value = null;
     controller.pickedBackNid.value = null;
+    controller.pickedBackNidBytes.value = null;
     nameController.dispose();
     addressController.dispose();
     super.dispose();
@@ -210,6 +214,8 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                     children: [
                       Obx(() {
                         final picked = controller.pickedProfileImage.value;
+                        final pickedBytes =
+                            controller.pickedProfileImageBytes.value;
                         final isUpdatingPhoto =
                             controller.isUpdatingProfilePhoto.value;
                         final remotePhoto =
@@ -250,20 +256,27 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(21),
-                                  child: picked != null
-                                      ? Image.file(
-                                          picked,
+                                  child: pickedBytes != null
+                                      ? Image.memory(
+                                          pickedBytes,
                                           fit: BoxFit.cover,
                                           width: 106,
                                           height: 106,
                                         )
-                                      : CustomNetworkImage(
-                                          imageUrl: remotePhoto.isNotEmpty
-                                              ? remotePhoto
-                                              : AppConstants.profileImage,
-                                          width: 106,
-                                          height: 106,
-                                        ),
+                                      : picked != null
+                                          ? Image.file(
+                                              picked,
+                                              fit: BoxFit.cover,
+                                              width: 106,
+                                              height: 106,
+                                            )
+                                          : CustomNetworkImage(
+                                              imageUrl: remotePhoto.isNotEmpty
+                                                  ? remotePhoto
+                                                  : AppConstants.profileImage,
+                                              width: 106,
+                                              height: 106,
+                                            ),
                                 ),
                                 if (isUpdatingPhoto)
                                   Container(
@@ -807,6 +820,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                                   ? 'পর্যালোচনাধীন (লক করা)'
                                   : 'Under Review (Locked)')),
                       pickedFile: picked,
+                      pickedBytes: controller.pickedFrontNidBytes.value,
                       remoteUrl: remoteUrl,
                       canUpdate: canUpdateNid,
                       status: status,
@@ -859,6 +873,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                                   ? 'পর্যালোচনাধীন (লক করা)'
                                   : 'Under Review (Locked)')),
                       pickedFile: picked,
+                      pickedBytes: controller.pickedBackNidBytes.value,
                       remoteUrl: remoteUrl,
                       canUpdate: canUpdateNid,
                       status: status,
@@ -1028,13 +1043,15 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
     required String title,
     required String subtext,
     File? pickedFile,
+    Uint8List? pickedBytes,
     required String remoteUrl,
     required bool canUpdate,
     required String status,
     required bool isBn,
     required VoidCallback onTap,
   }) {
-    final bool hasImage = pickedFile != null || remoteUrl.isNotEmpty;
+    final bool hasImage =
+        pickedBytes != null || pickedFile != null || remoteUrl.isNotEmpty;
 
     return InkWell(
       onTap: onTap,
@@ -1060,18 +1077,25 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(11),
-                    child: pickedFile != null
-                        ? Image.file(
-                            pickedFile,
+                    child: pickedBytes != null
+                        ? Image.memory(
+                            pickedBytes,
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: 120,
                           )
-                        : CustomNetworkImage(
-                            imageUrl: remoteUrl,
-                            width: double.infinity,
-                            height: 120,
-                          ),
+                        : pickedFile != null
+                            ? Image.file(
+                                pickedFile,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 120,
+                              )
+                            : CustomNetworkImage(
+                                imageUrl: remoteUrl,
+                                width: double.infinity,
+                                height: 120,
+                              ),
                   ),
                   // If update is NOT allowed, show lock badge and NO camera icon
                   if (!canUpdate)

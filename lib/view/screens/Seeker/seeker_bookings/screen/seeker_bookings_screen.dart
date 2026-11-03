@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_nav_bar/navbar.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
+import '../../../../components/user_report_dialog/user_report_modal.dart';
 import '../controller/seeker_bookings_controller.dart';
 import '../model/seeker_booking_model.dart';
 import 'booking_details_screen.dart';
@@ -173,7 +174,7 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
               bookingId: booking.bookingId,
               skillName: booking.skillName,
               providerName: booking.otherPartyName,
-              providerId: booking.providerId,
+              providerId: booking.providerId ?? booking.otherPartyId,
             ),
           ),
           borderRadius: BorderRadius.circular(14),
@@ -212,26 +213,84 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
                   ),
                 ),
 
-                // Status Badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusBg,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: statusColor.withValues(alpha: 0.3),
+                // Status Badge & 3-dot for Completed
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        _getStatusLabel(status),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    _getStatusLabel(status),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                    if (booking.isCompleted) ...[
+                      const SizedBox(width: 4),
+                      PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          size: 20,
+                          color: Colors.grey.shade600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: Colors.white,
+                        onSelected: (value) {
+                          if (value == 'report') {
+                            UserReportModal.show(
+                              context: context,
+                              bookingId: booking.bookingId,
+                              reportedUserId:
+                                  booking.providerId ?? booking.otherPartyId ?? '',
+                              reportedUserName: booking.otherPartyName,
+                              isReportingProvider: true,
+                            );
+                          }
+                        },
+                        itemBuilder: (context) {
+                          final bool isBn = Get.locale?.languageCode == 'bn';
+                          return [
+                            PopupMenuItem<String>(
+                              value: 'report',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.flag_outlined,
+                                      size: 18, color: Colors.red.shade700),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    isBn
+                                        ? 'প্রোভাইডারকে রিপোর্ট করুন'
+                                        : 'Report Provider',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -419,7 +478,7 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
                   bookingId: booking.bookingId,
                   skillName: booking.skillName,
                   providerName: booking.otherPartyName,
-                  providerId: booking.providerId,
+                  providerId: booking.providerId ?? booking.otherPartyId,
                 ),
               ),
               style: OutlinedButton.styleFrom(
@@ -480,7 +539,7 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
                   bookingId: booking.bookingId,
                   skillName: booking.skillName,
                   providerName: booking.otherPartyName,
-                  providerId: booking.providerId,
+                  providerId: booking.providerId ?? booking.otherPartyId,
                 ),
               ),
               style: OutlinedButton.styleFrom(
@@ -538,7 +597,7 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
               bookingId: booking.bookingId,
               skillName: booking.skillName,
               providerName: booking.otherPartyName,
-              providerId: booking.providerId,
+              providerId: booking.providerId ?? booking.otherPartyId,
             ),
           ),
           icon: Icon(

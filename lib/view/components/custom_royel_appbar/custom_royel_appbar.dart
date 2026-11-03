@@ -13,6 +13,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String? rightIcon;
   final String? rightText;
   final Widget? rightWidget;
+  final List<Widget>? actions;
   final Color? color;
   final Color? leftIconColor;
   final void Function()? leftOnTap;
@@ -32,6 +33,7 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
     this.rightIcon,
     this.rightText,
     this.rightWidget,
+    this.actions,
     this.rightOnTap,
     this.leftIcon = false,
     this.centerTitleEnable = true,
@@ -49,8 +51,9 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitleEnable,
       titleSpacing: titleSpacing,
       scrolledUnderElevation: 0,
-      actions: [
-        if (showLanguageSwitcher)
+      actions: actions ??
+          [
+            if (showLanguageSwitcher)
           IconButton(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();

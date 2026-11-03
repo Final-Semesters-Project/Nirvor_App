@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -26,10 +27,13 @@ class ProviderProfileController extends GetxController {
   var baseLatitude = 0.0.obs;
   var baseLongitude = 0.0.obs;
 
-  // Selected files for Edit Profile
+  // Selected files for Edit Profile (with memory bytes to prevent Android cache purge issues)
   var pickedProfileImage = Rxn<File>();
+  var pickedProfileImageBytes = Rxn<Uint8List>();
   var pickedFrontNid = Rxn<File>();
+  var pickedFrontNidBytes = Rxn<Uint8List>();
   var pickedBackNid = Rxn<File>();
+  var pickedBackNidBytes = Rxn<Uint8List>();
 
   final ImagePicker _picker = ImagePicker();
 
@@ -180,6 +184,8 @@ class ProviderProfileController extends GetxController {
       );
       if (file == null) return;
 
+      final bytes = await file.readAsBytes();
+      pickedProfileImageBytes.value = bytes;
       final selectedFile = File(file.path);
       pickedProfileImage.value = selectedFile;
     } catch (e) {
@@ -215,9 +221,12 @@ class ProviderProfileController extends GetxController {
         maxHeight: 1080,
       );
       if (file != null) {
+        final bytes = await file.readAsBytes();
         if (isFront) {
+          pickedFrontNidBytes.value = bytes;
           pickedFrontNid.value = File(file.path);
         } else {
+          pickedBackNidBytes.value = bytes;
           pickedBackNid.value = File(file.path);
         }
       }
@@ -230,8 +239,17 @@ class ProviderProfileController extends GetxController {
   Future<Map<String, String>?> uploadToCloudinary({
     required File file,
     required String side,
+    Uint8List? bytes,
   }) async {
     try {
+      Uint8List? imageBytes = bytes ??
+          (side == 'front'
+              ? pickedFrontNidBytes.value
+              : pickedBackNidBytes.value);
+      if (imageBytes == null && await file.exists()) {
+        imageBytes = await file.readAsBytes();
+      }
+
       savingStatusText.value = side == 'front'
           ? 'Getting signature for Front NID...'.tr
           : 'Getting signature for Back NID...'.tr;
@@ -275,7 +293,18 @@ class ProviderProfileController extends GetxController {
         request.fields['overwrite'] = overwrite.toString();
       }
 
-      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      if (imageBytes != null && imageBytes.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            imageBytes,
+            filename:
+                'nid_${side}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          ),
+        );
+      } else {
+        request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      }
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
@@ -403,9 +432,21 @@ class ProviderProfileController extends GetxController {
   }
 
   /// Direct upload profile photo to Cloudinary without backend signature
-  Future<Map<String, String>?> uploadProfilePhotoToCloudinary(File file) async {
+  Future<Map<String, String>?> uploadProfilePhotoToCloudinary({
+    File? file,
+    Uint8List? bytes,
+  }) async {
     try {
       savingStatusText.value = 'Uploading profile photo...'.tr;
+
+      Uint8List? imageBytes = bytes ?? pickedProfileImageBytes.value;
+      if (imageBytes == null && file != null && await file.exists()) {
+        imageBytes = await file.readAsBytes();
+      }
+      if (imageBytes == null || imageBytes.isEmpty) {
+        debugPrint("uploadProfilePhotoToCloudinary: No image bytes available.");
+        return null;
+      }
 
       const String cloudName = ApiUrl.cloudinaryCloudName;
       final uri =
@@ -425,8 +466,14 @@ class ProviderProfileController extends GetxController {
           debugPrint("====> Trying direct Cloudinary upload with preset: $preset");
           final request = http.MultipartRequest('POST', uri);
           request.fields['upload_preset'] = preset;
-          request.files
-              .add(await http.MultipartFile.fromPath('file', file.path));
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              imageBytes,
+              filename:
+                  'provider_profile_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            ),
+          );
 
           final streamedResponse = await request.send();
           final response = await http.Response.fromStream(streamedResponse);
@@ -551,11 +598,15 @@ class ProviderProfileController extends GetxController {
           (status == 'not_initiated' || status == 'rejected');
 
       // 4. Upload Profile Image if picked (uploads on Save Changes with nirbhor_profile_picture preset)
-      if (pickedProfileImage.value != null) {
+      final bool hasPickedPhoto =
+          pickedProfileImageBytes.value != null || pickedProfileImage.value != null;
+      if (hasPickedPhoto) {
         isUpdatingProfilePhoto.value = true;
         savingStatusText.value = 'Uploading profile photo...'.tr;
-        final photoRes =
-            await uploadProfilePhotoToCloudinary(pickedProfileImage.value!);
+        final photoRes = await uploadProfilePhotoToCloudinary(
+          file: pickedProfileImage.value,
+          bytes: pickedProfileImageBytes.value,
+        );
         if (photoRes != null && (photoRes['url'] ?? '').isNotEmpty) {
           updateBody['photo_url'] = photoRes['url'];
           if ((photoRes['public_id'] ?? '').isNotEmpty) {
@@ -570,10 +621,12 @@ class ProviderProfileController extends GetxController {
       }
 
       // 5. Upload Front NID if allowed and picked
-      if (canUpdateVerification && pickedFrontNid.value != null) {
+      if (canUpdateVerification &&
+          (pickedFrontNidBytes.value != null || pickedFrontNid.value != null)) {
         final frontRes = await uploadToCloudinary(
-          file: pickedFrontNid.value!,
+          file: pickedFrontNid.value ?? File(''),
           side: 'front',
+          bytes: pickedFrontNidBytes.value,
         );
         if (frontRes != null) {
           updateBody['nid_url_front'] = frontRes['url'];
@@ -586,10 +639,12 @@ class ProviderProfileController extends GetxController {
       }
 
       // 6. Upload Back NID if allowed and picked
-      if (canUpdateVerification && pickedBackNid.value != null) {
+      if (canUpdateVerification &&
+          (pickedBackNidBytes.value != null || pickedBackNid.value != null)) {
         final backRes = await uploadToCloudinary(
-          file: pickedBackNid.value!,
+          file: pickedBackNid.value ?? File(''),
           side: 'back',
+          bytes: pickedBackNidBytes.value,
         );
         if (backRes != null) {
           updateBody['nid_url_back'] = backRes['url'];
@@ -619,8 +674,11 @@ class ProviderProfileController extends GetxController {
       if (response.statusCode == 200) {
         showCustomSnackBar("Profile updated successfully".tr, isError: false);
         pickedFrontNid.value = null;
+        pickedFrontNidBytes.value = null;
         pickedBackNid.value = null;
+        pickedBackNidBytes.value = null;
         pickedProfileImage.value = null;
+        pickedProfileImageBytes.value = null;
 
         // Immediately update local name/photo/address if changed
         if (user.value != null) {

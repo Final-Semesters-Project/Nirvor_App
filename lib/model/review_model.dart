@@ -24,6 +24,11 @@ class ReviewItemModel {
           DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now();
     }
 
+    final dynamic isAnonVal = json['is_anonymous'] ?? json['s_anonymous'];
+    final bool isAnon = isAnonVal == true ||
+        isAnonVal?.toString().toLowerCase() == 'true' ||
+        isAnonVal == 1;
+
     return ReviewItemModel(
       reviewId: json['review_id']?.toString() ?? '',
       reviewerName: json['reviewer_name']?.toString() ?? '',
@@ -31,9 +36,19 @@ class ReviewItemModel {
           ? json['rating']
           : int.tryParse(json['rating']?.toString() ?? '5') ?? 5,
       comment: json['comment']?.toString(),
-      isAnonymous: json['is_anonymous'] == true,
+      isAnonymous: isAnon,
       createdAt: parsedDate,
     );
+  }
+
+  String getReviewerDisplayName(bool isBn) {
+    if (isAnonymous) {
+      return isBn ? 'নাম প্রকাশে অনিচ্ছুক গ্রাহক' : 'Anonymous Seeker';
+    }
+    if (reviewerName.trim().isNotEmpty) {
+      return reviewerName.trim();
+    }
+    return isBn ? 'গ্রাহক' : 'Seeker';
   }
 
   String get formattedDateTime {

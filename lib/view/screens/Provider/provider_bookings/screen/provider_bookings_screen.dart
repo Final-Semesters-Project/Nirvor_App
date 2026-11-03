@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_nav_bar/provider_nav_bar.dart';
+import '../../../../components/user_report_dialog/user_report_modal.dart';
 import '../../../Seeker/seeker_bookings/model/seeker_booking_model.dart';
 import '../controller/provider_bookings_controller.dart';
 
@@ -329,6 +330,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
             booking.bookingId,
             skillName: booking.skillName,
             seekerName: customerName,
+            seekerId: booking.seekerId ?? booking.otherPartyId,
           ),
           borderRadius: BorderRadius.circular(14),
           child: Padding(
@@ -377,7 +379,7 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                       ),
                     ),
 
-                    // Status Badge (hidden for completed bookings to prevent overflow)
+                    // Status Badge (or 3-dot report menu for completed bookings)
                     if (status != 'completed') ...[
                       const SizedBox(width: 8),
                       Container(
@@ -401,6 +403,59 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
                             letterSpacing: 0.3,
                           ),
                         ),
+                      ),
+                    ] else ...[
+                      PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: Icon(
+                          Icons.more_vert_rounded,
+                          size: 20,
+                          color: Colors.grey.shade600,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: Colors.white,
+                        onSelected: (value) {
+                          if (value == 'report') {
+                            UserReportModal.show(
+                              context: context,
+                              bookingId: booking.bookingId,
+                              reportedUserId: booking.seekerId ??
+                                  booking.otherPartyId ??
+                                  booking.providerId ??
+                                  '',
+                              reportedUserName: customerName,
+                              isReportingProvider: false,
+                            );
+                          }
+                        },
+                        itemBuilder: (context) {
+                          final bool isBn = Get.locale?.languageCode == 'bn';
+                          return [
+                            PopupMenuItem<String>(
+                              value: 'report',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.flag_outlined,
+                                      size: 18, color: Colors.red.shade700),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    isBn
+                                        ? 'গ্রাহককে রিপোর্ট করুন'
+                                        : 'Report Seeker',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ];
+                        },
                       ),
                     ],
                   ],

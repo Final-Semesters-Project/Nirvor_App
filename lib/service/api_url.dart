@@ -30,6 +30,7 @@ class ApiUrl {
   ///========================= User =========================
   static const String userProfile = "/users/me";
   static const String seekerAddress = "/seeker/me/address";
+  static const String updateSeekerProfile = "/seeker/me/profile";
   static const String updatePassword = "/users/me/update-password";
 
   ///========================= Category & Skills =========================
@@ -72,6 +73,9 @@ class ApiUrl {
     int page = 1,
     int pageSize = 20,
   }) => "/reviews/provider/$providerId?page=$page&page_size=$pageSize";
+
+  ///========================= User Reports =========================
+  static const String userReports = "/user-reports";
 
   ///========================= Urgent Broadcast =========================
   static const String urgentBroadcast = "/urgentBroadcast/broadcast";
