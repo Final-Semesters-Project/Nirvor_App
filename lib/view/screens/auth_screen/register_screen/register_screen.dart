@@ -215,6 +215,9 @@ class RegisterScreen extends StatelessWidget {
 
             CustomFormCard(
               controller: nameEnController,
+              // inputFormatters: [
+              //   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+              // ],
               hintText: 'Enter your full name (English)'.tr,
               title: 'Full Name (English)'.tr,
             ),

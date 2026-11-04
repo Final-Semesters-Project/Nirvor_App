@@ -37,7 +37,10 @@ class ProviderPublicDetailsScreen extends StatefulWidget {
 
 class _ProviderPublicDetailsScreenState
     extends State<ProviderPublicDetailsScreen> {
-  final HomeSeekerController controller = Get.find<HomeSeekerController>();
+  final HomeSeekerController controller =
+      Get.isRegistered<HomeSeekerController>()
+          ? Get.find<HomeSeekerController>()
+          : Get.put(HomeSeekerController());
 
   @override
   void initState() {

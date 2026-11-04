@@ -671,6 +671,7 @@ class SeekerBookingsController extends GetxController {
       TimeOfDay(hour: initial.hour, minute: initial.minute),
     );
     var errorMessage = ''.obs;
+    var selectedPreset = '1_hour'.obs;
 
     DateTime getCombinedDateTime() {
       final date = selectedDate.value;
@@ -749,6 +750,74 @@ class SeekerBookingsController extends GetxController {
                     ),
                   ],
                 ),
+                const SizedBox(height: 18),
+
+                // Quick Presets Chips
+                Text(
+                  'quick_options'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Obx(
+                  () => SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildPresetChip(
+                          label: 'in_1_hour'.tr,
+                          isSelected: selectedPreset.value == '1_hour',
+                          onTap: () {
+                            selectedPreset.value = '1_hour';
+                            final dt = DateTime.now().add(const Duration(hours: 1));
+                            selectedDate.value = dt;
+                            selectedTime.value = TimeOfDay(hour: dt.hour, minute: dt.minute);
+                            errorMessage.value = '';
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _buildPresetChip(
+                          label: 'in_2_hours'.tr,
+                          isSelected: selectedPreset.value == '2_hours',
+                          onTap: () {
+                            selectedPreset.value = '2_hours';
+                            final dt = DateTime.now().add(const Duration(hours: 2));
+                            selectedDate.value = dt;
+                            selectedTime.value = TimeOfDay(hour: dt.hour, minute: dt.minute);
+                            errorMessage.value = '';
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _buildPresetChip(
+                          label: 'tomorrow_morning'.tr,
+                          isSelected: selectedPreset.value == 'tomorrow_morning',
+                          onTap: () {
+                            selectedPreset.value = 'tomorrow_morning';
+                            final dt = DateTime.now().add(const Duration(days: 1));
+                            selectedDate.value = dt;
+                            selectedTime.value = const TimeOfDay(hour: 10, minute: 0);
+                            errorMessage.value = '';
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        _buildPresetChip(
+                          label: 'tomorrow_afternoon'.tr,
+                          isSelected: selectedPreset.value == 'tomorrow_afternoon',
+                          onTap: () {
+                            selectedPreset.value = 'tomorrow_afternoon';
+                            final dt = DateTime.now().add(const Duration(days: 1));
+                            selectedDate.value = dt;
+                            selectedTime.value = const TimeOfDay(hour: 15, minute: 0);
+                            errorMessage.value = '';
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -769,6 +838,7 @@ class SeekerBookingsController extends GetxController {
                             );
                             if (picked != null) {
                               selectedDate.value = picked;
+                              selectedPreset.value = '';
                               errorMessage.value = '';
                             }
                           },
@@ -831,6 +901,7 @@ class SeekerBookingsController extends GetxController {
                             );
                             if (picked != null) {
                               selectedTime.value = picked;
+                              selectedPreset.value = '';
                               errorMessage.value = '';
                             }
                           },
@@ -989,6 +1060,59 @@ class SeekerBookingsController extends GetxController {
         ),
       ),
       isScrollControlled: true,
+    );
+  }
+
+  Widget _buildPresetChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.28),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected) ...[
+              const Icon(
+                Icons.check_circle_rounded,
+                size: 15,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.grey.shade800,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
