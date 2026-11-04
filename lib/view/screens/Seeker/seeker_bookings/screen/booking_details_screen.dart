@@ -9,6 +9,8 @@ import '../../../../components/provider_reviews_widget/provider_reviews_widget.d
 import '../../../../components/user_report_dialog/user_report_modal.dart';
 import '../controller/seeker_bookings_controller.dart';
 import '../model/seeker_booking_model.dart';
+import '../../home_seeker/controller/home_seeker_controller.dart';
+import '../../home_seeker/screen/provider_details/provider_public_details_screen.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   final String bookingId;
@@ -401,199 +403,245 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       ),
                       const Divider(height: 20),
 
-                      // Provider Photo, Name, Rating & Verification
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Photo or Avatar
-                          Stack(
+                      // Provider Photo, Name, Rating & Verification (Clickable -> Opens Provider Details)
+                      InkWell(
+                        onTap: () {
+                          String pId = effectiveProviderId;
+                          if (Get.isRegistered<HomeSeekerController>()) {
+                            final hc = Get.find<HomeSeekerController>();
+                            if (provider != null) {
+                              hc.publicProviderProfile.value = provider;
+                            }
+                            if (pId.isEmpty) {
+                              final match = hc.providers.firstWhereOrNull(
+                                (p) =>
+                                    (detail.otherPartyPhone != null &&
+                                        detail.otherPartyPhone!.isNotEmpty &&
+                                        p.phoneEn == detail.otherPartyPhone) ||
+                                    (displayName.isNotEmpty && p.name == displayName),
+                              );
+                              if (match != null) {
+                                pId = match.userId;
+                              }
+                            }
+                          }
+
+                          Get.to(
+                            () => ProviderPublicDetailsScreen(
+                              providerId: pId,
+                              providerName: displayName,
+                              providerPhone: detail.otherPartyPhone ??
+                                  widget.providerPhone,
+                              photoUrl: photoUrl,
+                              bookingId: widget.bookingId,
+                              hasActiveBooking:
+                                  detail.isInProgress || detail.isInitiated,
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: photoUrl.isNotEmpty
-                                    ? CustomNetworkImage(
-                                        imageUrl: photoUrl,
-                                        height: 64,
-                                        width: 64,
-                                        borderRadius: BorderRadius.circular(12),
-                                      )
-                                    : Container(
-                                        height: 64,
-                                        width: 64,
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.12),
-                                        child: Center(
-                                          child: Text(
-                                            displayName.isNotEmpty
-                                                ? displayName[0].toUpperCase()
-                                                : 'P',
-                                            style: const TextStyle(
-                                              fontSize: 26,
-                                              fontWeight: FontWeight.bold,
-                                              color: AppColors.primary,
+                              // Photo or Avatar
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: photoUrl.isNotEmpty
+                                        ? CustomNetworkImage(
+                                            imageUrl: photoUrl,
+                                            height: 64,
+                                            width: 64,
+                                            borderRadius: BorderRadius.circular(12),
+                                          )
+                                        : Container(
+                                            height: 64,
+                                            width: 64,
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.12),
+                                            child: Center(
+                                              child: Text(
+                                                displayName.isNotEmpty
+                                                    ? displayName[0].toUpperCase()
+                                                    : 'P',
+                                                style: const TextStyle(
+                                                  fontSize: 26,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppColors.primary,
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                              ),
-                              if (provider?.isVerified == true)
-                                Positioned(
-                                  bottom: -2,
-                                  right: -2,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.verified,
-                                      color: AppColors.primary,
-                                      size: 18,
-                                    ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        displayName,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                  if (provider?.isVerified == true)
+                                    Positioned(
+                                      bottom: -2,
+                                      right: -2,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                        child: const Icon(
+                                          Icons.verified,
+                                          color: AppColors.primary,
+                                          size: 18,
+                                        ),
                                       ),
                                     ),
-                                    if (provider != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 7, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: provider.isVerified
-                                              ? AppColors.primary
-                                                  .withValues(alpha: 0.12)
-                                              : Colors.grey.shade100,
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        child: Text(
-                                          provider.verificationLevel
-                                              .toUpperCase(),
-                                          style: TextStyle(
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.bold,
-                                            color: provider.isVerified
-                                                ? AppColors.primary
-                                                : Colors.grey.shade700,
+                                ],
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            displayName,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
+                                        if (provider != null)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 7, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: provider.isVerified
+                                                  ? AppColors.primary
+                                                      .withValues(alpha: 0.12)
+                                                  : Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              provider.verificationLevel
+                                                  .toUpperCase(),
+                                              style: TextStyle(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                                color: provider.isVerified
+                                                    ? AppColors.primary
+                                                    : Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ),
+                                        const SizedBox(width: 6),
+                                        Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 13,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
 
-                                // Rating & Working Radius
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      size: 16,
-                                      color: Colors.amber,
+                                    // Rating & Working Radius
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star_rounded,
+                                          size: 16,
+                                          color: Colors.amber,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          provider != null &&
+                                                  provider.averageRating > 0
+                                              ? provider.averageRating
+                                                  .toStringAsFixed(1)
+                                              : 'New'.tr,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        if (provider != null &&
+                                            provider.workingRadiusKm > 0) ...[
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            '•',
+                                            style: TextStyle(
+                                                color: Colors.grey.shade400),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Icon(
+                                            Icons.radar_rounded,
+                                            size: 13,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${provider.workingRadiusKm} km radius',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      provider != null &&
-                                              provider.averageRating > 0
-                                          ? provider.averageRating
-                                              .toStringAsFixed(1)
-                                          : 'New'.tr,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    if (provider != null &&
-                                        provider.workingRadiusKm > 0) ...[
-                                      const SizedBox(width: 8),
+
+                                    const SizedBox(height: 4),
+
+                                    // Phone number
+                                    if (detail.isCancelled)
                                       Text(
-                                        '•',
-                                        style: TextStyle(
-                                            color: Colors.grey.shade400),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Icon(
-                                        Icons.radar_rounded,
-                                        size: 13,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Text(
-                                        '${provider.workingRadiusKm} km radius',
+                                        'Phone hidden (Cancelled)'.tr,
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: Colors.grey.shade600,
+                                          color: Colors.grey.shade500,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      )
+                                    else if (detail.otherPartyPhone != null &&
+                                        detail.otherPartyPhone!.isNotEmpty)
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.phone_rounded,
+                                            size: 13,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            detail.otherPartyPhone!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade700,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      Text(
+                                        'Phone unlocked after booking'.tr,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey.shade500,
+                                          fontStyle: FontStyle.italic,
                                         ),
                                       ),
-                                    ],
                                   ],
                                 ),
-
-                                const SizedBox(height: 4),
-
-                                // Phone number
-                                if (detail.isCancelled)
-                                  Text(
-                                    'Phone hidden (Cancelled)'.tr,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade500,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  )
-                                else if (detail.otherPartyPhone != null &&
-                                    detail.otherPartyPhone!.isNotEmpty)
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.phone_rounded,
-                                        size: 13,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        detail.otherPartyPhone!,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey.shade700,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Text(
-                                    'Phone unlocked after booking'.tr,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade500,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
 
                       // AI Review Summary (if available)

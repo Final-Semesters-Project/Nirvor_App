@@ -522,7 +522,7 @@ class AuthController extends GetxController {
       if (role.toLowerCase() == 'seeker') {
         Get.offAllNamed(AppRoutes.homeSeekerScreen);
       } else {
-        Get.offAllNamed(AppRoutes.loginScreen); // Or provider home
+        Get.offAllNamed(AppRoutes.providerHomeScreen); // Or provider home
       }
     } else {
       String errorMsg = "Registration failed".tr;
