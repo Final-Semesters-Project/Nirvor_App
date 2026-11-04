@@ -434,8 +434,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                   widget.providerPhone,
                               photoUrl: photoUrl,
                               bookingId: widget.bookingId,
-                              hasActiveBooking:
-                                  detail.isInProgress || detail.isInitiated,
+                              hasActiveBooking: false,
+                              showBottomActions: false,
                             ),
                           );
                         },

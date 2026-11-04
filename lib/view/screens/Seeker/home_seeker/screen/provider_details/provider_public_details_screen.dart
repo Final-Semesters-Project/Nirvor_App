@@ -17,6 +17,7 @@ class ProviderPublicDetailsScreen extends StatefulWidget {
   final String? photoUrl;
   final String? bookingId;
   final bool hasActiveBooking;
+  final bool showBottomActions;
   final ProviderModel? providerModel;
 
   const ProviderPublicDetailsScreen({
@@ -27,6 +28,7 @@ class ProviderPublicDetailsScreen extends StatefulWidget {
     this.photoUrl,
     this.bookingId,
     this.hasActiveBooking = false,
+    this.showBottomActions = true,
     this.providerModel,
   });
 
@@ -724,6 +726,10 @@ class _ProviderPublicDetailsScreenState
   /// Bottom Bar matching SearchResultsScreen screenshot:
   /// Two buttons: [ Cancel ] and [ Confirm Hire ]
   Widget? _buildBottomActionBar() {
+    if (!widget.showBottomActions) {
+      return null;
+    }
+
     final effectiveBookingId = widget.bookingId ??
         controller.activeBookingData.value?['booking_id']?.toString();
 
