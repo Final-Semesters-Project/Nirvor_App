@@ -258,15 +258,18 @@ class SeekerBookingsController extends GetxController {
     required int rating,
     String? comment,
     required bool isAnonymous,
+    int? finalCost,
   }) async {
     isSubmittingReview.value = true;
     try {
-      final body = {
+      final body = <String, dynamic>{
         "booking_id": bookingId,
         "rating": rating,
         if (comment != null && comment.trim().isNotEmpty)
           "comment": comment.trim(),
         "is_anonymous": isAnonymous,
+        if (finalCost != null && finalCost > 0)
+          "final_cost": finalCost,
       };
 
       final response = await ApiClient.postData(ApiUrl.reviews, body);
@@ -314,6 +317,7 @@ class SeekerBookingsController extends GetxController {
   }) {
     final RxInt selectedRating = 0.obs;
     final TextEditingController commentController = TextEditingController();
+    final TextEditingController costController = TextEditingController();
     final RxBool isAnonymous = true.obs;
 
     Get.bottomSheet(
@@ -462,6 +466,74 @@ class SeekerBookingsController extends GetxController {
 
                 const SizedBox(height: 16),
 
+                // Final Cost input (Optional)
+                Row(
+                  children: [
+                    Text(
+                      'Final Cost (Optional)'.tr,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '(৳)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Enter total amount paid (helps calculate fair price range)'.tr,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: costController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    prefixIcon: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                      child: const Text(
+                        '৳',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                    hintText: 'e.g. 500'.tr,
+                    hintStyle: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade400,
+                    ),
+                    fillColor: Colors.grey.shade50,
+                    filled: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey.shade300),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
                 // Comment input
                 Text(
                   'Write a Review (Optional)'.tr,
@@ -564,11 +636,14 @@ class SeekerBookingsController extends GetxController {
                                     );
                                     return;
                                   }
+                                  final int? finalCost =
+                                      int.tryParse(costController.text.trim());
                                   await submitReview(
                                     bookingId: bookingId,
                                     rating: selectedRating.value,
                                     comment: commentController.text,
                                     isAnonymous: isAnonymous.value,
+                                    finalCost: finalCost,
                                   );
                                 },
                           style: ElevatedButton.styleFrom(
