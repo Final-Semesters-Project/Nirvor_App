@@ -31,6 +31,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
 
   int selectedRating = 0;
   final TextEditingController commentController = TextEditingController();
+  final TextEditingController costController = TextEditingController();
   bool isAnonymous = true;
   bool isSubmitting = false;
 
@@ -50,6 +51,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
   @override
   void dispose() {
     commentController.dispose();
+    costController.dispose();
     super.dispose();
   }
 
@@ -83,12 +85,15 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
 
     setState(() => isSubmitting = true);
     try {
-      final body = {
+      final int? finalCost = int.tryParse(costController.text.trim());
+      final body = <String, dynamic>{
         "booking_id": bookingId,
         "rating": selectedRating,
         if (commentController.text.trim().isNotEmpty)
           "comment": commentController.text.trim(),
         "is_anonymous": isAnonymous,
+        if (finalCost != null && finalCost > 0)
+          "final_cost": finalCost,
       };
 
       final response = await ApiClient.postData(ApiUrl.reviews, body);
@@ -256,7 +261,89 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // Final Cost Card (Optional)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Final Cost (Optional)'.tr,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '(৳)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Enter total amount paid (helps calculate fair price range)'.tr,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: costController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      prefixIcon: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        child: const Text(
+                          '৳',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                      hintText: 'e.g. 500'.tr,
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade400,
+                      ),
+                      fillColor: Colors.grey.shade50,
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
 
             // Comment Box
             Container(
