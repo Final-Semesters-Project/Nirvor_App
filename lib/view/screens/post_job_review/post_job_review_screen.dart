@@ -396,11 +396,12 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
             const SizedBox(height: 16),
 
             // Anonymous Switch
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.grey.shade200),
+                side: BorderSide(color: Colors.grey.shade200),
               ),
               child: CheckboxListTile(
                 contentPadding:

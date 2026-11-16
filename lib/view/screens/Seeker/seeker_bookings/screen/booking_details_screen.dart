@@ -595,6 +595,30 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                                       ],
                                     ),
 
+                                    // Estimated Cost (if provider has cost range)
+                                    if (provider != null &&
+                                        provider.hasCostRange) ...[
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.payments_outlined,
+                                            size: 13,
+                                            color: Color(0xFF16A34A),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${'Est. Cost'.tr}: ৳${provider.costRangeMin} - ৳${provider.costRangeMax}',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF15803D),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+
                                     const SizedBox(height: 4),
 
                                     // Phone number

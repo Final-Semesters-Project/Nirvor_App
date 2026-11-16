@@ -84,6 +84,17 @@ class AppTranslate extends Translations {
           'Reason must be at least 5 characters',
       'Reported user ID not found. Cannot submit report.':
           'Reported user ID not found. Cannot submit report.',
+      'Final Cost (Optional)': 'Final Cost (Optional)',
+      'Enter total amount paid (helps calculate fair price range)':
+          'Enter total amount paid (helps calculate fair price range)',
+      'e.g. 500': 'e.g. 500',
+      'Estimated Cost': 'Estimated Cost',
+      'Est. Cost': 'Est. Cost',
+      'Based on': 'Based on',
+      'recent jobs': 'recent jobs',
+      'Calculated from completed bookings': 'Calculated from completed bookings',
+      'jobs completed. Needs 3 jobs for cost estimate.':
+          'jobs completed. Needs 3 jobs for cost estimate.',
 
       // Welcome Screen
       'Welcome': 'Welcome',
@@ -694,6 +705,17 @@ class AppTranslate extends Translations {
           'রিপোর্টের কারণ কমপক্ষে ৫ অক্ষরের হতে হবে',
       'Reported user ID not found. Cannot submit report.':
           'ব্যবহারকারীর আইডি পাওয়া যায়নি। রিপোর্ট জমা দেওয়া সম্ভব নয়।',
+      'Final Cost (Optional)': 'চূড়ান্ত খরচ (ঐচ্ছিক)',
+      'Enter total amount paid (helps calculate fair price range)':
+          'পরিশোধিত মোট টাকা লিখুন (ন্যায্য সেবামূল্য নির্ধারণে সাহায্য করে)',
+      'e.g. 500': 'যেমন: ৫০০',
+      'Estimated Cost': 'আনুমানিক খরচ',
+      'Est. Cost': 'আনুমানিক খরচ',
+      'Based on': 'ভিত্তি:',
+      'recent jobs': 'টি কাজের অভিজ্ঞতা',
+      'Calculated from completed bookings': 'সম্পন্ন বুকিং থেকে নির্ধারিত',
+      'jobs completed. Needs 3 jobs for cost estimate.':
+          'টি কাজ সম্পন্ন। খরচের আনুমানিক হিসাব পেতে কমপক্ষে ৩টি কাজ প্রয়োজন।',
 
       // Welcome Screen
       'Welcome': 'স্বাগতম',
