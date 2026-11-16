@@ -263,6 +263,11 @@ class PublicProviderModel {
   final String? aiReviewSummary;
   final List<PublicProviderSkill> skills;
   final DateTime? lastActiveAt;
+  final int? costRangeMin;
+  final int? costRangeMax;
+  final int costSampleCount;
+
+  bool get hasCostRange => costRangeMin != null && costRangeMax != null;
 
   PublicProviderModel({
     required this.userId,
@@ -276,10 +281,14 @@ class PublicProviderModel {
     this.aiReviewSummary,
     required this.skills,
     this.lastActiveAt,
+    this.costRangeMin,
+    this.costRangeMax,
+    this.costSampleCount = 0,
   });
 
   bool get isVerified =>
       verificationLevel.toLowerCase() == 'verified' ||
+      verificationLevel.toLowerCase() == 'trusted' ||
       verificationLevel.toLowerCase() == 'nid';
 
   factory PublicProviderModel.fromJson(Map<String, dynamic> json) {
@@ -302,6 +311,15 @@ class PublicProviderModel {
       lastActiveAt: json['last_active_at'] != null
           ? DateTime.tryParse(json['last_active_at'].toString())
           : null,
+      costRangeMin: json['cost_range_min'] is num
+          ? (json['cost_range_min'] as num).toInt()
+          : int.tryParse(json['cost_range_min']?.toString() ?? ''),
+      costRangeMax: json['cost_range_max'] is num
+          ? (json['cost_range_max'] as num).toInt()
+          : int.tryParse(json['cost_range_max']?.toString() ?? ''),
+      costSampleCount: json['cost_sample_count'] is num
+          ? (json['cost_sample_count'] as num).toInt()
+          : int.tryParse(json['cost_sample_count']?.toString() ?? '0') ?? 0,
     );
   }
 }

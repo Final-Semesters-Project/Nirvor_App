@@ -321,18 +321,18 @@ class SeekerBookingsController extends GetxController {
     final RxBool isAnonymous = true.obs;
 
     Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+      Material(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: SafeArea(
-          bottom: true,
-          child: SingleChildScrollView(
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: SafeArea(
+            bottom: true,
+            child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,11 +571,12 @@ class SeekerBookingsController extends GetxController {
                 const SizedBox(height: 12),
 
                 // Anonymous checkbox
-                Obx(() => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
+                Obx(() => Material(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade200),
+                        side: BorderSide(color: Colors.grey.shade200),
                       ),
                       child: CheckboxListTile(
                         contentPadding:
@@ -681,9 +682,10 @@ class SeekerBookingsController extends GetxController {
           ),
         ),
       ),
-      isScrollControlled: true,
-    );
-  }
+    ),
+    isScrollControlled: true,
+  );
+}
 
   /// Cancel booking: PATCH /api/v1/bookings/{booking_id}/respond (hired: false)
   Future<void> cancelBooking(String bookingId) async {

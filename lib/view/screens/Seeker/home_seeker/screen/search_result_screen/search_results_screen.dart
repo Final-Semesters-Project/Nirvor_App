@@ -705,6 +705,44 @@ class SearchResultsScreen extends StatelessWidget {
                                         ),
                                       ],
                                     ),
+
+                                    // Estimated Cost Range (if available from recent jobs)
+                                    if (provider.hasCostRange) ...[
+                                      const SizedBox(height: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 2.5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF0FDF4),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          border: Border.all(
+                                            color: const Color(0xFFBBF7D0),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.payments_outlined,
+                                              size: 13,
+                                              color: Color(0xFF16A34A),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${'Est. Cost'.tr}: ৳${provider.costRangeMin} - ৳${provider.costRangeMax}',
+                                              style: const TextStyle(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF15803D),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),

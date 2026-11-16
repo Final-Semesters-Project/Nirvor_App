@@ -125,6 +125,13 @@ class _ProviderPublicDetailsScreenState
             ? publicProfile.skills.map((s) => s.name).toList()
             : (widget.providerModel?.skillNames ?? []);
 
+        final int? costMin =
+            publicProfile?.costRangeMin ?? widget.providerModel?.costRangeMin;
+        final int? costMax =
+            publicProfile?.costRangeMax ?? widget.providerModel?.costRangeMax;
+        final int sampleCount = publicProfile?.costSampleCount ?? 0;
+        final bool hasCost = costMin != null && costMax != null;
+
         return RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () async {
@@ -405,6 +412,113 @@ class _ProviderPublicDetailsScreenState
                           ],
                         ],
                       ),
+
+                      // Estimated Cost Range (based on completed job samples)
+                      if (hasCost) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(10),
+                            border:
+                                Border.all(color: const Color(0xFFBBF7D0)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDCFCE7),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.payments_rounded,
+                                  size: 20,
+                                  color: Color(0xFF16A34A),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Estimated Cost'.tr,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF15803D),
+                                          ),
+                                        ),
+                                        Text(
+                                          '৳$costMin - ৳$costMax',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF14532D),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      sampleCount > 0
+                                          ? '${'Based on'.tr} $sampleCount ${'recent jobs'.tr}'
+                                          : 'Calculated from completed bookings'
+                                              .tr,
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ] else if (sampleCount > 0) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border:
+                                Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline,
+                                  size: 15, color: Colors.grey.shade600),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '$sampleCount/3 ${'jobs completed. Needs 3 jobs for cost estimate.'.tr}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                       // Phone Number section (if available)
                       if (phone.isNotEmpty) ...[

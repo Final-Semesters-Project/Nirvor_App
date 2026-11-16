@@ -13,6 +13,10 @@ class ProviderModel {
   final double latitude;
   final double longitude;
   final String? lastActiveAt;
+  final int? costRangeMin;
+  final int? costRangeMax;
+
+  bool get hasCostRange => costRangeMin != null && costRangeMax != null;
 
   ProviderModel({
     required this.userId,
@@ -29,6 +33,8 @@ class ProviderModel {
     required this.latitude,
     required this.longitude,
     this.lastActiveAt,
+    this.costRangeMin,
+    this.costRangeMax,
   });
 
   factory ProviderModel.fromJson(Map<String, dynamic> json) {
@@ -49,6 +55,12 @@ class ProviderModel {
       latitude: (json['latitude'] ?? 0).toDouble(),
       longitude: (json['longitude'] ?? 0).toDouble(),
       lastActiveAt: json['last_active_at']?.toString(),
+      costRangeMin: json['cost_range_min'] is num
+          ? (json['cost_range_min'] as num).toInt()
+          : int.tryParse(json['cost_range_min']?.toString() ?? ''),
+      costRangeMax: json['cost_range_max'] is num
+          ? (json['cost_range_max'] as num).toInt()
+          : int.tryParse(json['cost_range_max']?.toString() ?? ''),
     );
   }
 }
