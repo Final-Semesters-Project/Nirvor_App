@@ -25,15 +25,26 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
       ),
     );
 
-    final controller = Get.put(
-      ProviderUrgentAlertController(
-        broadcastId: broadcastId,
-        initialSkillName: skillName,
-      ),
-      tag: broadcastId,
-    );
+    final controller =
+        Get.isRegistered<ProviderUrgentAlertController>(tag: broadcastId)
+            ? Get.find<ProviderUrgentAlertController>(tag: broadcastId)
+            : Get.put(
+                ProviderUrgentAlertController(
+                  broadcastId: broadcastId,
+                  initialSkillName: skillName,
+                ),
+                tag: broadcastId,
+              );
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          controller.cleanup();
+          Get.delete<ProviderUrgentAlertController>(tag: broadcastId);
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF900C0C), // Deep crimson red background
       body: SafeArea(
         child: Obx(() {
@@ -353,6 +364,7 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
           );
         }),
       ),
+    ),
     );
   }
 }

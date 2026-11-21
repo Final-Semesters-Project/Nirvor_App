@@ -668,10 +668,80 @@ class _UrgentRequestFlowScreenState extends State<UrgentRequestFlowScreen>
                 height: 1.4,
               ),
             ),
+            const SizedBox(height: 24),
+
+            // Cancel Broadcast Button
+            Obx(
+              () => SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: controller.isCancelling.value
+                      ? null
+                      : () => _showCancelDialog(context),
+                  icon: controller.isCancelling.value
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFFE53935),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.close_rounded,
+                          color: Color(0xFFE53935),
+                          size: 20,
+                        ),
+                  label: Text(
+                    controller.isCancelling.value
+                        ? 'Cancelling...'.tr
+                        : 'Cancel Request'.tr,
+                    style: const TextStyle(
+                      color: Color(0xFFE53935),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(
+                      color: Color(0xFFE53935),
+                      width: 1.2,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor:
+                        const Color(0xFFE53935).withValues(alpha: 0.04),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
           ],
         ),
       ),
+    );
+  }
+
+  void _showCancelDialog(BuildContext context) {
+    Get.defaultDialog(
+      title: 'Cancel Urgent Request?'.tr,
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+      middleText:
+          'Are you sure you want to cancel this request? Nearby providers will not be notified.'
+              .tr,
+      middleTextStyle:
+          TextStyle(color: Colors.grey.shade700, fontSize: 13, height: 1.4),
+      textConfirm: 'Yes, Cancel'.tr,
+      textCancel: 'Keep Searching'.tr,
+      confirmTextColor: Colors.white,
+      buttonColor: const Color(0xFFE53935),
+      cancelTextColor: Colors.grey.shade700,
+      onConfirm: () async {
+        Get.back(); // close dialog
+        await controller.cancelBroadcast();
+      },
     );
   }
 

@@ -86,6 +86,8 @@ class ApiUrl {
       "/urgentBroadcast/broadcast/$broadcastId";
   static String claimUrgentBroadcast(String broadcastId) =>
       "/urgentBroadcast/broadcast/$broadcastId/claim";
+  static String cancelUrgentBroadcast(String broadcastId) =>
+      "/urgentBroadcast/broadcast/$broadcastId/cancel";
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";

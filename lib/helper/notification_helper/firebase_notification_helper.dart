@@ -18,6 +18,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FirebaseNotificationHelper {
+  /// Stores cold-start notification data until SplashController has navigated to home screen
+  static Map<String, dynamic>? pendingNotificationData;
+
   static Future<void> init() async {
     try {
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -54,9 +57,7 @@ class FirebaseNotificationHelper {
           .then((RemoteMessage? message) {
         if (message != null) {
           debugPrint("FCM getInitialMessage data: ${message.data}");
-          Future.delayed(const Duration(milliseconds: 700), () {
-            handleNotificationRouting(message.data);
-          });
+          pendingNotificationData = message.data;
         }
       });
 
@@ -236,7 +237,8 @@ class FirebaseNotificationHelper {
         broadcastId: broadcastId,
         skillName: skillName,
       ),
-      preventDuplicates: false,
+      routeName: '/ProviderUrgentAlertScreen_$broadcastId',
+      preventDuplicates: true,
     );
   }
 }
