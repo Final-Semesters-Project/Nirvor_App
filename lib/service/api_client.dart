@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -19,6 +20,103 @@ class ApiClient extends GetxService {
   static const int timeoutInSeconds = 30;
 
   static String bearerToken =  "zI0NTAwODI4fQ.dTr7dcjgfk9ChQ2oZQ39MGZBQSntiT8YjvZTZowUXas";
+
+  // Mutex lock to ensure only one refresh request runs at a time
+  static bool _isRefreshing = false;
+  static Completer<bool>? _refreshCompleter;
+
+  static bool isAuthEndpoint(String uri) {
+    return uri.contains(ApiUrl.signIn) ||
+        uri.contains(ApiUrl.signUpSeeker) ||
+        uri.contains(ApiUrl.signUpProvider) ||
+        uri.contains(ApiUrl.refreshToken) ||
+        uri.contains(ApiUrl.verificationOtp) ||
+        uri.contains(ApiUrl.verificationOtpForgetPass) ||
+        uri.contains(ApiUrl.newPassword) ||
+        uri.contains(ApiUrl.forgotPassword);
+  }
+
+  /// Silently refresh the access token using the stored refresh token
+  static Future<bool> refreshToken() async {
+    if (_isRefreshing) {
+      return _refreshCompleter?.future ?? Future.value(false);
+    }
+
+    _isRefreshing = true;
+    _refreshCompleter = Completer<bool>();
+
+    try {
+      final storedRefreshToken =
+          await SharePrefsHelper.getString(AppConstants.refreshToken);
+      if (storedRefreshToken.isEmpty) {
+        debugPrint("===> [ApiClient] No refresh token found in storage.");
+        if (!_refreshCompleter!.isCompleted) _refreshCompleter!.complete(false);
+        return false;
+      }
+
+      debugPrint("===> [ApiClient] Attempting silent token refresh via ${ApiUrl.refreshToken}...");
+
+      final refreshHeaders = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': DeviceHelper.userAgent,
+        'X-Staging-Key': ApiUrl.stagingApiKey,
+      };
+
+      final response = await client
+          .post(
+            Uri.parse(ApiUrl.baseUrl + ApiUrl.refreshToken),
+            headers: refreshHeaders,
+            body: jsonEncode({"refresh_token": storedRefreshToken}),
+          )
+          .timeout(const Duration(seconds: timeoutInSeconds));
+
+      debugPrint("====> Refresh API Response: [${response.statusCode}]\n${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map && data['access_token'] != null) {
+          final newAccessToken = data['access_token'].toString();
+          final formattedBearer = newAccessToken.startsWith('Bearer ')
+              ? newAccessToken
+              : 'Bearer $newAccessToken';
+
+          await SharePrefsHelper.setString(AppConstants.bearerToken, formattedBearer);
+          bearerToken = formattedBearer;
+
+          if (data['refresh_token'] != null) {
+            await SharePrefsHelper.setString(
+              AppConstants.refreshToken,
+              data['refresh_token'].toString(),
+            );
+          }
+
+          if (data['role'] != null) {
+            await SharePrefsHelper.setString(
+              AppConstants.role,
+              data['role'].toString(),
+            );
+          }
+
+          debugPrint("===> [ApiClient] Silent token refresh SUCCESS!");
+          if (!_refreshCompleter!.isCompleted) _refreshCompleter!.complete(true);
+          return true;
+        }
+      }
+
+      debugPrint("===> [ApiClient] Silent token refresh FAILED with status ${response.statusCode}");
+      if (!_refreshCompleter!.isCompleted) _refreshCompleter!.complete(false);
+      return false;
+    } catch (e) {
+      debugPrint("===> [ApiClient] Exception during token refresh: $e");
+      if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+        _refreshCompleter!.complete(false);
+      }
+      return false;
+    } finally {
+      _isRefreshing = false;
+    }
+  }
 
   static Future<Response> getData(
     String uri, {
@@ -45,6 +143,17 @@ class ApiClient extends GetxService {
       http.Response response = await client
           .get(Uri.parse(ApiUrl.baseUrl + uri), headers: mainHeaders)
           .timeout(const Duration(seconds: timeoutInSeconds));
+
+      if (response.statusCode == 401 && !isAuthEndpoint(uri)) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          mainHeaders['Authorization'] = bearerToken;
+          response = await client
+              .get(Uri.parse(ApiUrl.baseUrl + uri), headers: mainHeaders)
+              .timeout(const Duration(seconds: timeoutInSeconds));
+        }
+      }
+
       return handleResponse(response, uri);
     } catch (e) {
       debugPrint('------------${e.toString()}');
@@ -90,6 +199,21 @@ class ApiClient extends GetxService {
             headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
+
+      if (response.statusCode == 401 && !isAuthEndpoint(uri)) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          mainHeaders['Authorization'] = bearerToken;
+          response = await client
+              .post(
+                Uri.parse(ApiUrl.baseUrl + uri),
+                body: isContentType ? jsonEncode(body) : body,
+                headers: mainHeaders,
+              )
+              .timeout(const Duration(seconds: timeoutInSeconds));
+        }
+      }
+
       return handleResponse(response, uri);
     } catch (e, s) {
       debugPrint('Error------------${e.toString()}');
@@ -137,6 +261,21 @@ class ApiClient extends GetxService {
             headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
+
+      if (response.statusCode == 401 && !isAuthEndpoint(uri)) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          mainHeaders['Authorization'] = bearerToken;
+          response = await client
+              .patch(
+                Uri.parse(ApiUrl.baseUrl + uri),
+                body: isContentType ? jsonEncode(body) : body,
+                headers: mainHeaders,
+              )
+              .timeout(const Duration(seconds: timeoutInSeconds));
+        }
+      }
+
       return handleResponse(response, uri);
     } catch (e) {
       debugPrint('------------${e.toString()}');
@@ -174,6 +313,21 @@ class ApiClient extends GetxService {
             headers: mainHeaders,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
+
+      if (response.statusCode == 401 && !isAuthEndpoint(uri)) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          mainHeaders['Authorization'] = bearerToken;
+          response = await http
+              .put(
+                Uri.parse(ApiUrl.baseUrl + uri),
+                body: jsonEncode(body),
+                headers: mainHeaders,
+              )
+              .timeout(const Duration(seconds: timeoutInSeconds));
+        }
+      }
+
       return handleResponse(response, uri);
     } catch (e) {
       return const Response(statusCode: 1, statusText: somethingWentWrong);
@@ -435,6 +589,21 @@ class ApiClient extends GetxService {
             body: body,
           )
           .timeout(const Duration(seconds: timeoutInSeconds));
+
+      if (response.statusCode == 401 && !isAuthEndpoint(uri)) {
+        final refreshed = await refreshToken();
+        if (refreshed) {
+          mainHeaders['Authorization'] = bearerToken;
+          response = await http
+              .delete(
+                Uri.parse(ApiUrl.baseUrl + uri),
+                headers: mainHeaders,
+                body: body,
+              )
+              .timeout(const Duration(seconds: timeoutInSeconds));
+        }
+      }
+
       return handleResponse(response, uri);
     } catch (e) {
       return const Response(statusCode: 1, statusText: somethingWentWrong);
@@ -489,12 +658,9 @@ class ApiClient extends GetxService {
       '====> API Response: [${response0.statusCode}] $uri\n${response0.body}',
     );
 
-    // Auto-handle 401 Unauthorized / Token Expired across the app (excluding login/register attempts)
+    // Auto-handle 401 Unauthorized / Token Expired across the app (excluding auth endpoints)
     if (response0.statusCode == 401) {
-      bool isAuthEndpoint = uri.contains(ApiUrl.signIn) ||
-          uri.contains(ApiUrl.signUpSeeker) ||
-          uri.contains(ApiUrl.signUpProvider);
-      if (!isAuthEndpoint) {
+      if (!isAuthEndpoint(uri)) {
         ApiChecker.handleSessionExpired();
       }
     }

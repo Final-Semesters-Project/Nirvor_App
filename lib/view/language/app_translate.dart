@@ -508,10 +508,13 @@ class AppTranslate extends Translations {
 
       // Review & Rating
       'Rate & Review Provider': 'Rate & Review Provider',
+      'Rate & Review Seeker': 'Rate & Review Seeker',
       'Rate your service': 'Rate your service',
       'How was your experience with': 'How was your experience with',
       'How was your experience with the provider?':
           'How was your experience with the provider?',
+      'How was your experience with the seeker?':
+          'How was your experience with the seeker?',
       'How was your overall experience?': 'How was your overall experience?',
       'Write a Review (Optional)': 'Write a Review (Optional)',
       'Share details of your experience with this service...':
@@ -542,6 +545,7 @@ class AppTranslate extends Translations {
           'Thank you! Your review has been submitted.',
       'Could not submit review': 'Could not submit review',
       'You have reviewed this provider': 'You have reviewed this provider',
+      'You have reviewed this seeker': 'You have reviewed this seeker',
       'You have already reviewed this booking': 'You have already reviewed this booking',
       'Post-Job Review': 'Post-Job Review',
       'Booking ID missing': 'Booking ID missing',
@@ -1129,10 +1133,13 @@ class AppTranslate extends Translations {
 
       // Review & Rating
       'Rate & Review Provider': 'প্রোভাইডারকে রেটিং ও রিভিউ দিন',
+      'Rate & Review Seeker': 'গ্রাহককে রেটিং ও রিভিউ দিন',
       'Rate your service': 'কাজের মূল্যায়ন করুন',
       'How was your experience with': 'কেমন ছিল আপনার অভিজ্ঞতা',
       'How was your experience with the provider?':
           'প্রোভাইডারের সাথে আপনার কাজের অভিজ্ঞতা কেমন ছিল?',
+      'How was your experience with the seeker?':
+          'গ্রাহকের সাথে আপনার কাজের অভিজ্ঞতা কেমন ছিল?',
       'How was your overall experience?': 'সার্বিক অভিজ্ঞতা কেমন ছিল?',
       'Write a Review (Optional)': 'মন্তব্য লিখুন (ঐচ্ছিক)',
       'Share details of your experience with this service...':
@@ -1163,6 +1170,7 @@ class AppTranslate extends Translations {
           'ধন্যবাদ! আপনার রিভিউ সফলভাবে জমা হয়েছে।',
       'Could not submit review': 'রিভিউ জমা দেওয়া যায়নি',
       'You have reviewed this provider': 'আপনি এই প্রোভাইডারকে মূল্যায়ন করেছেন',
+      'You have reviewed this seeker': 'আপনি এই গ্রাহককে মূল্যায়ন করেছেন',
       'You have already reviewed this booking': 'আপনি ইতিমধ্যে এই কাজের রিভিউ জমা দিয়েছেন',
       'Post-Job Review': 'কাজের পরবর্তী রিভিউ',
       'Booking ID missing': 'বুকিং আইডি পাওয়া যায়নি',

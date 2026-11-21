@@ -10,18 +10,19 @@ class ApiUrl {
       "apikeytoidentifyiftherequestiscomingfromfrontendteam";
 
   //   Seeker:
-  // phone=01700000002
-  // password=password123
+  // phone=01500000001
+  // password=123456789
 
   // Provider:
-  // phone=01800000001 , 18,17
-  // password=password123 , 1-9
+  // phone=01600000001 , 
+  // password=123456789 , 
 
   ///========================= Authentication =========================
   static const String signUpSeeker = "/auth/register/seeker";
   static const String signUpProvider = "/auth/register/provider";
   static const String signIn = "/auth/login";
   static const String signOut = "/auth/logout";
+  static const String refreshToken = "/auth/refresh";
   static const String verificationOtp = "/auth/verify-signup-otp";
   static const String forgotPassword = "/auth/forgot-password";
   static const String verificationOtpForgetPass = "/auth/verify-reset-otp";

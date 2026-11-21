@@ -8,6 +8,7 @@ import '../../../../../utils/ToastMsg/toast_message.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../model/seeker_booking_model.dart';
 import '../screen/booking_details_screen.dart';
+import '../../../../components/provider_reviews_widget/provider_reviews_widget.dart';
 
 class SeekerBookingsController extends GetxController {
   final ScrollController scrollController = ScrollController();
@@ -33,6 +34,7 @@ class SeekerBookingsController extends GetxController {
 
   // Review state
   var isSubmittingReview = false.obs;
+  final RxInt reviewsRefreshTrigger = 0.obs;
   // In-memory session tracking for instant UI updates when user submits a review
   final RxSet<String> reviewedBookingIds = <String>{}.obs;
 
@@ -281,11 +283,21 @@ class SeekerBookingsController extends GetxController {
           "Thank you! Your review has been submitted.".tr,
           isError: false,
         );
-        // Refresh provider public profile to update average rating
-        if (singleBookingDetail.value?.providerId != null) {
-          await fetchProviderPublicProfile(
-              singleBookingDetail.value!.providerId!);
+
+        final targetProviderId = singleBookingDetail.value?.providerId ??
+            providerPublicProfile.value?.userId;
+
+        // Trigger immediate live refresh for reviews
+        reviewsRefreshTrigger.value++;
+        ProviderReviewsWidget.triggerRefresh(targetProviderId);
+
+        // Refresh provider public profile to update average rating & total reviews
+        if (targetProviderId != null && targetProviderId.isNotEmpty) {
+          await fetchProviderPublicProfile(targetProviderId);
         }
+
+        // Refresh booking details so review button / banner updates
+        await fetchBookingDetail(bookingId);
       } else {
         String msg = "Could not submit review".tr;
         if (response.body is Map && response.body['detail'] != null) {
@@ -321,22 +333,30 @@ class SeekerBookingsController extends GetxController {
     final RxBool isAnonymous = true.obs;
 
     Get.bottomSheet(
-      Material(
-        color: Colors.white,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: SafeArea(
-            bottom: true,
-            child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      SafeArea(
+        top: true,
+        bottom: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(Get.context!).size.height * 0.88,
+          ),
+          child: Material(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: SafeArea(
+                top: false,
+                bottom: true,
+                child: SingleChildScrollView(
+                  child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 Center(
                   child: Container(
                     width: 40,
@@ -573,11 +593,11 @@ class SeekerBookingsController extends GetxController {
                 // Anonymous checkbox
                 Obx(() => Material(
                       color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                         side: BorderSide(color: Colors.grey.shade200),
                       ),
+                      clipBehavior: Clip.antiAlias,
                       child: CheckboxListTile(
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 10),
@@ -683,7 +703,10 @@ class SeekerBookingsController extends GetxController {
         ),
       ),
     ),
+    ),
+    ),
     isScrollControlled: true,
+    ignoreSafeArea: false,
   );
 }
 

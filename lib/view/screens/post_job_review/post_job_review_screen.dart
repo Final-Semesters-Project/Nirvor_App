@@ -6,6 +6,7 @@ import '../../../utils/ToastMsg/toast_message.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../../components/custom_netwrok_image/custom_network_image.dart';
 import '../../components/custom_royel_appbar/custom_royel_appbar.dart';
+import '../../components/provider_reviews_widget/provider_reviews_widget.dart';
 import '../Seeker/seeker_bookings/controller/seeker_bookings_controller.dart';
 
 class PostJobReviewScreen extends StatefulWidget {
@@ -100,8 +101,11 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         if (Get.isRegistered<SeekerBookingsController>()) {
-          Get.find<SeekerBookingsController>().markBookingAsReviewed(bookingId);
+          final sController = Get.find<SeekerBookingsController>();
+          sController.markBookingAsReviewed(bookingId);
+          sController.reviewsRefreshTrigger.value++;
         }
+        ProviderReviewsWidget.triggerRefresh();
         showCustomSnackBar(
           "Thank you! Your review has been submitted.".tr,
           isError: false,

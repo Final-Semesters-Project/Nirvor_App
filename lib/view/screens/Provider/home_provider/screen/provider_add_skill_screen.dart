@@ -311,7 +311,9 @@ class ProviderAddSkillScreen extends StatelessWidget {
         child: SafeArea(
           child: Obx(
             () => CustomButton(
-              onTap: controller.isSubmitting.value ? () {} : controller.submitSkills,
+              onTap: controller.isSubmitting.value
+                  ? () {}
+                  : () => controller.submitSkills(context),
               title: controller.isSubmitting.value
                   ? 'Saving...'.tr
                   : controller.selectedSkillIds.isNotEmpty

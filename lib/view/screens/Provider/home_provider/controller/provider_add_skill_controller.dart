@@ -108,10 +108,10 @@ class ProviderAddSkillController extends GetxController {
   }
 
   /// Submit newly selected skills to backend
-  Future<void> submitSkills() async {
+  Future<bool> submitSkills([BuildContext? context]) async {
     if (selectedSkillIds.isEmpty) {
       showCustomSnackBar("Please select at least one skill".tr);
-      return;
+      return false;
     }
 
     isSubmitting.value = true;
@@ -126,20 +126,30 @@ class ProviderAddSkillController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        showCustomSnackBar("Skills added successfully".tr, isError: false);
-
         // Refresh provider dashboard
         if (Get.isRegistered<ProviderHomeController>()) {
           Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
         }
 
-        Get.back();
+        // Close screen safely before opening snackbar to prevent GetX snackbar interception
+        if (context != null && Navigator.canPop(context)) {
+          Navigator.pop(context);
+        } else if (Get.key.currentState?.canPop() ?? false) {
+          Get.key.currentState?.pop();
+        } else {
+          Get.back();
+        }
+
+        showCustomSnackBar("Skills added successfully".tr, isError: false);
+        return true;
       } else {
         ApiChecker.checkApi(response);
+        return false;
       }
     } catch (e) {
       debugPrint("Error adding skills: $e");
       showCustomSnackBar("Something went wrong".tr);
+      return false;
     } finally {
       isSubmitting.value = false;
     }
