@@ -137,6 +137,7 @@ class _ProviderPublicDetailsScreenState
           onRefresh: () async {
             if (widget.providerId.isNotEmpty) {
               await controller.fetchPublicProviderProfile(widget.providerId);
+              ProviderReviewsWidget.triggerRefresh(widget.providerId);
             }
           },
           child: SingleChildScrollView(

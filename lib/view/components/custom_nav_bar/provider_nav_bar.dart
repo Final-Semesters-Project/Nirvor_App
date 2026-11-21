@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../service/api_check.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../../screens/Provider/home_provider/screen/provider_home_screen.dart';
 import '../../screens/Provider/provider_profile/provider_profile_screen.dart';
@@ -118,6 +119,9 @@ class _ProviderNavBarState extends State<ProviderNavBar> {
   }
 
   void onTap(int index) {
+    if (ApiChecker.isSessionExpiredHandling) {
+      return; // Do not allow switching tabs when session expired modal is active
+    }
     if (index != bottomNavIndex) {
       setState(() {
         bottomNavIndex = index;

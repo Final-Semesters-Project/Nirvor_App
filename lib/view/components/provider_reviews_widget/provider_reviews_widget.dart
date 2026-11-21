@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../model/review_model.dart';
@@ -9,6 +10,16 @@ class ProviderReviewsWidget extends StatefulWidget {
   final String providerId;
   final bool showHeader;
   final EdgeInsetsGeometry? margin;
+
+  /// Global signal to notify all mounted ProviderReviewsWidgets to reload reviews
+  static final RxInt refreshSignal = 0.obs;
+  static String? _targetProviderId;
+
+  /// Trigger a live refresh on mounted review widgets
+  static void triggerRefresh([String? providerId]) {
+    _targetProviderId = providerId;
+    refreshSignal.value++;
+  }
 
   const ProviderReviewsWidget({
     super.key,
@@ -25,11 +36,26 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
   bool _isLoading = true;
   List<ReviewItemModel> _reviews = [];
   int _total = 0;
+  StreamSubscription? _refreshSub;
 
   @override
   void initState() {
     super.initState();
     fetchReviews();
+    _refreshSub = ProviderReviewsWidget.refreshSignal.listen((_) {
+      if (mounted) {
+        if (ProviderReviewsWidget._targetProviderId == null ||
+            ProviderReviewsWidget._targetProviderId == widget.providerId) {
+          fetchReviews(showLoadingIndicator: false);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -40,13 +66,15 @@ class ProviderReviewsWidgetState extends State<ProviderReviewsWidget> {
     }
   }
 
-  Future<void> fetchReviews() async {
+  Future<void> fetchReviews({bool showLoadingIndicator = true}) async {
     if (widget.providerId.isEmpty) {
       if (mounted) setState(() => _isLoading = false);
       return;
     }
 
-    if (mounted) setState(() => _isLoading = true);
+    if (showLoadingIndicator && _reviews.isEmpty && mounted) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final response = await ApiClient.getData(

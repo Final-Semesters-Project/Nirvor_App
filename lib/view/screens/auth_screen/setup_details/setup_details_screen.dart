@@ -444,31 +444,48 @@ class SetupDetailsScreen extends StatelessWidget {
                   ),
                   Obx(
                     () => Slider(
-                      value: authController.workRadius.value,
+                      value: authController.workRadius.value.clamp(1.0, 5.0),
                       min: 1,
                       max: 5,
+                      divisions: 4,
+                      label: '${authController.workRadius.value.toInt()} KM',
                       activeColor: AppColors.primary,
                       inactiveColor: Colors.grey.shade300,
                       onChanged: (val) {
-                        authController.workRadius.value = val;
+                        authController.workRadius.value = val.roundToDouble();
                       },
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(
-                        text: '1 KM'.tr,
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
+                  Obx(() {
+                    final bool isBn = Get.locale?.languageCode == 'bn';
+                    final currentVal = authController.workRadius.value.toInt();
+                    Widget buildNum(int val, String text) {
+                      final isSelected = currentVal == val;
+                      return CustomText(
+                        text: text,
+                        fontSize: isSelected ? 13 : 12,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.grey.shade600,
+                      );
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          buildNum(1, isBn ? '১' : '1'),
+                          buildNum(2, isBn ? '২' : '2'),
+                          buildNum(3, isBn ? '৩' : '3'),
+                          buildNum(4, isBn ? '৪' : '4'),
+                          buildNum(5, isBn ? '৫' : '5'),
+                        ],
                       ),
-                      CustomText(
-                        text: '5 KM'.tr,
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ],
-                  ),
+                    );
+                  }),
                 ],
               ),
             ),

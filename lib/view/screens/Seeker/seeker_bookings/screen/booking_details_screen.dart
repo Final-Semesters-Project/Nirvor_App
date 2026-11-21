@@ -287,6 +287,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             if (detail.providerId != null) {
               await controller.fetchProviderPublicProfile(detail.providerId!);
             }
+            controller.reviewsRefreshTrigger.value++;
+            ProviderReviewsWidget.triggerRefresh(effectiveProviderId);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -1172,9 +1174,11 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
                 // Provider Customer Reviews Section (/api/v1/reviews/provider/{provider_id})
                 if (effectiveProviderId.isNotEmpty)
-                  ProviderReviewsWidget(
-                    providerId: effectiveProviderId,
-                  ),
+                  Obx(() => ProviderReviewsWidget(
+                        key: ValueKey(
+                            'reviews_${effectiveProviderId}_${controller.reviewsRefreshTrigger.value}'),
+                        providerId: effectiveProviderId,
+                      )),
 
                 const SizedBox(height: 30),
               ],

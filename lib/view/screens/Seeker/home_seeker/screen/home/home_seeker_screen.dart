@@ -312,27 +312,34 @@ class HomeSeekerScreen extends StatelessWidget {
                   final isSelected = selectedIndex == index;
                   final category = controller.categories[index];
                   return Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      showCheckmark: false,
-                      label: Text(category.name),
-                      selected: isSelected,
-                      onSelected: (bool selected) {
-                        if (selected) {
-                          controller.selectCategory(index);
-                        }
-                      },
-                      selectedColor: AppColors.primary,
-                      backgroundColor: Colors.white,
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
-                      ),
-                      shape: RoundedRectangleBorder(
+                    padding: const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => controller.selectCategory(index),
                         borderRadius: BorderRadius.circular(8.0),
-                        side: BorderSide(
-                          color: isSelected
-                              ? AppColors.primary
-                              : Colors.grey.shade300,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.primary : Colors.white,
+                            borderRadius: BorderRadius.circular(8.0),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                              width: 1.0,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            category.name,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                       ),
                     ),

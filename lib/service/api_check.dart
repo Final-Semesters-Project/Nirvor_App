@@ -32,14 +32,16 @@ class ApiChecker {
     }
   }
 
-  /// Called whenever a 401 Unauthorized / Token Expired response is received
+  /// Called whenever a 401 Unauthorized / Token Expired response is received and refresh token failed
   static void handleSessionExpired() {
     if (isSessionExpiredHandling) return;
     isSessionExpiredHandling = true;
 
     debugPrint("===> [ApiChecker] Token expired or 401 received. Handling session expiry...");
 
-    // Show a clean user-friendly dialog (industry standard approach)
+    final bool isBn = Get.locale?.languageCode == 'bn';
+
+    // Show an undismissible user-friendly dialog
     if (Get.context != null) {
       Get.dialog(
         PopScope(
@@ -54,7 +56,7 @@ class ApiChecker {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    "Session Expired".tr,
+                    isBn ? "সেশনের মেয়াদ শেষ" : "Session Expired",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -64,7 +66,9 @@ class ApiChecker {
               ],
             ),
             content: Text(
-              "Your login session has expired. Please log in again to continue.".tr,
+              isBn
+                  ? "আপনার লগইন সেশনের মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে অ্যাপটি ব্যবহার করতে পুনরায় লগইন করুন।"
+                  : "Your login session has expired. Please log in again to continue.",
               style: const TextStyle(fontSize: 14, color: Colors.black87),
             ),
             actions: [
@@ -80,7 +84,7 @@ class ApiChecker {
                   await forceLogout();
                 },
                 child: Text(
-                  "Login Again".tr,
+                  isBn ? "লগইন করুন" : "Login Again",
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -91,6 +95,7 @@ class ApiChecker {
           ),
         ),
         barrierDismissible: false,
+        barrierColor: Colors.black.withValues(alpha: 0.65),
       );
     } else {
       // If context is unavailable, immediately force logout

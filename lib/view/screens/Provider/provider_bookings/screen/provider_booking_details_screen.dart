@@ -616,7 +616,7 @@ class _ProviderBookingDetailsScreenState
 
                 const SizedBox(height: 20),
 
-                // 6. Completion Banner (Note: Provider cannot complete or review himself)
+                // 6. Completion Banner & Seeker Review Section
                 if (detail.isCompleted) ...[
                   Container(
                     width: double.infinity,
@@ -644,6 +644,67 @@ class _ProviderBookingDetailsScreenState
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  // Button to Leave Review (shown only if not already reviewed)
+                  if (controller.isBookingReviewed(
+                    detail.bookingId,
+                    backendHasReviewed: detail.hasReviewed,
+                  ))
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.amber.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star_rounded,
+                              color: Colors.amber.shade700, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'You have reviewed this seeker'.tr,
+                            style: TextStyle(
+                              color: Colors.amber.shade900,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () =>
+                            controller.showSeekerReviewBottomSheet(
+                          detail.bookingId,
+                          seekerName: customerName,
+                        ),
+                        icon: const Icon(Icons.star_rounded,
+                            size: 18, color: Colors.white),
+                        label: Text(
+                          'Rate & Review Seeker'.tr,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber.shade800,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
                 ] else if (detail.isCancelled) ...[
                   Container(
                     width: double.infinity,

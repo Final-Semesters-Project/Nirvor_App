@@ -23,6 +23,7 @@ class HomeSeekerController extends GetxController {
   final CustomInfoWindowController customInfoWindowController =
       CustomInfoWindowController();
   var selectedCategoryIndex = (-1).obs;
+  var currentCategoryId = 0.obs;
 
   var categories = <CategoryModel>[].obs;
   var skills = <SkillModel>[].obs;
@@ -127,9 +128,18 @@ class HomeSeekerController extends GetxController {
   }
 
   void selectCategory(int index) {
+    if (categories.isEmpty || index < 0 || index >= categories.length) return;
+
+    final bool isSameCategory = selectedCategoryIndex.value == index;
     selectedCategoryIndex.value = index;
-    if (categories.isNotEmpty) {
-      getSkills(categories[index].id);
+    final categoryId = categories[index].id;
+
+    // If the same category is clicked and skills for this category are already loaded,
+    // open the bottom sheet immediately without waiting for API
+    if (isSameCategory && skills.isNotEmpty && currentCategoryId.value == categoryId) {
+      _showSkillsBottomSheet();
+    } else {
+      getSkills(categoryId);
     }
   }
 
@@ -173,6 +183,7 @@ class HomeSeekerController extends GetxController {
   }
 
   Future<void> getSkills(int categoryId) async {
+    currentCategoryId.value = categoryId;
     isLoadingSkills.value = true;
     final response = await ApiClient.getData(
       ApiUrl.skillList(categoryId.toString()),
@@ -186,10 +197,17 @@ class HomeSeekerController extends GetxController {
   }
 
   void _showSkillsBottomSheet() {
+    final bool isBn = Get.locale?.languageCode == 'bn';
     Get.bottomSheet(
       Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
         width: double.infinity,
         child: SafeArea(
           bottom: true,
@@ -197,27 +215,79 @@ class HomeSeekerController extends GetxController {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Select a Skill",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isBn ? "দক্ষতা নির্বাচন করুন" : "Select a Skill",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, color: Colors.grey, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                children: skills
-                    .map(
-                      (skill) => ActionChip(
-                        label: Text(skill.name),
-                        onPressed: () {
-                          Get.back();
-                          currentSkillId.value = skill.id;
-                          currentSkillName.value = skill.name;
-                          showLocationSelectionSheet(skill.id, skill.name);
-                        },
+              if (skills.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Text(
+                      isBn ? "কোনো দক্ষতা পাওয়া যায়নি" : "No skills available",
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    ),
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 10,
+                  children: skills.map((skill) {
+                    final bool isCurrentSkill = currentSkillId.value == skill.id;
+                    return ActionChip(
+                      backgroundColor: isCurrentSkill
+                          ? AppColors.primary
+                          : const Color(0xFFF1F5F9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isCurrentSkill
+                              ? AppColors.primary
+                              : Colors.grey.shade300,
+                        ),
                       ),
-                    )
-                    .toList(),
-              ),
+                      avatar: isCurrentSkill
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                      label: Text(
+                        skill.name,
+                        style: TextStyle(
+                          color: isCurrentSkill ? Colors.white : Colors.black87,
+                          fontWeight: isCurrentSkill
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.back();
+                        currentSkillId.value = skill.id;
+                        currentSkillName.value = skill.name;
+                        showLocationSelectionSheet(skill.id, skill.name);
+                      },
+                    );
+                  }).toList(),
+                ),
             ],
           ),
         ),

@@ -79,7 +79,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
   }
 
   void _showImagePickerSheet(
-      {required Function(ImageSource) onSourceSelected}) {
+      {required Function(ImageSource) onSourceSelected, String? title}) {
     final bool isBn = Get.locale?.languageCode == 'bn';
     Get.bottomSheet(
       Material(
@@ -93,7 +93,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isBn ? 'ছবি নির্বাচন করুন' : 'Select Photo Source',
+                title ?? (isBn ? 'ছবি নির্বাচন করুন' : 'Select Photo Source'),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -812,8 +812,8 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                       title: isBn ? 'এনআইডি সামনের দিক' : 'NID Front Side',
                       subtext: canUpdateNid
                           ? (isBn
-                              ? 'ক্যামেরা দিয়ে ছবি তুলুন'
-                              : 'Take photo with camera')
+                              ? 'ক্যামেরা বা গ্যালারি থেকে ছবি আপলোড করুন'
+                              : 'Take photo or choose from gallery')
                           : (status == 'approved'
                               ? (isBn ? 'যাচাইকৃত (লক করা)' : 'Verified (Locked)')
                               : (isBn
@@ -839,9 +839,15 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                           );
                           return;
                         }
-                        controller.pickNidImage(
-                          isFront: true,
-                          source: ImageSource.camera,
+                        _showImagePickerSheet(
+                          title: isBn
+                              ? 'এনআইডি সামনের দিক নির্বাচন'
+                              : 'Select NID Front Photo',
+                          onSourceSelected: (source) =>
+                              controller.pickNidImage(
+                            isFront: true,
+                            source: source,
+                          ),
                         );
                       },
                     );
@@ -865,8 +871,8 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                       title: isBn ? 'এনআইডি পিছনের দিক' : 'NID Back Side',
                       subtext: canUpdateNid
                           ? (isBn
-                              ? 'ক্যামেরা দিয়ে ছবি তুলুন'
-                              : 'Take photo with camera')
+                              ? 'ক্যামেরা বা গ্যালারি থেকে ছবি আপলোড করুন'
+                              : 'Take photo or choose from gallery')
                           : (status == 'approved'
                               ? (isBn ? 'যাচাইকৃত (লক করা)' : 'Verified (Locked)')
                               : (isBn
@@ -892,9 +898,15 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                           );
                           return;
                         }
-                        controller.pickNidImage(
-                          isFront: false,
-                          source: ImageSource.camera,
+                        _showImagePickerSheet(
+                          title: isBn
+                              ? 'এনআইডি পিছনের দিক নির্বাচন'
+                              : 'Select NID Back Photo',
+                          onSourceSelected: (source) =>
+                              controller.pickNidImage(
+                            isFront: false,
+                            source: source,
+                          ),
                         );
                       },
                     );
@@ -1131,7 +1143,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                         ),
                       ),
                     ),
-                  // If update is allowed, show camera/retake pill
+                  // If update is allowed, show change pill
                   if (canUpdate)
                     Positioned(
                       bottom: 8,
@@ -1146,11 +1158,11 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.camera_alt_rounded,
+                            const Icon(Icons.edit_rounded,
                                 color: Colors.white, size: 13),
                             const SizedBox(width: 4),
                             Text(
-                              isBn ? 'পুনরায় তুলুন' : 'Retake',
+                              isBn ? 'পরিবর্তন করুন' : 'Change',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10.5,
@@ -1175,7 +1187,7 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      canUpdate ? Icons.camera_alt_outlined : Icons.lock_outline_rounded,
+                      canUpdate ? Icons.add_photo_alternate_outlined : Icons.lock_outline_rounded,
                       color: canUpdate ? AppColors.primary : Colors.grey.shade600,
                       size: 20,
                     ),

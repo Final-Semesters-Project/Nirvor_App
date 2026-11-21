@@ -47,13 +47,29 @@ class _ProviderActiveUrgentJobScreenState
           isError: true);
       return;
     }
-    final uri = Uri.parse(
+
+    final Uri geoUri = Uri.parse("geo:$lat,$lng?q=$lat,$lng");
+    final Uri dirUri = Uri.parse(
       "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng",
     );
+
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
+      bool launched = false;
+      try {
+        launched = await launchUrl(geoUri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        launched = false;
+      }
+
+      if (!launched) {
+        try {
+          launched = await launchUrl(dirUri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          launched = await launchUrl(dirUri, mode: LaunchMode.platformDefault);
+        }
+      }
+
+      if (!launched) {
         showCustomSnackBar("ম্যাপ খোলা সম্ভব হয়নি", isError: true);
       }
     } catch (e) {
