@@ -201,10 +201,12 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        child: Column(
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          child: Column(
+            children: [
             // 1. Profile Photo Squircle Slot
             Center(
               child: Column(
@@ -1044,10 +1046,11 @@ class _EditProviderProfileScreenState extends State<EditProviderProfileScreen> {
               );
             }),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
           ],
         ),
       ),
+    ),
     );
   }
 

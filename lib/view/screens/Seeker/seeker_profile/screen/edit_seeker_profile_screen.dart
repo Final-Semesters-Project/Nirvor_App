@@ -206,11 +206,13 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
           onPressed: () => Get.back(),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
             // 1. Photo Section
             Stack(
               alignment: Alignment.bottomRight,
@@ -694,9 +696,11 @@ class _EditSeekerProfileScreenState extends State<EditSeekerProfileScreen> {
                 ),
               );
             }),
+            const SizedBox(height: 32),
           ],
         ),
       ),
+    ),
     );
   }
 }

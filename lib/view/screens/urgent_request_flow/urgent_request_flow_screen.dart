@@ -54,18 +54,21 @@ class _UrgentRequestFlowScreenState extends State<UrgentRequestFlowScreen>
             Get.back();
           },
         ),
-        body: Obx(() {
-          switch (controller.flowState.value) {
-            case UrgentFlowState.configuring:
-              return _buildConfiguringState();
-            case UrgentFlowState.broadcasting:
-              return _buildBroadcastingState();
-            case UrgentFlowState.claimed:
-              return _buildClaimedState();
-            case UrgentFlowState.expired:
-              return _buildExpiredState();
-          }
-        }),
+        body: SafeArea(
+          top: false,
+          child: Obx(() {
+            switch (controller.flowState.value) {
+              case UrgentFlowState.configuring:
+                return _buildConfiguringState();
+              case UrgentFlowState.broadcasting:
+                return _buildBroadcastingState();
+              case UrgentFlowState.claimed:
+                return _buildClaimedState();
+              case UrgentFlowState.expired:
+                return _buildExpiredState();
+            }
+          }),
+        ),
       ),
     );
   }

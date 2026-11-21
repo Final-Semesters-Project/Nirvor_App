@@ -18,9 +18,11 @@ class RegisterMethodScreen extends StatelessWidget {
         centerTitleEnable: false,
         showLanguageSwitcher: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
           children: [
             const SizedBox(height: 16),
             CustomText(
@@ -76,9 +78,11 @@ class RegisterMethodScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+    ),
     );
   }
 

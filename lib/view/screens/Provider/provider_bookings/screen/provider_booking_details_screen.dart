@@ -203,7 +203,9 @@ class _ProviderBookingDetailsScreenState
           }),
         ],
       ),
-      body: Obx(() {
+      body: SafeArea(
+        top: false,
+        child: Obx(() {
         if (controller.isLoadingDetail.value &&
             controller.singleBookingDetail.value == null) {
           return const Center(
@@ -736,12 +738,13 @@ class _ProviderBookingDetailsScreenState
                   ),
                 ],
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 36),
               ],
             ),
           ),
         );
       }),
+    ),
     );
   }
 

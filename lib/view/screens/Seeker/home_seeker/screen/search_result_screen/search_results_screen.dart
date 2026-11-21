@@ -41,8 +41,10 @@ class SearchResultsScreen extends StatelessWidget {
         }),
         rightOnTap: () {},
       ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
           // Security Warning
           Container(
             width: double.infinity,
@@ -891,6 +893,7 @@ class SearchResultsScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

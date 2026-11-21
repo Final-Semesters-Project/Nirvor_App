@@ -54,11 +54,24 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
           final timerText = controller.formattedTimer;
           final distanceStr = controller.distanceText;
 
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final bottomPadding = MediaQuery.of(context).padding.bottom;
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        24.w,
+                        0,
+                        24.w,
+                        bottomPadding > 0 ? bottomPadding + 16.h : 24.h,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                 SizedBox(height: 12.h),
 
                 // Top Bar: "Nirbhor" on left, "Expires in MM:SS" pill on right
@@ -358,10 +371,15 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 8.h),
               ],
             ),
-          );
+          ),
+        ),
+      ),
+    );
+  },
+);
         }),
       ),
     ),
