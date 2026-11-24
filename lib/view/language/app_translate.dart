@@ -631,6 +631,13 @@ class AppTranslate extends Translations {
       'Urgent request sent': 'Urgent request sent',
       'Failed to send urgent request': 'Failed to send urgent request',
       'Request cancelled': 'Request cancelled',
+      'Loading more providers...': 'Loading more providers...',
+      'Select Search Radius': 'Select Search Radius',
+      'km': 'km',
+      'Next (Select Location)': 'Next (Select Location)',
+      'Load More Reviews': 'Load More Reviews',
+      'View comment': 'View comment',
+      'Hide comment': 'Hide comment',
     },
     'bn': {
       // General
@@ -1260,6 +1267,13 @@ class AppTranslate extends Translations {
       'Urgent request sent': 'জরুরি রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে',
       'Failed to send urgent request': 'জরুরি রিকোয়েস্ট পাঠানো সম্ভব হয়নি',
       'Request cancelled': 'রিকোয়েস্ট বাতিল করা হয়েছে',
+      'Loading more providers...': 'আরও প্রোভাইডার লোড হচ্ছে...',
+      'Select Search Radius': 'সার্চের পরিধি নির্বাচন করুন',
+      'km': 'কিমি',
+      'Next (Select Location)': 'পরবর্তী (অবস্থান নির্বাচন)',
+      'Load More Reviews': 'আরও রিভিউ দেখুন',
+      'View comment': 'মন্তব্য দেখুন',
+      'Hide comment': 'মন্তব্য লুকান',
     },
   };
 }

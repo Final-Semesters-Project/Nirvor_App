@@ -18,6 +18,7 @@ class _ProviderAllReviewsScreenState extends State<ProviderAllReviewsScreen> {
   final ProviderHomeController controller =
       Get.find<ProviderHomeController>();
   final ScrollController _scrollController = ScrollController();
+  final Set<String> _expandedReviewIds = {};
 
   @override
   void initState() {
@@ -294,98 +295,171 @@ class _ProviderAllReviewsScreenState extends State<ProviderAllReviewsScreen> {
         ? reviewerDisplayName[0].toUpperCase()
         : 'C';
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 17.r,
-                    backgroundColor: review.isAnonymous
-                        ? Colors.grey.shade200
-                        : AppColors.primary.withValues(alpha: 0.12),
-                    child: review.isAnonymous
-                        ? Icon(Icons.person_outline_rounded,
-                            size: 18.sp, color: Colors.grey.shade600)
-                        : Text(
-                            initial,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    final bool hasComment = (review.comment ?? '').trim().isNotEmpty;
+    final String reviewKey = review.reviewId.isNotEmpty
+        ? review.reviewId
+        : '${review.reviewerName}_${review.createdAt.millisecondsSinceEpoch}';
+    final bool isExpanded = _expandedReviewIds.contains(reviewKey);
+
+    return InkWell(
+      onTap: hasComment
+          ? () {
+              setState(() {
+                if (isExpanded) {
+                  _expandedReviewIds.remove(reviewKey);
+                } else {
+                  _expandedReviewIds.add(reviewKey);
+                }
+              });
+            }
+          : null,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 12.h),
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Row(
                     children: [
-                      Text(
-                        reviewerDisplayName,
-                        style: TextStyle(
-                          fontSize: 13.5.sp,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
+                      CircleAvatar(
+                        radius: 17.r,
+                        backgroundColor: review.isAnonymous
+                            ? Colors.grey.shade200
+                            : AppColors.primary.withValues(alpha: 0.12),
+                        child: review.isAnonymous
+                            ? Icon(Icons.person_outline_rounded,
+                                size: 18.sp, color: Colors.grey.shade600)
+                            : Text(
+                                initial,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
                       ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        review.localizedTimeAgo(isBn),
-                        style: TextStyle(
-                          fontSize: 10.5.sp,
-                          color: Colors.grey.shade500,
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              reviewerDisplayName,
+                              style: TextStyle(
+                                fontSize: 13.5.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              review.localizedTimeAgo(isBn),
+                              style: TextStyle(
+                                fontSize: 10.5.sp,
+                                color: Colors.grey.shade500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(
-                  5,
-                  (i) => Icon(
-                    i < review.rating
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    color: Colors.amber,
-                    size: 16.sp,
+                ),
+                SizedBox(width: 8.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        5,
+                        (i) => Icon(
+                          i < review.rating
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          color: Colors.amber,
+                          size: 16.sp,
+                        ),
+                      ),
+                    ),
+                    if (hasComment) ...[
+                      SizedBox(height: 3.h),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            isExpanded
+                                ? (isBn ? 'মন্তব্য লুকান' : 'Hide comment')
+                                : (isBn ? 'মন্তব্য দেখুন' : 'View comment'),
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w500,
+                              color: isExpanded
+                                  ? AppColors.primary
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+                          SizedBox(width: 2.w),
+                          Icon(
+                            isExpanded
+                                ? Icons.keyboard_arrow_up_rounded
+                                : Icons.keyboard_arrow_down_rounded,
+                            size: 14.sp,
+                            color: isExpanded
+                                ? AppColors.primary
+                                : Colors.grey.shade600,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+            if (hasComment && isExpanded) ...[
+              SizedBox(height: 10.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  review.comment!.trim(),
+                  style: TextStyle(
+                    fontSize: 12.5.sp,
+                    color: const Color(0xFF334155),
+                    height: 1.4,
                   ),
                 ),
               ),
             ],
-          ),
-          if ((review.comment ?? '').trim().isNotEmpty) ...[
-            SizedBox(height: 10.h),
-            Text(
-              review.comment!,
-              style: TextStyle(
-                fontSize: 12.5.sp,
-                color: const Color(0xFF334155),
-                height: 1.4,
-              ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }

@@ -29,6 +29,15 @@ class HomeSeekerController extends GetxController {
   var skills = <SkillModel>[].obs;
   var providers = <ProviderModel>[].obs;
 
+  // Pagination and parameters for Provider Search (/api/v1/search/providers)
+  final ScrollController searchScrollController = ScrollController();
+  var searchRadiusKm = 1.obs; // Search radius in km (initial: 1, max: 5, valid: 1-5 integer)
+  var searchPageSize = 20.obs; // Page size (default: 20)
+  var currentSearchPage = 1.obs;
+  var totalSearchPages = 1.obs;
+  var hasNextSearchPage = false.obs;
+  var isLoadingMoreProviders = false.obs;
+
   var isLoadingCategories = false.obs;
   var isLoadingSkills = false.obs;
   var isLoadingProviders = false.obs;
@@ -84,9 +93,29 @@ class HomeSeekerController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    searchScrollController.addListener(_onSearchScroll);
     getCategories();
     checkActiveBooking();
     loadHomeLocationData();
+  }
+
+  void _onSearchScroll() {
+    if (searchScrollController.hasClients) {
+      if (searchScrollController.position.pixels >=
+          searchScrollController.position.maxScrollExtent - 250) {
+        if (hasNextSearchPage.value &&
+            !isLoadingMoreProviders.value &&
+            !isLoadingProviders.value) {
+          loadMoreProviders();
+        }
+      }
+    }
+  }
+
+  @override
+  void onClose() {
+    searchScrollController.dispose();
+    super.onClose();
   }
 
   Future<void> loadHomeLocationData() async {
@@ -283,7 +312,7 @@ class HomeSeekerController extends GetxController {
                         Get.back();
                         currentSkillId.value = skill.id;
                         currentSkillName.value = skill.name;
-                        showLocationSelectionSheet(skill.id, skill.name);
+                        showRadiusSelectionSheet(skill.id, skill.name);
                       },
                     );
                   }).toList(),
@@ -296,9 +325,304 @@ class HomeSeekerController extends GetxController {
     );
   }
 
+  String toBnDigits(int number) {
+    if (Get.locale?.languageCode == 'bn') {
+      const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return number.toString().split('').map((char) {
+        int? idx = int.tryParse(char);
+        return idx != null ? bnDigits[idx] : char;
+      }).join();
+    }
+    return number.toString();
+  }
+
+  /// Show modal bottom sheet to select search radius (1 - 5 km)
+  void showRadiusSelectionSheet(int skillId, String skillName) {
+    final bool isBn = Get.locale?.languageCode == 'bn';
+    // Initial value is 1, max is 5, integers 1-5 only (no fractions)
+    final RxInt selectedKm = (searchRadiusKm.value >= 1 && searchRadiusKm.value <= 5
+            ? searchRadiusKm.value
+            : 1)
+        .obs;
+
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: SafeArea(
+          bottom: true,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.radar_rounded,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Select Search Radius'.tr,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Text(
+                                skillName,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, color: Colors.grey, size: 22),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Radius Display Card
+              Obx(() => Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.08),
+                          AppColors.primary.withValues(alpha: 0.03),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              toBnDigits(selectedKm.value),
+                              style: const TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                                height: 1,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'km'.tr,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isBn
+                              ? "আপনার অবস্থান থেকে ${toBnDigits(selectedKm.value)} কিমি এলাকার মধ্যে সেবাদাতা খোঁজা হবে"
+                              : "Searching providers within ${selectedKm.value} km of your location",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+              const SizedBox(height: 14),
+
+              // Slider (Discrete integer range 1 to 5, divisions: 4, no fraction!)
+              Obx(() => SliderTheme(
+                    data: SliderTheme.of(Get.context!).copyWith(
+                      activeTrackColor: AppColors.primary,
+                      inactiveTrackColor: Colors.grey.shade200,
+                      thumbColor: AppColors.primary,
+                      overlayColor: AppColors.primary.withValues(alpha: 0.2),
+                      trackHeight: 6,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 11),
+                      valueIndicatorColor: AppColors.primary,
+                      valueIndicatorTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    child: Slider(
+                      value: selectedKm.value.toDouble(),
+                      min: 1.0,
+                      max: 5.0,
+                      divisions: 4, // 1, 2, 3, 4, 5
+                      label: "${toBnDigits(selectedKm.value)} ${'km'.tr}",
+                      onChanged: (val) {
+                        selectedKm.value = val.round();
+                      },
+                    ),
+                  )),
+
+              // 5 Clickable Pills (1, 2, 3, 4, 5 km)
+              Obx(() => Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [1, 2, 3, 4, 5].map((km) {
+                      final isSelected = selectedKm.value == km;
+                      return Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            selectedKm.value = km;
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Center(
+                              child: Text(
+                                "${toBnDigits(km)} ${'km'.tr}",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey.shade800,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  )),
+
+              const SizedBox(height: 20),
+
+              // Continue Button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    searchRadiusKm.value = selectedKm.value;
+                    Get.back();
+                    showLocationSelectionSheet(skillId, skillName);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Next (Select Location)'.tr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_rounded, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   /// Show dialog / bottom sheet asking Seeker where they want the service:
-  /// 1. Current GPS location (road, office, etc.)
-  /// 2. Saved Home Address from their profile
+ 
   void showLocationSelectionSheet(int skillId, String skillName) async {
     await loadHomeLocationData();
 
@@ -359,14 +683,35 @@ class HomeSeekerController extends GetxController {
                             color: Colors.black87,
                           ),
                         ),
-                        Text(
-                          '$skillName - ${'where_do_you_need_service'.tr}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 6,
+                          children: [
+                            Text(
+                              '$skillName - ${'where_do_you_need_service'.tr}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "${toBnDigits(searchRadiusKm.value)} ${'km'.tr}",
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -566,9 +911,20 @@ class HomeSeekerController extends GetxController {
     );
   }
 
-  Future<void> searchProviders(int skillId, {bool useHomeLocation = false}) async {
+  Future<void> searchProviders(
+    int skillId, {
+    bool useHomeLocation = false,
+    int? radiusKm,
+    int? page,
+    int? pageSize,
+  }) async {
     currentSkillId.value = skillId;
     isLoadingProviders.value = true;
+    if (radiusKm != null) searchRadiusKm.value = radiusKm;
+    if (pageSize != null) searchPageSize.value = pageSize;
+    currentSearchPage.value = page ?? 1;
+    totalSearchPages.value = 1;
+    hasNextSearchPage.value = false;
 
     double targetLat = 0.0;
     double targetLng = 0.0;
@@ -648,13 +1004,18 @@ class HomeSeekerController extends GetxController {
 
     try {
       final response = await ApiClient.getData(
-        "${ApiUrl.searchProviders}?skill_id=$skillId&seeker_lat=$targetLat&seeker_lng=$targetLng&search_radius_km=5",
+        "${ApiUrl.searchProviders}?skill_id=$skillId&seeker_lat=$targetLat&seeker_lng=$targetLng&search_radius_km=${searchRadiusKm.value}&page=${currentSearchPage.value}&page_size=${searchPageSize.value}",
       );
       isLoadingProviders.value = false;
 
       if (response.statusCode == 200) {
         List data = response.body['items'] ?? response.body['providers'] ?? [];
         providers.value = data.map((e) => ProviderModel.fromJson(e)).toList();
+
+        currentSearchPage.value = response.body['page'] ?? 1;
+        totalSearchPages.value = response.body['total_pages'] ?? 1;
+        hasNextSearchPage.value = response.body['has_next'] ?? false;
+
         _updateMarkers(LatLng(targetLat, targetLng), isHome: useHomeLocation);
 
         if (providers.isEmpty && response.body['warning'] != null) {
@@ -677,6 +1038,59 @@ class HomeSeekerController extends GetxController {
     } catch (e) {
       isLoadingProviders.value = false;
       debugPrint("Search providers error: $e");
+    }
+  }
+
+  /// Load next page of providers when seeker scrolls to bottom
+  Future<void> loadMoreProviders() async {
+    if (isLoadingMoreProviders.value ||
+        isLoadingProviders.value ||
+        !hasNextSearchPage.value) {
+      return;
+    }
+
+    final nextPage = currentSearchPage.value + 1;
+    if (nextPage > totalSearchPages.value) {
+      hasNextSearchPage.value = false;
+      return;
+    }
+
+    isLoadingMoreProviders.value = true;
+    try {
+      final response = await ApiClient.getData(
+        "${ApiUrl.searchProviders}?skill_id=${currentSkillId.value}&seeker_lat=$seekerLat&seeker_lng=$seekerLng&search_radius_km=${searchRadiusKm.value}&page=$nextPage&page_size=${searchPageSize.value}",
+      );
+
+      if (response.statusCode == 200 && response.body != null) {
+        List data = response.body['items'] ?? response.body['providers'] ?? [];
+        final newProviders =
+            data.map((e) => ProviderModel.fromJson(e)).toList();
+
+        // Avoid adding duplicate providers if any
+        final existingIds = providers.map((p) => p.userId).toSet();
+        for (var p in newProviders) {
+          if (!existingIds.contains(p.userId)) {
+            providers.add(p);
+            existingIds.add(p.userId);
+          }
+        }
+
+        currentSearchPage.value = response.body['page'] ?? nextPage;
+        totalSearchPages.value =
+            response.body['total_pages'] ?? totalSearchPages.value;
+        hasNextSearchPage.value = response.body['has_next'] ??
+            (currentSearchPage.value < totalSearchPages.value);
+
+        // Update map markers with newly added providers as well
+        _updateMarkers(
+          LatLng(seekerLat, seekerLng),
+          isHome: selectedLocationMode.value == 'home',
+        );
+      }
+    } catch (e) {
+      debugPrint("Error loading more providers: $e");
+    } finally {
+      isLoadingMoreProviders.value = false;
     }
   }
 
