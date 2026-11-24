@@ -22,21 +22,43 @@ class UrgentBroadcastDetailModel {
 
   bool get isExpired =>
       status.toLowerCase() == 'expired' ||
+      status.toLowerCase() == 'cancelled' ||
       DateTime.now().isAfter(expiresAt);
 
   bool get isClaimed => status.toLowerCase() == 'claimed';
   bool get isBroadcasting => status.toLowerCase() == 'broadcasting';
 
+  static DateTime _parseExpiresAt(dynamic value) {
+    if (value == null) {
+      return DateTime.now().add(const Duration(minutes: 5));
+    }
+    String str = value.toString().trim();
+    if (str.isEmpty) {
+      return DateTime.now().add(const Duration(minutes: 5));
+    }
+    // If backend returns ISO string without UTC/offset indicator (e.g. "2026-11-21T10:30:00"),
+    // append 'Z' so DateTime parses it as UTC, not device local time.
+    if (!str.endsWith('Z') &&
+        !str.contains('+') &&
+        !RegExp(r'-\d{2}:\d{2}$').hasMatch(str)) {
+      str = '${str.replaceAll(' ', 'T')}Z';
+    }
+    final parsed = DateTime.tryParse(str);
+    if (parsed == null) {
+      return DateTime.now().add(const Duration(minutes: 5));
+    }
+    return parsed.toLocal();
+  }
+
   factory UrgentBroadcastDetailModel.fromJson(Map<String, dynamic> json) {
     return UrgentBroadcastDetailModel(
       broadcastId: json['broadcast_id']?.toString() ?? '',
       status: json['status']?.toString() ?? 'broadcasting',
-      skillId: json['skill_id'] is int ? json['skill_id'] : 0,
+      skillId: json['skill_id'] is int
+          ? json['skill_id']
+          : (int.tryParse(json['skill_id']?.toString() ?? '0') ?? 0),
       skillName: json['skill_name']?.toString() ?? 'Service',
-      expiresAt: json['expires_at'] != null
-          ? DateTime.tryParse(json['expires_at'].toString()) ??
-              DateTime.now().add(const Duration(minutes: 5))
-          : DateTime.now().add(const Duration(minutes: 5)),
+      expiresAt: _parseExpiresAt(json['expires_at']),
       seekerLatitude: (json['seeker_latitude'] as num?)?.toDouble() ?? 0.0,
       seekerLongitude: (json['seeker_longitude'] as num?)?.toDouble() ?? 0.0,
     );
@@ -90,7 +112,8 @@ class ActiveUrgentJobModel {
         seekerLongitude: (json['seeker_longitude'] as num?)?.toDouble() ?? 0.0,
         distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0.0,
         claimedAt: json['claimed_at'] != null
-            ? DateTime.tryParse(json['claimed_at'].toString()) ?? DateTime.now()
+            ? DateTime.tryParse(json['claimed_at'].toString())?.toLocal() ??
+                DateTime.now()
             : DateTime.now(),
       );
 }

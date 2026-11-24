@@ -21,10 +21,19 @@ class SplashController extends GetxController {
         FirebaseNotificationHelper.syncTokenWithBackend();
 
         String role = await SharePrefsHelper.getString(AppConstants.role);
+        final pendingData = FirebaseNotificationHelper.pendingNotificationData;
+        FirebaseNotificationHelper.pendingNotificationData = null;
+
         if (role == 'provider') {
-          Get.offAllNamed(AppRoutes.providerHomeScreen);
+          await Get.offAllNamed(AppRoutes.providerHomeScreen);
+          if (pendingData != null && pendingData.isNotEmpty) {
+            FirebaseNotificationHelper.handleNotificationRouting(pendingData);
+          }
         } else {
-          Get.offAllNamed(AppRoutes.homeSeekerScreen);
+          await Get.offAllNamed(AppRoutes.homeSeekerScreen);
+          if (pendingData != null && pendingData.isNotEmpty) {
+            FirebaseNotificationHelper.handleNotificationRouting(pendingData);
+          }
         }
       } else {
         Get.offAllNamed(AppRoutes.welcomeScreen);

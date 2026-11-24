@@ -22,7 +22,9 @@ class ProviderNidRejectionScreen extends StatelessWidget {
         leftOnTap: () => Get.back(),
         showLanguageSwitcher: true,
       ),
-      body: Obx(() {
+      body: SafeArea(
+        top: false,
+        child: Obx(() {
         if (controller.isLoading.value) {
           return const Center(
             child: CircularProgressIndicator(
@@ -329,11 +331,12 @@ class ProviderNidRejectionScreen extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 30.h),
+              SizedBox(height: 36.h),
             ],
           ),
         );
       }),
+    ),
     );
   }
 

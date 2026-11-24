@@ -50,6 +50,7 @@ class UrgentRequestController extends GetxController {
   var secondsRemaining = 300.obs; // 5 minutes default
   var claimedByName = ''.obs;
   var broadcastMessage = ''.obs;
+  var isCancelling = false.obs;
 
   Timer? _countdownTimer;
   Timer? _statusPollTimer;
@@ -382,13 +383,64 @@ class UrgentRequestController extends GetxController {
     }
   }
 
-  /// Seeker manually cancels current broadcast
-  void cancelBroadcast() {
-    _stopTimers();
-    broadcastId.value = '';
-    secondsRemaining.value = 300;
-    flowState.value = UrgentFlowState.configuring;
-    showCustomSnackBar('Request cancelled'.tr, isError: false);
+  /// Seeker manually cancels current broadcast: PATCH /api/v1/urgentBroadcast/broadcast/{broadcast_id}/cancel
+  Future<bool> cancelBroadcast() async {
+    final bId = broadcastId.value;
+    if (bId.isEmpty) {
+      _stopTimers();
+      broadcastId.value = '';
+      secondsRemaining.value = 300;
+      flowState.value = UrgentFlowState.configuring;
+      return true;
+    }
+
+    isCancelling.value = true;
+    try {
+      final response = await ApiClient.patchData(
+        ApiUrl.cancelUrgentBroadcast(bId),
+        {},
+      );
+
+      if (response.statusCode == 200) {
+        _stopTimers();
+        broadcastId.value = '';
+        secondsRemaining.value = 300;
+        flowState.value = UrgentFlowState.configuring;
+        final msg = response.body is Map && response.body['message'] != null
+            ? response.body['message'].toString()
+            : 'Request cancelled'.tr;
+        showCustomSnackBar(msg, isError: false);
+        return true;
+      } else {
+        String errMsg = 'Failed to cancel broadcast'.tr;
+        if (response.body is Map && response.body['detail'] != null) {
+          errMsg = response.body['detail'].toString();
+        } else if (response.body is Map && response.body['message'] != null) {
+          errMsg = response.body['message'].toString();
+        }
+
+        // If broadcast is already expired/closed on backend, still clean up UI
+        if (response.statusCode == 400 ||
+            response.statusCode == 404 ||
+            errMsg.toLowerCase().contains('not found')) {
+          _stopTimers();
+          broadcastId.value = '';
+          secondsRemaining.value = 300;
+          flowState.value = UrgentFlowState.configuring;
+          showCustomSnackBar('Request already closed'.tr, isError: false);
+          return true;
+        } else {
+          showCustomSnackBar(errMsg, isError: true);
+          return false;
+        }
+      }
+    } catch (e) {
+      debugPrint("Error cancelling urgent broadcast: $e");
+      showCustomSnackBar('Something went wrong. Please try again.'.tr, isError: true);
+      return false;
+    } finally {
+      isCancelling.value = false;
+    }
   }
 
   /// Retry sending urgent broadcast

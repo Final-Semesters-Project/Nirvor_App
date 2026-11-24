@@ -41,8 +41,10 @@ class SearchResultsScreen extends StatelessWidget {
         }),
         rightOnTap: () {},
       ),
-      body: Column(
-        children: [
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
           // Security Warning
           Container(
             width: double.infinity,
@@ -420,12 +422,66 @@ class SearchResultsScreen extends StatelessWidget {
               }
 
               final bool hasActive = controller.hasActiveBooking.value;
+              final int totalCount = controller.providers.length +
+                  (controller.hasNextSearchPage.value ||
+                          controller.isLoadingMoreProviders.value
+                      ? 1
+                      : 0);
 
-              Widget listView = ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                itemCount: controller.providers.length,
-                itemBuilder: (context, index) {
-                  final provider = controller.providers[index];
+              Widget listView = RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await controller.searchProviders(
+                    controller.currentSkillId.value,
+                    useHomeLocation:
+                        controller.selectedLocationMode.value == 'home',
+                  );
+                },
+                child: ListView.builder(
+                  controller: controller.searchScrollController,
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  itemCount: totalCount,
+                  itemBuilder: (context, index) {
+                    if (index >= controller.providers.length) {
+                      return Obx(() {
+                        if (controller.isLoadingMoreProviders.value) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(
+                                    height: 18,
+                                    width: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'Loading more providers...'.tr,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      });
+                    }
+
+                    final provider = controller.providers[index];
                   final isVerified =
                       provider.verificationLevel.toLowerCase() == 'verified' ||
                           provider.verificationLevel.toLowerCase() == 'trusted';
@@ -838,7 +894,8 @@ class SearchResultsScreen extends StatelessWidget {
                     ),
                   );
                 },
-              );
+              ),
+            );
 
               // If an active booking exists, blur the rest of the list so seeker can't contact others
               if (hasActive) {
@@ -891,6 +948,7 @@ class SearchResultsScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

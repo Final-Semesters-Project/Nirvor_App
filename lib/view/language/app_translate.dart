@@ -611,7 +611,11 @@ class AppTranslate extends Translations {
           'Need urgent help? Verified providers near you will be alerted immediately.',
       'Searching for nearby providers...': 'Searching for nearby providers...',
       'Cancel Request': 'Cancel Request',
+      'Cancelling...': 'Cancelling...',
       'Cancel Urgent Request?': 'Cancel Urgent Request?',
+      'Keep Searching': 'Keep Searching',
+      'Failed to cancel broadcast': 'Failed to cancel broadcast',
+      'Request already closed': 'Request already closed',
       'Are you sure you want to cancel this request? Nearby providers will not be notified.':
           'Are you sure you want to cancel this request? Nearby providers will not be notified.',
       'Try Again': 'Try Again',
@@ -627,6 +631,13 @@ class AppTranslate extends Translations {
       'Urgent request sent': 'Urgent request sent',
       'Failed to send urgent request': 'Failed to send urgent request',
       'Request cancelled': 'Request cancelled',
+      'Loading more providers...': 'Loading more providers...',
+      'Select Search Radius': 'Select Search Radius',
+      'km': 'km',
+      'Next (Select Location)': 'Next (Select Location)',
+      'Load More Reviews': 'Load More Reviews',
+      'View comment': 'View comment',
+      'Hide comment': 'Hide comment',
     },
     'bn': {
       // General
@@ -1236,7 +1247,11 @@ class AppTranslate extends Translations {
           'জরুরি সেবার প্রয়োজন? আপনার কাছাকাছি ভেরিফাইড প্রোভাইডারদের কাছে সরাসরি অ্যালার্ট যাবে।',
       'Searching for nearby providers...': 'কাছাকাছি প্রোভাইডারদের সাথে যোগাযোগ করা হচ্ছে...',
       'Cancel Request': 'রিকোয়েস্ট বাতিল করুন',
+      'Cancelling...': 'বাতিল করা হচ্ছে...',
       'Cancel Urgent Request?': 'জরুরি রিকোয়েস্ট বাতিল করবেন?',
+      'Keep Searching': 'অনুসন্ধান চালু রাখুন',
+      'Failed to cancel broadcast': 'অনুরোধ বাতিল করতে ব্যর্থ হয়েছে',
+      'Request already closed': 'অনুরোধটি ইতিমধ্যে বন্ধ হয়ে গেছে',
       'Are you sure you want to cancel this request? Nearby providers will not be notified.':
           'আপনি কি নিশ্চিত যে জরুরি রিকোয়েস্টটি বাতিল করতে চান? প্রোভাইডারদের আর অ্যালার্ট দেওয়া হবে না।',
       'Try Again': 'আবার চেষ্টা করুন ⚡',
@@ -1252,6 +1267,13 @@ class AppTranslate extends Translations {
       'Urgent request sent': 'জরুরি রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে',
       'Failed to send urgent request': 'জরুরি রিকোয়েস্ট পাঠানো সম্ভব হয়নি',
       'Request cancelled': 'রিকোয়েস্ট বাতিল করা হয়েছে',
+      'Loading more providers...': 'আরও প্রোভাইডার লোড হচ্ছে...',
+      'Select Search Radius': 'সার্চের পরিধি নির্বাচন করুন',
+      'km': 'কিমি',
+      'Next (Select Location)': 'পরবর্তী (অবস্থান নির্বাচন)',
+      'Load More Reviews': 'আরও রিভিউ দেখুন',
+      'View comment': 'মন্তব্য দেখুন',
+      'Hide comment': 'মন্তব্য লুকান',
     },
   };
 }

@@ -28,17 +28,23 @@ class ProviderUrgentAlertController extends GetxController {
   var statusMessage = "".obs;
 
   Timer? _countdownTimer;
+  Timer? _pollingTimer;
 
   @override
   void onInit() {
     super.onInit();
-    fetchDetail();
+    fetchDetail(isInitial: true);
   }
 
   @override
   void onClose() {
-    _countdownTimer?.cancel();
+    cleanup();
     super.onClose();
+  }
+
+  void cleanup() {
+    _countdownTimer?.cancel();
+    _pollingTimer?.cancel();
   }
 
   String get skillName {
@@ -65,8 +71,10 @@ class ProviderUrgentAlertController extends GetxController {
     return "Nearby";
   }
 
-  Future<void> fetchDetail() async {
-    isLoadingDetail.value = true;
+  Future<void> fetchDetail({bool isInitial = true}) async {
+    if (isInitial) {
+      isLoadingDetail.value = true;
+    }
     try {
       final response = await ApiClient.getData(
         ApiUrl.urgentBroadcastDetail(broadcastId),
@@ -76,20 +84,41 @@ class ProviderUrgentAlertController extends GetxController {
         final data = UrgentBroadcastDetailModel.fromJson(response.body);
         broadcastDetail.value = data;
 
+        final currentStatus = data.status.toLowerCase();
         if (data.isClaimed) {
           isExpiredOrClaimed.value = true;
           statusMessage.value =
               "This request has already been claimed by another provider.";
+          cleanup();
+        } else if (currentStatus == 'cancelled') {
+          isExpiredOrClaimed.value = true;
+          statusMessage.value =
+              "The seeker has cancelled this urgent request.";
+          cleanup();
         } else if (data.isExpired) {
           isExpiredOrClaimed.value = true;
           statusMessage.value = "This urgent request has expired.";
+          cleanup();
         } else {
+          isExpiredOrClaimed.value = false;
           _startTimer(data.expiresAt);
-          _calculateDistance(data.seekerLatitude, data.seekerLongitude);
+          if (isInitial) {
+            _calculateDistance(data.seekerLatitude, data.seekerLongitude);
+            _startPolling();
+          }
         }
+      } else if (response.statusCode == 404 || response.statusCode == 400) {
+        final msg = response.body is Map && response.body['detail'] != null
+            ? response.body['detail'].toString()
+            : "This urgent request is no longer available.";
+        isExpiredOrClaimed.value = true;
+        statusMessage.value = msg;
+        cleanup();
       } else {
-        // Fallback timer for 5 minutes if detail fails
-        _startTimer(DateTime.now().add(const Duration(minutes: 5)));
+        if (isInitial) {
+          _startTimer(DateTime.now().add(const Duration(minutes: 5)));
+          _startPolling();
+        }
         final msg = response.body is Map && response.body['detail'] != null
             ? response.body['detail'].toString()
             : "Could not load broadcast details";
@@ -97,19 +126,36 @@ class ProviderUrgentAlertController extends GetxController {
       }
     } catch (e) {
       debugPrint("Error fetching urgent broadcast details: $e");
-      _startTimer(DateTime.now().add(const Duration(minutes: 5)));
+      if (isInitial) {
+        _startTimer(DateTime.now().add(const Duration(minutes: 5)));
+        _startPolling();
+      }
     } finally {
-      isLoadingDetail.value = false;
+      if (isInitial) {
+        isLoadingDetail.value = false;
+      }
     }
+  }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 4), (_) async {
+      if (isExpiredOrClaimed.value || isClaiming.value) {
+        _pollingTimer?.cancel();
+        return;
+      }
+      await fetchDetail(isInitial: false);
+    });
   }
 
   void _startTimer(DateTime expiresAt) {
     _countdownTimer?.cancel();
-    final diff = expiresAt.difference(DateTime.now()).inSeconds;
+    final diff = expiresAt.toLocal().difference(DateTime.now()).inSeconds;
     if (diff <= 0) {
       remainingSeconds.value = 0;
       isExpiredOrClaimed.value = true;
       statusMessage.value = "This urgent request has expired.";
+      cleanup();
       return;
     }
 
@@ -121,6 +167,7 @@ class ProviderUrgentAlertController extends GetxController {
         timer.cancel();
         isExpiredOrClaimed.value = true;
         statusMessage.value = "This urgent request has expired.";
+        cleanup();
       }
     });
   }
@@ -169,7 +216,7 @@ class ProviderUrgentAlertController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        _countdownTimer?.cancel();
+        cleanup();
 
         final body = response.body is Map
             ? Map<String, dynamic>.from(response.body)
@@ -206,6 +253,7 @@ class ProviderUrgentAlertController extends GetxController {
       } else if (response.statusCode == 409) {
         // Already claimed by another provider
         isExpiredOrClaimed.value = true;
+        cleanup();
         final errMsg = response.body is Map && response.body['detail'] != null
             ? response.body['detail'].toString()
             : "দুঃখিত, অন্য একজন প্রোভাইডার আগেই এটি গ্রহণ করেছেন। / Another provider has already claimed this.";
@@ -226,7 +274,8 @@ class ProviderUrgentAlertController extends GetxController {
   }
 
   void decline() {
-    _countdownTimer?.cancel();
+    cleanup();
+    Get.delete<ProviderUrgentAlertController>(tag: broadcastId);
     if (Get.key.currentState?.canPop() ?? false) {
       Get.back();
     } else {

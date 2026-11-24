@@ -25,15 +25,26 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
       ),
     );
 
-    final controller = Get.put(
-      ProviderUrgentAlertController(
-        broadcastId: broadcastId,
-        initialSkillName: skillName,
-      ),
-      tag: broadcastId,
-    );
+    final controller =
+        Get.isRegistered<ProviderUrgentAlertController>(tag: broadcastId)
+            ? Get.find<ProviderUrgentAlertController>(tag: broadcastId)
+            : Get.put(
+                ProviderUrgentAlertController(
+                  broadcastId: broadcastId,
+                  initialSkillName: skillName,
+                ),
+                tag: broadcastId,
+              );
 
-    return Scaffold(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          controller.cleanup();
+          Get.delete<ProviderUrgentAlertController>(tag: broadcastId);
+        }
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF900C0C), // Deep crimson red background
       body: SafeArea(
         child: Obx(() {
@@ -43,11 +54,24 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
           final timerText = controller.formattedTimer;
           final distanceStr = controller.distanceText;
 
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final bottomPadding = MediaQuery.of(context).padding.bottom;
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        24.w,
+                        0,
+                        24.w,
+                        bottomPadding > 0 ? bottomPadding + 16.h : 24.h,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                 SizedBox(height: 12.h),
 
                 // Top Bar: "Nirbhor" on left, "Expires in MM:SS" pill on right
@@ -347,12 +371,18 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: 16.h),
+                SizedBox(height: 8.h),
               ],
             ),
-          );
+          ),
+        ),
+      ),
+    );
+  },
+);
         }),
       ),
+    ),
     );
   }
 }

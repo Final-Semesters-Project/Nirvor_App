@@ -243,11 +243,13 @@ class _ProviderActiveUrgentJobScreenState
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // 1. Service Type Card with Lightning Icon
             Container(
               width: double.infinity,
@@ -663,9 +665,11 @@ class _ProviderActiveUrgentJobScreenState
                 ),
               ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
+    ),
     );
   }
 }

@@ -40,12 +40,14 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
         showLanguageSwitcher: true,
         onLanguageChanged: () => setState(() {}),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Top Overview Card
             Container(
               width: double.infinity,
@@ -307,10 +309,11 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
           ],
         ),
       ),
+    ),
     );
   }
 }
