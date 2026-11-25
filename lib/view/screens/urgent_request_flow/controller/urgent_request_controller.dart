@@ -363,7 +363,8 @@ class UrgentRequestController extends GetxController {
 
         if (status == 'claimed') {
           _stopTimers();
-          claimedByName.value = data['claimed_by_name'] ?? 'Verified Provider'.tr;
+          claimedByName.value =
+              data['claimed_by_name'] ?? 'Verified Provider'.tr;
           flowState.value = UrgentFlowState.claimed;
 
           // If HomeSeekerController is active, refresh active booking
@@ -373,6 +374,10 @@ class UrgentRequestController extends GetxController {
 
           // If user is currently on home screen or outside, open UrgentRequestFlowScreen
           Get.to(() => const UrgentRequestFlowScreen());
+        } else if (status == 'cancelled' || status == 'cancel') {
+          _stopTimers();
+          flowState.value = UrgentFlowState.configuring;
+          showCustomSnackBar('Request cancelled'.tr, isError: false);
         } else if (status == 'expired' || secondsRemaining.value <= 0) {
           _stopTimers();
           flowState.value = UrgentFlowState.expired;

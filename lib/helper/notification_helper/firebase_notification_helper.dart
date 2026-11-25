@@ -36,6 +36,14 @@ class FirebaseNotificationHelper {
         "FCM Notification permission status: ${settings.authorizationStatus}",
       );
 
+      // Enable heads-up alert banner, sound, and badge presentation
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
       // Listen for token refreshes
       FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
         debugPrint("FCM Token refreshed: $newToken");
@@ -52,14 +60,12 @@ class FirebaseNotificationHelper {
       });
 
       // 2. Terminated state: When app is killed and launched by tapping notification
-      FirebaseMessaging.instance
-          .getInitialMessage()
-          .then((RemoteMessage? message) {
-        if (message != null) {
-          debugPrint("FCM getInitialMessage data: ${message.data}");
-          pendingNotificationData = message.data;
-        }
-      });
+      final initialMessage =
+          await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint("FCM getInitialMessage data: ${initialMessage.data}");
+        pendingNotificationData = initialMessage.data;
+      }
 
       // 3. Foreground state: When app is open on screen
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -222,7 +228,9 @@ class FirebaseNotificationHelper {
       if (Get.isRegistered<ProviderHomeController>()) {
         Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
       }
-      Get.to(() => const ProviderNidRejectionScreen());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.to(() => const ProviderNidRejectionScreen());
+      });
     } else if (type == 'VERIFICATION_APPROVED') {
       if (Get.isRegistered<ProviderHomeController>()) {
         Get.find<ProviderHomeController>().getDashboardData(showLoading: false);
@@ -232,13 +240,15 @@ class FirebaseNotificationHelper {
 
   static void navigateToUrgentAlert(String broadcastId, String? skillName) {
     if (broadcastId.isEmpty) return;
-    Get.to(
-      () => ProviderUrgentAlertScreen(
-        broadcastId: broadcastId,
-        skillName: skillName,
-      ),
-      routeName: '/ProviderUrgentAlertScreen_$broadcastId',
-      preventDuplicates: true,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.to(
+        () => ProviderUrgentAlertScreen(
+          broadcastId: broadcastId,
+          skillName: skillName,
+        ),
+        routeName: '/ProviderUrgentAlertScreen_$broadcastId',
+        preventDuplicates: true,
+      );
+    });
   }
 }

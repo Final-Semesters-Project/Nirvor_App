@@ -16,6 +16,8 @@ import '../../view/screens/Provider/provider_bookings/screen/provider_bookings_s
 import '../../view/screens/Provider/urgent_alert/screen/provider_urgent_alert_screen.dart';
 import '../../view/screens/Provider/home_provider/screen/provider_nid_rejection_screen.dart';
 import '../../view/screens/splash_screen/splash_screen.dart';
+import '../../view/screens/Seeker/seeker_urgent_history/screen/seeker_urgent_history_screen.dart';
+import '../../view/screens/Provider/provider_urgent_history/screen/provider_urgent_history_screen.dart';
 
 class AppRoutes {
   ///===========================Authentication==========================
@@ -34,6 +36,9 @@ class AppRoutes {
   static const String providerUrgentAlertScreen = "/ProviderUrgentAlertScreen";
   static const String providerNidRejectionScreen = "/ProviderNidRejectionScreen";
   static const String changePasswordScreen = "/ChangePasswordScreen";
+  static const String seekerUrgentHistoryScreen = "/SeekerUrgentHistoryScreen";
+  static const String providerUrgentHistoryScreen =
+      "/ProviderUrgentHistoryScreen";
 
   static List<GetPage> routes = [
     ///===========================Authentication==========================
@@ -75,5 +80,13 @@ class AppRoutes {
 
     ///============== Common ==================
     GetPage(name: changePasswordScreen, page: () => const ChangePasswordScreen()),
+    GetPage(
+      name: seekerUrgentHistoryScreen,
+      page: () => const SeekerUrgentHistoryScreen(),
+    ),
+    GetPage(
+      name: providerUrgentHistoryScreen,
+      page: () => const ProviderUrgentHistoryScreen(),
+    ),
   ];
 }

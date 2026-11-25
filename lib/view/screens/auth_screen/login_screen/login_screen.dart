@@ -3,7 +3,6 @@ import 'package:nirbhor/utils/ToastMsg/toast_message.dart';
 import '../controller/auth_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nirbhor/core/app_routes/app_routes.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/view/components/custom_button/custom_button.dart';
@@ -12,6 +11,7 @@ import '../../../../utils/app_images/app_images.dart';
 import '../../../components/custom_image/custom_image.dart' show CustomImage;
 import '../../../components/custom_royel_appbar/custom_royel_appbar.dart';
 import '../../../components/custom_text/custom_text.dart';
+import '../../../../helper/language_helper/language_helper.dart';
 
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
@@ -30,16 +30,8 @@ class LoginScreen extends StatelessWidget {
         leftIcon: true,
         centerTitleEnable: false,
         rightOnTap: () async {
-          final prefs = await SharedPreferences.getInstance();
-          if (Get.locale?.languageCode == 'en') {
-            Get.updateLocale(const Locale('bn', 'BD'));
-            await prefs.setString('languageCode', 'bn');
-            await prefs.setString('countryCode', 'BD');
-          } else {
-            Get.updateLocale(const Locale('en', 'US'));
-            await prefs.setString('languageCode', 'en');
-            await prefs.setString('countryCode', 'US');
-          }
+          final newLang = Get.locale?.languageCode == 'en' ? 'bn' : 'en';
+          await LanguageHelper.changeLanguage(newLang);
         },
         rightWidget: RichText(
           text: TextSpan(

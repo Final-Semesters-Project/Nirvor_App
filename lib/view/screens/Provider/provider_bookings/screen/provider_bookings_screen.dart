@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../../../core/app_routes/app_routes.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_nav_bar/provider_nav_bar.dart';
 import '../../../../components/user_report_dialog/user_report_modal.dart';
@@ -96,6 +97,44 @@ class _ProviderBookingsScreenState extends State<ProviderBookingsScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: InkWell(
+                onTap: () {
+                  Get.toNamed(AppRoutes.providerUrgentHistoryScreen);
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCCFBF1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF99F6E4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.bolt_rounded,
+                          color: Color(0xFF0F766E), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Urgent Jobs'.tr,
+                        style: const TextStyle(
+                          color: Color(0xFF0F766E),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(

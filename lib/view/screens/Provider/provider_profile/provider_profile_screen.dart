@@ -7,11 +7,12 @@ import 'package:nirbhor/view/components/custom_netwrok_image/custom_network_imag
 import 'package:nirbhor/view/screens/auth_screen/controller/auth_controller.dart';
 import 'package:nirbhor/view/screens/legal/privacy_policy_screen.dart';
 import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../home_provider/controller/provider_home_controller.dart';
 import 'controller/provider_profile_controller.dart';
 import 'screen/edit_provider_profile_screen.dart';
 import 'package:nirbhor/view/screens/change_password/change_password_screen.dart';
+import 'package:nirbhor/core/app_routes/app_routes.dart';
+import '../../../../helper/language_helper/language_helper.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -25,16 +26,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       Get.put(ProviderProfileController());
 
   Future<void> _toggleLanguage(String langCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (langCode == 'bn') {
-      await Get.updateLocale(const Locale('bn', 'BD'));
-      await prefs.setString('languageCode', 'bn');
-      await prefs.setString('countryCode', 'BD');
-    } else {
-      await Get.updateLocale(const Locale('en', 'US'));
-      await prefs.setString('languageCode', 'en');
-      await prefs.setString('countryCode', 'US');
-    }
+    await LanguageHelper.changeLanguage(langCode);
 
     // 1. Immediately flip in-memory profile model name & address (0ms real-time flip)
     controller.onLanguageChanged(langCode);
@@ -850,6 +842,22 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                               subtitle: 'Update security password'.tr,
                               onTap: () {
                                 Get.to(() => const ChangePasswordScreen());
+                              },
+                            ),
+                            Divider(
+                              height: 1,
+                              color: Colors.grey.shade100,
+                              indent: 56,
+                            ),
+                            _buildMenuItem(
+                              icon: Icons.bolt_rounded,
+                              iconBg: const Color(0xFFFEF3C7),
+                              iconColor: const Color(0xFFD97706),
+                              title: 'Urgent Jobs History'.tr,
+                              subtitle: 'Accepted & completed urgent jobs'.tr,
+                              onTap: () {
+                                Get.toNamed(
+                                    AppRoutes.providerUrgentHistoryScreen);
                               },
                             ),
                           ],

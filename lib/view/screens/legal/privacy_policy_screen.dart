@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nirbhor/utils/app_colors/app_colors.dart';
 import 'package:nirbhor/view/components/custom_royel_appbar/custom_royel_appbar.dart';
 import 'legal_content.dart';
@@ -13,20 +12,6 @@ class PrivacyPolicyScreen extends StatefulWidget {
 }
 
 class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
-  Future<void> _toggleLanguage(String langCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (langCode == 'bn') {
-      Get.updateLocale(const Locale('bn', 'BD'));
-      await prefs.setString('languageCode', 'bn');
-      await prefs.setString('countryCode', 'BD');
-    } else {
-      Get.updateLocale(const Locale('en', 'US'));
-      await prefs.setString('languageCode', 'en');
-      await prefs.setString('countryCode', 'US');
-    }
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool isBn = Get.locale?.languageCode == 'bn';
@@ -73,86 +58,17 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.shield_rounded,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                      // Quick Language Switcher Pill
-                      Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: () => _toggleLanguage('bn'),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isBn
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  'বাংলা',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: isBn
-                                        ? AppColors.primary
-                                        : Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () => _toggleLanguage('en'),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: !isBn
-                                      ? Colors.white
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  'English',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: !isBn
-                                        ? AppColors.primary
-                                        : Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.shield_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

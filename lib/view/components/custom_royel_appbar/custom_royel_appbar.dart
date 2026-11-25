@@ -4,9 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../utils/app_colors/app_colors.dart';
 import '../custom_image/custom_image.dart';
 import '../custom_text/custom_text.dart';
-
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../helper/language_helper/language_helper.dart';
 
 class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleName;
@@ -56,16 +55,8 @@ class CustomRoyelAppbar extends StatelessWidget implements PreferredSizeWidget {
             if (showLanguageSwitcher)
           IconButton(
             onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              if (Get.locale?.languageCode == 'en') {
-                Get.updateLocale(const Locale('bn', 'BD'));
-                await prefs.setString('languageCode', 'bn');
-                await prefs.setString('countryCode', 'BD');
-              } else {
-                Get.updateLocale(const Locale('en', 'US'));
-                await prefs.setString('languageCode', 'en');
-                await prefs.setString('countryCode', 'US');
-              }
+              final newLang = Get.locale?.languageCode == 'en' ? 'bn' : 'en';
+              await LanguageHelper.changeLanguage(newLang);
               onLanguageChanged?.call();
             },
             splashColor: Colors.transparent,

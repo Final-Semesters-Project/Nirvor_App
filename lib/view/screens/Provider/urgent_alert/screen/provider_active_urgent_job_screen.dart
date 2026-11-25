@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/app_routes/app_routes.dart';
+import '../../../../../service/api_client.dart';
+import '../../../../../service/api_url.dart';
 import '../../../../../utils/ToastMsg/toast_message.dart';
 import '../../home_provider/controller/provider_home_controller.dart';
 import '../model/urgent_broadcast_model.dart';
@@ -23,6 +25,132 @@ class ProviderActiveUrgentJobScreen extends StatefulWidget {
 
 class _ProviderActiveUrgentJobScreenState
     extends State<ProviderActiveUrgentJobScreen> {
+  bool _isCancelling = false;
+
+  void _showCancelDialog() {
+    final bool isBn = Get.locale?.languageCode == 'bn';
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red.shade600,
+                  size: 38,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Cancel Urgent Job?'.tr,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Are you sure you want to cancel this urgent job? The seeker will be notified.'.tr,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        'No, Keep Job'.tr,
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Get.back();
+                        setState(() => _isCancelling = true);
+                        try {
+                          final response = await ApiClient.patchData(
+                            ApiUrl.providerCancelUrgentBroadcast(
+                              widget.job.broadcastId,
+                            ),
+                            {},
+                          );
+                          if (response.statusCode == 200) {
+                            await clearActiveUrgentJob();
+                            if (Get.isRegistered<ProviderHomeController>()) {
+                              Get.find<ProviderHomeController>()
+                                  .setActiveUrgentJob(null);
+                            }
+                            showCustomSnackBar(
+                              'Urgent job cancelled successfully.'.tr,
+                              isError: false,
+                            );
+                            Get.offAllNamed(AppRoutes.providerHomeScreen);
+                          } else {
+                            final errMsg = response.body is Map &&
+                                    response.body['detail'] != null
+                                ? response.body['detail'].toString()
+                                : 'Failed to cancel job.'.tr;
+                            showCustomSnackBar(errMsg, isError: true);
+                          }
+                        } catch (e) {
+                          showCustomSnackBar(
+                            'Network error occurred.',
+                            isError: true,
+                          );
+                        } finally {
+                          if (mounted) setState(() => _isCancelling = false);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        isBn ? 'হ্যাঁ, বাতিল' : 'Yes, Cancel',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   Future<void> _makePhoneCall(String phone) async {
     if (phone.isEmpty) {
       showCustomSnackBar("গ্রাহকের ফোন নম্বর পাওয়া যায়নি / Phone number not found",
@@ -638,6 +766,44 @@ class _ProviderActiveUrgentJobScreenState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F766E),
                   elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Cancel Urgent Job Button
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _isCancelling ? null : _showCancelDialog,
+                icon: _isCancelling
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.redAccent,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.cancel_outlined,
+                        color: Colors.redAccent,
+                      ),
+                label: Text(
+                  'Cancel Urgent Job'.tr,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.redAccent),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

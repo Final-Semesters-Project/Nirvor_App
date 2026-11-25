@@ -7,10 +7,11 @@ import 'package:nirbhor/view/components/custom_netwrok_image/custom_network_imag
 import 'package:nirbhor/view/screens/auth_screen/controller/auth_controller.dart';
 import 'package:nirbhor/view/screens/legal/privacy_policy_screen.dart';
 import 'package:nirbhor/view/screens/legal/terms_conditions_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../../helper/language_helper/language_helper.dart';
 import '../controller/seeker_profile_controller.dart';
 import 'edit_seeker_profile_screen.dart';
 import 'package:nirbhor/view/screens/change_password/change_password_screen.dart';
+import 'package:nirbhor/core/app_routes/app_routes.dart';
 
 class SeekerProfileScreen extends StatefulWidget {
   const SeekerProfileScreen({super.key});
@@ -23,16 +24,7 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
   final SeekerProfileController controller = Get.find<SeekerProfileController>();
 
   Future<void> _toggleLanguage(String langCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (langCode == 'bn') {
-      await Get.updateLocale(const Locale('bn', 'BD'));
-      await prefs.setString('languageCode', 'bn');
-      await prefs.setString('countryCode', 'BD');
-    } else {
-      await Get.updateLocale(const Locale('en', 'US'));
-      await prefs.setString('languageCode', 'en');
-      await prefs.setString('countryCode', 'US');
-    }
+    await LanguageHelper.changeLanguage(langCode);
 
     // 1. Immediately flip in-memory profile model name (0ms real-time flip)
     controller.onLanguageChanged(langCode);
@@ -672,6 +664,21 @@ class _SeekerProfileScreenState extends State<SeekerProfileScreen> {
                               subtitle: 'Update security password'.tr,
                               onTap: () {
                                 Get.to(() => const ChangePasswordScreen());
+                              },
+                            ),
+                            Divider(
+                              height: 1,
+                              color: Colors.grey.shade100,
+                              indent: 56,
+                            ),
+                            _buildMenuItem(
+                              icon: Icons.bolt_rounded,
+                              iconBg: const Color(0xFFFEF3C7),
+                              iconColor: const Color(0xFFD97706),
+                              title: 'Urgent Requests History'.tr,
+                              subtitle: 'All your urgent broadcasts'.tr,
+                              onTap: () {
+                                Get.toNamed(AppRoutes.seekerUrgentHistoryScreen);
                               },
                             ),
                           ],

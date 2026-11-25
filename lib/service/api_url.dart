@@ -33,6 +33,8 @@ class ApiUrl {
   static const String seekerAddress = "/seeker/me/address";
   static const String updateSeekerProfile = "/seeker/me/profile";
   static const String updatePassword = "/users/me/update-password";
+  static const String togglePreferredLanguage =
+      "/users/me/toggle_preferred_language";
 
   ///========================= Category & Skills =========================
   static const String categoryList = "/category/list";
@@ -88,6 +90,35 @@ class ApiUrl {
       "/urgentBroadcast/broadcast/$broadcastId/claim";
   static String cancelUrgentBroadcast(String broadcastId) =>
       "/urgentBroadcast/broadcast/$broadcastId/cancel";
+  static String providerCancelUrgentBroadcast(String broadcastId) =>
+      "/urgentBroadcast/broadcast/$broadcastId/provider-cancel";
+  static String seekerUrgentBroadcasts({
+    int page = 1,
+    int pageSize = 10,
+    String? status,
+    bool activeOnly = false,
+  }) {
+    String url =
+        "/urgentBroadcast/seeker/broadcasts?page=$page&page_size=$pageSize&active_only=$activeOnly";
+    if (status != null && status.isNotEmpty) {
+      url += "&status=$status";
+    }
+    return url;
+  }
+
+  static String providerUrgentBroadcasts({
+    int page = 1,
+    int pageSize = 10,
+    String? status,
+    bool activeOnly = false,
+  }) {
+    String url =
+        "/urgentBroadcast/provider/broadcasts?page=$page&page_size=$pageSize&active_only=$activeOnly";
+    if (status != null && status.isNotEmpty) {
+      url += "&status=$status";
+    }
+    return url;
+  }
 
   ///========================= FCM Token =========================
   static const String fcmToken = "/auth/fcm/token";

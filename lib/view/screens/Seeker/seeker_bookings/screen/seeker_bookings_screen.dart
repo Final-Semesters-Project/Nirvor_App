@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../../../core/app_routes/app_routes.dart';
 import '../../../../../utils/app_colors/app_colors.dart';
 import '../../../../components/custom_nav_bar/navbar.dart';
 import '../../../../components/custom_royel_appbar/custom_royel_appbar.dart';
@@ -91,6 +92,44 @@ class _SeekerBookingsScreenState extends State<SeekerBookingsScreen> {
         centerTitleEnable: false,
         showLanguageSwitcher: false,
         titleSpacing: 20,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Center(
+              child: InkWell(
+                onTap: () {
+                  Get.toNamed(AppRoutes.seekerUrgentHistoryScreen);
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF3C7),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.bolt_rounded,
+                          color: Color(0xFFD97706), size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Urgent Requests'.tr,
+                        style: const TextStyle(
+                          color: Color(0xFFB45309),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: const SeekerNavbar(currentIndex: 1),
       body: Obx(() {

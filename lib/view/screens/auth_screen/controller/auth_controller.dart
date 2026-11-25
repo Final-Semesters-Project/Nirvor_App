@@ -8,6 +8,7 @@ import '../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../utils/app_const/app_const.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../helper/notification_helper/firebase_notification_helper.dart';
+import '../../../../helper/language_helper/language_helper.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -359,6 +360,9 @@ class AuthController extends GetxController {
       }
       showCustomSnackBar("Login successful".tr, isError: false);
       await sendFcmToken();
+      LanguageHelper.syncPreferredLanguageWithBackend(
+        Get.locale?.languageCode ?? 'en',
+      );
       // Navigate to home depending on role. Example:
       if(response.body['role'] == 'provider'){
         Get.offAllNamed(AppRoutes.providerHomeScreen);

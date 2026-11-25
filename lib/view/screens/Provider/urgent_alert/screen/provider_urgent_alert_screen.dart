@@ -37,11 +37,10 @@ class ProviderUrgentAlertScreen extends StatelessWidget {
               );
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (didPop) {
-          controller.cleanup();
-          Get.delete<ProviderUrgentAlertController>(tag: broadcastId);
+        if (!didPop) {
+          controller.decline();
         }
       },
       child: Scaffold(
